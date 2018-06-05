@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block js_import %}
+<script type="text/javascript" src="/static/js/socket.io.js"></script>
+<script type="text/javascript" src="/static/js/socket_controller.js"></script>
+{% endblock %}
+{% block content %}
+    <section id="appHeader" class="container container-with-overflow">
+        <div class="pad">
+            <div class="banner">
+                {% block banner %}<img class="banner_img" src="/static/images/banner.svg">{% endblock %}
+                <h4>Welcome to Assemblyline Device Auditor</h4>
+            </div>
+        </div>
+    </section>
+    <section id="appBody" class="container container-with-overflow">
+        <div class="pad text-center text-muted">
+            Application is currently <b><i>active</i></b> and ready to scan
+        </div>
+        <div class="user_output">
+			<img class="user_output_img" src={{"/static/images/scrape_no_conn.svg"}}>
+		</div>
+		<div class="pad text-center text-muted">
+            <p id="user_output_text">Please insert a device to begin</p>
+        </div>
+    </section>
+{% endblock %}
