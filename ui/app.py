@@ -7,7 +7,7 @@ import eventlet
 
 i = 1
 my_thread = None
-output = 'Please plug in a device to get started'
+output = ''
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme123'
@@ -33,28 +33,25 @@ def submit():
     return render("scan.html", request.path)
 
 
-@socketio.on('aaa')
-def test_connect():
-    print("Welcome, aaa received")
-    emit('aaa_response', 'Hello!')
+@socketio.on('to_kiosk')
+def test_connect(args):
+    global output
+    output = args
 
 
 @socketio.on('start', namespace='/output')
 def handle_message():
     global my_thread
     emit('output', 'Connected', namespace='/output')
-    # if my_thread is None:
-    #     my_thread = socketio.start_background_task(target=background_thread)
+    if my_thread is None:
+        my_thread = socketio.start_background_task(target=background_thread)
 
 
 def background_thread():
     while True:
-        global i
-        eventlet.sleep(1)
-        i = i+1
-        print i
+        eventlet.sleep(0.1)
         with app.test_request_context():
-            socketio.emit('output', i, namespace='/output')
+            socketio.emit('output', output, namespace='/output')
 
 
 def render(template, path):
