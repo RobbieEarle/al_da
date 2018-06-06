@@ -15,8 +15,9 @@ var socket = io.connect('http://' + document.domain + ':' + location.port);
         document.getElementById("user_output_img").src = '/static/images/ripple2.svg';
     });
 
-    // socket.on('done_loading', function(){
-    // });
+    socket.on('done_loading', function(){
+
+    });
 
     // socket.on('img_update', function(img_url, fade){
     //     if (fade) {

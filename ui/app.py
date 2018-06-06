@@ -90,11 +90,11 @@ def background_thread():
             for msg in socket_msg:
                 if socket_msg[msg]['active'] is True:
                     print msg
-                    if msg == 'device_conn':
-                        print socket_msg[msg]['url']
-                        socketio.emit(msg, socket_msg[msg]['url'])
+                    if msg == 'device_conn' or msg == 'done_loading':
+                        print 'Change graphic'
+                        socketio.emit('device_conn', socket_msg['device_conn']['url'])
                     if msg == 'loading':
-                        print 'Successful load'
+                        print 'Load start'
                         socketio.emit(msg)
                     socket_msg[msg]['active'] = False
             new_socket_msg = False
