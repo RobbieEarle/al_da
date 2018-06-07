@@ -9,6 +9,7 @@ eventlet.monkey_patch()
 
 my_thread = None
 output = ''
+last_output = ''
 
 new_socket_msg = False
 socket_msg = {'device_conn': {'active': False, 'url': '/static/images/scrape_no_conn.svg'},
@@ -43,6 +44,13 @@ def scan():
 @socketio.on('start')
 def start():
     global my_thread
+    global output
+    global last_output
+
+    output = 'Connected'
+    last_output = ''
+
+    print '--- Refresh'
     if my_thread is None:
         my_thread = socketio.start_background_task(target=background_thread)
 
@@ -81,20 +89,25 @@ def background_thread():
     global new_socket_msg
     global socket_msg
 
+    global last_output
+
     while True:
         eventlet.sleep(0.01)
         with app.test_request_context():
-            socketio.emit('output', output)
+            if output != last_output:
+                print 'Python output: ' + output
+                socketio.emit('output', output)
+                last_output = output
 
         if new_socket_msg:
             for msg in socket_msg:
                 if socket_msg[msg]['active'] is True:
-                    print msg
+                    # print msg
                     if msg == 'device_conn' or msg == 'done_loading':
-                        print 'Change graphic'
+                        # print 'Change graphic'
                         socketio.emit('device_conn', socket_msg['device_conn']['url'])
                     if msg == 'loading':
-                        print 'Load start'
+                        # print 'Load start'
                         socketio.emit(msg)
                     socket_msg[msg]['active'] = False
             new_socket_msg = False
