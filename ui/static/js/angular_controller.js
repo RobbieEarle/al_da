@@ -67,6 +67,7 @@ app.controller('MainController', ['$scope',
 
 ]);
 
+
 // ----------------------- Animation Listeners
 app.directive('myShow', function($animate) {
 return {
