@@ -1,21 +1,30 @@
-.animate-show,
-.animate-hide {
-  -webkit-transition:all linear 0.2s;
-  -moz-transition:all linear 0.2s;
-  -ms-transition:all linear 0.2s;
-  -o-transition:all linear 0.2s;
-  transition:all linear 0.2s;
+.kiosk_img{
+  display:inline !important;
+  animation-fill-mode: forwards;
 }
 
-/*The shorter one is our start point, the longer the end*/
-.animate-show.ng-hide-remove,
-.animate-hide.ng-hide-add.ng-hide-add-active {
+.kiosk_img.hidden {
   opacity: 0;
-  display: inline !important;
 }
 
-.animate-hide.ng-hide-add,
-.animate-show.ng-hide-remove.ng-hide-remove-active {
+.kiosk_img.my-hide-add,
+.kiosk_img.my-hide-remove.my-hide-remove-active{
+  -webkit-transition:all linear 0.1s;
+  -moz-transition:all linear 0.1s;
+  -ms-transition:all linear 0.1s;
+  -o-transition:all linear 0.1s;
+  transition:all linear 0.1s;
+  display:inline !important;
   opacity: 1;
-  display: inline !important;
+}
+
+.kiosk_img.my-hide-remove,
+.kiosk_img.my-hide-add.my-hide-add-active {
+  -webkit-transition:all linear 0.1s;
+  -moz-transition:all linear 0.1s;
+  -ms-transition:all linear 0.1s;
+  -o-transition:all linear 0.1s;
+  transition:all linear 0.1s;
+  display:inline !important;
+  opacity: 0.1;
 }

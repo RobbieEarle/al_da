@@ -429,11 +429,13 @@ section.container{
 
 .user_output_img {
     width: 75%;
+	animation-fill-mode: forwards;
 }
 
 @media (min-width: 992px){
     .user_output_img {
 		width: 16%;
+		animation-fill-mode: forwards;
     }
 }
 

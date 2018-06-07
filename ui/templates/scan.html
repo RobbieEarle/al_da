@@ -22,13 +22,12 @@
         </div>
 
         <div class="user_output" id="device_conn_img">
-			<img ng-show="animate" class="user_output_img animate-show animate-hide" id="user_output_img" src=//kiosk_img//>
+            <img class="user_output_img kiosk_img" my_show="show" after-hide="afterHide()" after-show="afterShow()"
+                 id="user_output_img" src=//kiosk_img//>
 		</div>
 
         <div class="pad text-center text-muted">
             <p id="user_output_text">//kiosk_output//</p>
-            <!--So this just changes the 'animate' value to the opposite-->
-            <button ng-click="play()">play</button>
         </div>
     </section>
 {% endblock %}

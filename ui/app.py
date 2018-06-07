@@ -47,10 +47,9 @@ def start():
     global output
     global last_output
 
-    output = 'Connected'
+    output = ''
     last_output = ''
 
-    print '--- Refresh'
     if my_thread is None:
         my_thread = socketio.start_background_task(target=background_thread)
 
@@ -95,20 +94,19 @@ def background_thread():
         eventlet.sleep(0.01)
         with app.test_request_context():
             if output != last_output:
-                print 'Python output: ' + output
+                print 'Server output: ' + output
                 socketio.emit('output', output)
                 last_output = output
 
         if new_socket_msg:
             for msg in socket_msg:
                 if socket_msg[msg]['active'] is True:
-                    # print msg
-                    if msg == 'device_conn' or msg == 'done_loading':
-                        # print 'Change graphic'
-                        socketio.emit('device_conn', socket_msg['device_conn']['url'])
+                    if msg == 'device_conn':
+                        socketio.emit(msg, socket_msg['device_conn']['url'])
                     if msg == 'loading':
-                        # print 'Load start'
                         socketio.emit(msg)
+                    if msg == 'done_loading':
+                        socketio.emit(msg, socket_msg['device_conn']['url'])
                     socket_msg[msg]['active'] = False
             new_socket_msg = False
 
