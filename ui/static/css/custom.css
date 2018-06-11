@@ -1,0 +1,23 @@
+.scrollabletextbox {
+    display: inline;
+    /*margin-left: auto;*/
+    /*margin-right: auto;*/
+    vertical-align: middle;
+    font-size: 75%;
+    height: 150px;
+    width: 75%;
+    resize: none;
+    overflow: auto;
+    overflow-x: hidden;
+    cursor: default;
+    border-color: #EEEEEE;
+    background-color: #FAFAFA;
+}
+
+.text-note {
+    font-size: 80%;
+    text-align: center;
+    color: #999;
+    padding-top: 5px;
+	padding-bottom: 10px;
+}

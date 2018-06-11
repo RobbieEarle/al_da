@@ -14,7 +14,6 @@
   -ms-transition:all linear 0.1s;
   -o-transition:all linear 0.1s;
   transition:all linear 0.1s;
-  display:inline !important;
   opacity: 1;
 }
 
@@ -25,6 +24,5 @@
   -ms-transition:all linear 0.1s;
   -o-transition:all linear 0.1s;
   transition:all linear 0.1s;
-  display:inline !important;
-  opacity: 0.1;
+  opacity: 0;
 }

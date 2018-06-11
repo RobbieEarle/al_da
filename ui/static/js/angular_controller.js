@@ -6,8 +6,16 @@ app.controller('MainController', ['$scope',
 
         // ----------------------- Default Element Values
         $scope.kiosk_img_new = '/static/images/scrape_no_conn.svg';
+        $scope.kiosk_header = 'To submit files for analysis simply plug a ' +
+            'block device (ie. USB device or external hard drive) into the terminal and wait for all files to be ' +
+            'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
+            'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
+            'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
+            'the submitter.'
         $scope.kiosk_img = $scope.kiosk_img_new;
+        $scope.kiosk_status = 'Please plug in a device to begin'
         $scope.show = true;
+        $scope.kiosk_output = '';
 
         // ----------------------- Socket Stuff
         var socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -19,7 +27,14 @@ app.controller('MainController', ['$scope',
         socket.on('output', function(output_txt){
             _.defer(function() {
                 $scope.$apply(function () {
-                    $scope.kiosk_output = output_txt;
+                    if (output_txt === 'clear') {
+                        $scope.kiosk_output = '';
+                    }
+                    else
+                        $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
+
+                    var textarea = document.getElementById('kiosk_output_txt');
+                    textarea.scrollTop = textarea.scrollHeight;
                 });
             });
         });
@@ -78,7 +93,6 @@ return {
     },
     link: function(scope, element) {
         scope.$watch('myShow', function(show) {
-            console.log('Function Call');
             if (show) {
                 $animate.removeClass(element, 'hidden');
                 $animate.removeClass(element, 'my-hide').then(scope.afterShow);
@@ -89,5 +103,5 @@ return {
             }
         });
     }
-}
-})
+};
+});

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block css_import %}
 <link rel="stylesheet" href="/static/css/animations.css"/>
+<link rel="stylesheet" href="/static/css/custom.css"/>
 {% endblock %}
 {% block js_import %}
 <script type="text/javascript" src="/static/js/socket.io.js"></script>
@@ -12,22 +13,26 @@
         <div class="pad">
             <div class="banner">
                 {% block banner %}<img class="banner_img" src="/static/images/banner.svg">{% endblock %}
-                <h4>Welcome to Assemblyline Device Auditor</h4>
+                <!--<h4>Welcome to Assemblyline Device Auditor</h4>-->
             </div>
         </div>
     </section>
     <section id="appBody" class="container container-with-overflow" ng-controller="MainController">
         <div class="pad text-center text-muted">
-            Application is currently <b><i>active</i></b> and ready to scan. Please plug in a device to get started.
+            <b>Welcome to Assembyline Device Auditor</b>
         </div>
-
+        <div class="text-note">
+            //kiosk_header//
+        </div>
         <div class="user_output" id="device_conn_img">
             <img class="user_output_img kiosk_img" my_show="show" after-hide="afterHide()" after-show="afterShow()"
                  id="user_output_img" src=//kiosk_img//>
+            <textarea class="scrollabletextbox kiosk_txt_hide pad text-muted" id="kiosk_output_txt" readonly>
+                //kiosk_output//
+            </textarea>
 		</div>
-
         <div class="pad text-center text-muted">
-            <p id="user_output_text">//kiosk_output//</p>
+            <!--//kiosk_status//-->
         </div>
     </section>
 {% endblock %}
