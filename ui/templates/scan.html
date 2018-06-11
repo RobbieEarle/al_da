@@ -9,30 +9,49 @@
 <script src="/static/js/angular_controller.js"></script>
 {% endblock %}
 {% block content %}
-    <section id="appHeader" class="container container-with-overflow">
-        <div class="pad">
-            <div class="banner">
-                {% block banner %}<img class="banner_img" src="/static/images/banner.svg">{% endblock %}
-                <!--<h4>Welcome to Assemblyline Device Auditor</h4>-->
+    <section id="main" role="main">
+        <section id="appHeader" class="container container-with-overflow">
+            <div class="pad">
+                <div class="banner">
+                    {% block banner %}<img class="banner_img" src="/static/images/banner.svg">{% endblock %}
+                    <!--<h4>Welcome to Assemblyline Device Auditor</h4>-->
+                </div>
             </div>
-        </div>
+        </section>
+        <section id="appBody" class="container container-with-overflow" ng-controller="MainController">
+            <div class="pad text-center text-muted">
+                <b>Welcome to Assembyline Device Auditor</b>
+            </div>
+            <div class="text-note">
+                //kiosk_header//
+            </div>
+            <div class="user_output" id="device_conn_img">
+                <img class="user_output_img kiosk_img" my_show="show" after-hide="afterHide()" after-show="afterShow()"
+                     id="user_output_img" src=//kiosk_img//>
+                <textarea class="scrollabletextbox kiosk_txt_hide pad text-muted" id="kiosk_output_txt" readonly>
+                    //kiosk_output//
+                </textarea>
+            </div>
+            <div class="pad text-center text-muted">
+                <!--//kiosk_status//-->
+                <!--<button ng-click="play()">play</button>-->
+            </div>
+        </section>
     </section>
-    <section id="appBody" class="container container-with-overflow" ng-controller="MainController">
-        <div class="pad text-center text-muted">
-            <b>Welcome to Assembyline Device Auditor</b>
-        </div>
-        <div class="text-note">
-            //kiosk_header//
-        </div>
-        <div class="user_output" id="device_conn_img">
-            <img class="user_output_img kiosk_img" my_show="show" after-hide="afterHide()" after-show="afterShow()"
-                 id="user_output_img" src=//kiosk_img//>
-            <textarea class="scrollabletextbox kiosk_txt_hide pad text-muted" id="kiosk_output_txt" readonly>
-                //kiosk_output//
-            </textarea>
-		</div>
-        <div class="pad text-center text-muted">
-            <!--//kiosk_status//-->
-        </div>
+    <div id="results_scroll_to" class="results_scroll"></div>
+    <br />
+    <section id="results" role="main" class="results_section">
+        <section id="results_header" class="container container-with-overflow">
+            <div class="pad text-center text-muted">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="banner_img" src="/static/images/banner.svg">
+            </div>
+        </section>
     </section>
 {% endblock %}

@@ -17,28 +17,57 @@ app.controller('MainController', ['$scope',
         $scope.show = true;
         $scope.kiosk_output = '';
 
-        // ----------------------- Socket Stuff
+        // ----------------------- Socket Initialization
         var socket = io.connect('http://' + document.domain + ':' + location.port);
         socket.on('connect', function() {
             socket.emit('start');
         });
 
-        // -------- Socket Listeners
+        // -------- Socket Event Listeners
+
+        // Listens for Pyhton loogger output to be shown in UI console
         socket.on('output', function(output_txt){
             _.defer(function() {
                 $scope.$apply(function () {
+
+                    // If the console text is 'clear', clears the UI console
                     if (output_txt === 'clear') {
                         $scope.kiosk_output = '';
                     }
+                    // If the console text is 'scan_complete', scrolls down to results
+                    else if (output_txt === 'scroll_results'){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                document.getElementById('results_scroll_to').scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            });
+                        });
+                    }
+                    else if (output_txt === 'scroll_main'){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                document.getElementById('main').scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            });
+                        });
+                    }
+                    // Otherwise, outputs to the UI console
                     else
                         $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
 
+                    // Makes sure UI console keeps scrolling down automatically when UI console overflows
                     var textarea = document.getElementById('kiosk_output_txt');
                     textarea.scrollTop = textarea.scrollHeight;
+
                 });
             });
         });
 
+        // Listens for when a device is connected
         socket.on('device_conn', function(img_url){
             _.defer(function() {
                 $scope.kiosk_img_new = img_url;
@@ -48,6 +77,7 @@ app.controller('MainController', ['$scope',
             });
         });
 
+        // Listens for when files are being sent to server
         socket.on('loading', function(){
             _.defer(function() {
                 $scope.kiosk_img_new = '/static/images/ripple2.svg';
@@ -57,6 +87,7 @@ app.controller('MainController', ['$scope',
             });
         });
 
+        // Listens for when all files have been sent to server
         socket.on('done_loading', function(img_url){
             _.defer(function() {
                 $scope.kiosk_img_new = img_url;
@@ -68,9 +99,13 @@ app.controller('MainController', ['$scope',
 
 
         // ----------------------- Animation Event Handlers
+
+        // Called after show animation has completed on user_output_img
         $scope.afterShow = function() {
         }
 
+        // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
+        // makes it automatically reappear
         $scope.afterHide = function() {
             _.defer(function(){
                 $scope.$apply(function(){ $scope.kiosk_img = $scope.kiosk_img_new});
@@ -78,12 +113,22 @@ app.controller('MainController', ['$scope',
             $scope.show = true;
         }
 
+        // $scope.play = function() {
+        //     document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
+        //     // $location.hash('results_scroll_to');
+        //     // $anchorScroll();
+        // }
+
     }
 
 ]);
 
 
 // ----------------------- Animation Listeners
+
+// Handles show / hide events being applied to user_output_img. The myShow variable is linked to the show variable of
+// the conroller; when its value is changed, an event is called accordingly to animate it fading in / out. Once the
+// animation is complete, calls afterShow() or afterHide() as necessary.
 app.directive('myShow', function($animate) {
 return {
     scope: {
