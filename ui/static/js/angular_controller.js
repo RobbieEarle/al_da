@@ -1,10 +1,20 @@
+// Module Initialization
 var app = angular.module('al_da', ['ngAnimate']);
 
+// Socket Initialization
+var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+
+/* ============== Controllers ==============*/
+
+// Controls main kiosk output console and output icon
 app.controller('MainController', ['$scope',
 
     function MainController($scope) {
 
-        // ----------------------- Default Element Values
+
+        // ----------------------- Default Property Values
+
         $scope.kiosk_img_new = '/static/images/scrape_no_conn.svg';
         $scope.kiosk_header = 'To submit files for analysis simply plug a ' +
             'block device (ie. USB device or external hard drive) into the terminal and wait for all files to be ' +
@@ -14,18 +24,21 @@ app.controller('MainController', ['$scope',
             'the submitter.'
         $scope.kiosk_img = $scope.kiosk_img_new;
         $scope.kiosk_status = 'Please plug in a device to begin'
-        $scope.show = true;
+        $scope.show_main = true;
         $scope.kiosk_output = '';
 
-        // ----------------------- Socket Initialization
-        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        // ----------
+
+
+        // ----------------------- Socket Event Listeners
+
+        // Listens for initial connect message from the socketio server. Starts background thread to process input from
+        // al_scrape
         socket.on('connect', function() {
             socket.emit('start');
         });
 
-        // -------- Socket Event Listeners
-
-        // Listens for Pyhton loogger output to be shown in UI console
+        // Listens for console output messages from al_scrape
         socket.on('output', function(output_txt){
             _.defer(function() {
                 $scope.$apply(function () {
@@ -33,27 +46,6 @@ app.controller('MainController', ['$scope',
                     // If the console text is 'clear', clears the UI console
                     if (output_txt === 'clear') {
                         $scope.kiosk_output = '';
-                    }
-                    // If the console text is 'scan_complete', scrolls down to results
-                    else if (output_txt === 'scroll_results'){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                document.getElementById('results_scroll_to').scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                });
-                            });
-                        });
-                    }
-                    else if (output_txt === 'scroll_main'){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                document.getElementById('main').scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                });
-                            });
-                        });
                     }
                     // Otherwise, outputs to the UI console
                     else
@@ -72,7 +64,7 @@ app.controller('MainController', ['$scope',
             _.defer(function() {
                 $scope.kiosk_img_new = img_url;
                 $scope.$apply(function () {
-                    $scope.show = false;
+                    $scope.show_main = false;
                 });
             });
         });
@@ -82,7 +74,7 @@ app.controller('MainController', ['$scope',
             _.defer(function() {
                 $scope.kiosk_img_new = '/static/images/ripple2.svg';
                 $scope.$apply(function () {
-                    $scope.show = false;
+                    $scope.show_main = false;
                 });
             });
         });
@@ -92,61 +84,125 @@ app.controller('MainController', ['$scope',
             _.defer(function() {
                 $scope.kiosk_img_new = img_url;
                 $scope.$apply(function () {
-                    $scope.show = false;
+                    $scope.show_main = false;
                 });
             });
         });
+
+        // ----------
 
 
         // ----------------------- Animation Event Handlers
 
         // Called after show animation has completed on user_output_img
-        $scope.afterShow = function() {
+        $scope.afterMainShow = function() {
         }
 
         // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
         // makes it automatically reappear
-        $scope.afterHide = function() {
+        $scope.afterMainHide = function() {
             _.defer(function(){
                 $scope.$apply(function(){ $scope.kiosk_img = $scope.kiosk_img_new});
             });
-            $scope.show = true;
+            $scope.show_main = true;
         }
 
-        // $scope.play = function() {
-        //     document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
-        //     // $location.hash('results_scroll_to');
-        //     // $anchorScroll();
-        // }
+        // ----------
 
     }
+]);
 
+// Controls the results page that is brought up by main kiosk console
+app.controller('ResultsController', ['$scope',
+
+    function ResultsController($scope) {
+
+
+        // ----------------------- Default Property Values
+
+        // By default the results panel is not shown
+        $scope.show_results = false;
+
+        // ----------
+
+
+        // ----------------------- Socket Event Listeners
+
+        // Listens for scroll events from al_scrape
+        socket.on('scroll', function(scroll_location){
+            // If the console text is 'scroll_results', scrolls down to results
+            if (scroll_location === 'results'){
+                _.defer(function() {
+
+                    // Creates a new intersection observer which is used to detect when the results section
+                    // comes on screen. When it does, we scroll to it
+                    const intersectionObserver = new IntersectionObserver((entries) => {
+                      let [entry] = entries;
+                      if (entry.isIntersecting) {
+                        setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        }))
+                      }
+                    });
+                    intersectionObserver.observe(results);
+
+                    $scope.$apply(function () {
+                        $scope.show_results = true;
+                    });
+
+                });
+            }
+
+            // If the console text is 'scroll_main', scrolls up to results
+            else if (scroll_location === 'main'){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        document.getElementById('main').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    });
+
+                });
+            }
+        });
+
+        // Listens for output from al_scrape. If the command is clear, then the results page is made invisible
+        socket.on('output', function(output_txt){
+            if(output_txt === 'clear') {
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.show_results = false;
+                    });
+                });
+            }
+        });
+
+        // ----------
+
+    }
 ]);
 
 
-// ----------------------- Animation Listeners
+/* ============== Directives ==============*/
 
 // Handles show / hide events being applied to user_output_img. The myShow variable is linked to the show variable of
 // the conroller; when its value is changed, an event is called accordingly to animate it fading in / out. Once the
-// animation is complete, calls afterShow() or afterHide() as necessary.
-app.directive('myShow', function($animate) {
-return {
-    scope: {
-        'myShow': '=',
-        'afterShow': '&',
-        'afterHide': '&'
-    },
-    link: function(scope, element) {
-        scope.$watch('myShow', function(show) {
-            if (show) {
-                $animate.removeClass(element, 'hidden');
-                $animate.removeClass(element, 'my-hide').then(scope.afterShow);
-            }
-            if (!show) {
-                $animate.addClass(element, 'hidden');
-                $animate.addClass(element, 'my-hide').then(scope.afterHide);
-            }
-        });
+// animation is complete, calls afterShow() or afterHide() as necessary
+app.directive('mainShow', function($animate) {
+    return {
+        link: function (scope, elem, attr) {
+            scope.$watch(attr.mainShow, function () {
+                if (scope.show_main) {
+                    $animate.removeClass(elem, 'hidden');
+                    $animate.removeClass(elem, 'img-hide').then(scope.afterMainShow);
+                }
+                if (!scope.show_main) {
+                    $animate.addClass(elem, 'hidden');
+                    $animate.addClass(elem, 'img-hide').then(scope.afterMainHide);
+                }
+            });
+        }
     }
-};
 });

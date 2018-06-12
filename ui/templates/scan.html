@@ -14,7 +14,6 @@
             <div class="pad">
                 <div class="banner">
                     {% block banner %}<img class="banner_img" src="/static/images/banner.svg">{% endblock %}
-                    <!--<h4>Welcome to Assemblyline Device Auditor</h4>-->
                 </div>
             </div>
         </section>
@@ -26,31 +25,39 @@
                 //kiosk_header//
             </div>
             <div class="user_output" id="device_conn_img">
-                <img class="user_output_img kiosk_img" my_show="show" after-hide="afterHide()" after-show="afterShow()"
-                     id="user_output_img" src=//kiosk_img//>
+
+
+                <img class="user_output_img kiosk-img" main_show="show_main" id="user_output_img" src=//kiosk_img//>
+
+
                 <textarea class="scrollabletextbox kiosk_txt_hide pad text-muted" id="kiosk_output_txt" readonly>
                     //kiosk_output//
                 </textarea>
             </div>
-            <div class="pad text-center text-muted">
+            <!--<div class="pad text-center text-muted">-->
                 <!--//kiosk_status//-->
                 <!--<button ng-click="play()">play</button>-->
-            </div>
+            <!--</div>-->
         </section>
     </section>
     <div id="results_scroll_to" class="results_scroll"></div>
     <br />
-    <section id="results" role="main" class="results_section">
+    <br />
+
+
+    <section role="main" class="results_section" id="results" ng-show="show_results" ng-controller="ResultsController">
+
+
         <section id="results_header" class="container container-with-overflow">
             <div class="pad text-center text-muted">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
-               <img class="banner_img" src="/static/images/banner.svg">
+               <img class="results_img" src="/static/images/scrape_pass.svg">
+                <div class="pad text-center text-muted">
+                    <b>Pass</b>
+                </div>
+                <br /><br /><br /><br /><br /><br /><br /><br />
+                <br /><br /><br /><br /><br /><br /><br /><br />
+                <br /><br /><br /><br /><br /><br /><br /><br />
+                <br /><br /><br /><br /><br /><br /><br /><br />
             </div>
         </section>
     </section>

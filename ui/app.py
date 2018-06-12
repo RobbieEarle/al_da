@@ -10,6 +10,7 @@ eventlet.monkey_patch()
 my_thread = None
 output = ''
 last_output = ''
+scroll = ''
 
 new_socket_msg = False
 socket_msg = {'device_conn': {'active': False, 'url': '/static/images/scrape_no_conn.svg'},
@@ -60,6 +61,12 @@ def to_kiosk(args):
     output = args
 
 
+@socketio.on('scroll')
+def to_kiosk(args):
+    global scroll
+    scroll = args
+
+
 @socketio.on('device_event')
 def device_event(args):
     global socket_msg
@@ -87,6 +94,7 @@ def background_thread():
     global output
     global new_socket_msg
     global socket_msg
+    global scroll
 
     global last_output
 
@@ -94,7 +102,6 @@ def background_thread():
         eventlet.sleep(0.01)
         with app.test_request_context():
             if output != last_output:
-                print 'Server output: ' + output
                 socketio.emit('output', output)
                 last_output = output
 
@@ -109,6 +116,10 @@ def background_thread():
                         socketio.emit(msg, socket_msg['device_conn']['url'])
                     socket_msg[msg]['active'] = False
             new_socket_msg = False
+
+        if scroll != '':
+            socketio.emit('scroll', scroll)
+            scroll = ''
 
 
 def render(template, path):

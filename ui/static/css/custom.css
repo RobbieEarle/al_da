@@ -1,3 +1,33 @@
+.user_output {
+	width: 100%;
+	min-width: 250px;
+	text-align: center;
+}
+
+.user_output_img {
+    width: 75%;
+	animation-fill-mode: forwards;
+}
+
+@media (min-width: 992px){
+    .user_output_img {
+		width: 16%;
+		animation-fill-mode: forwards;
+    }
+}
+
+.results_img {
+    width: 75%;
+	animation-fill-mode: forwards;
+}
+
+@media (min-width: 992px){
+    .results_img {
+		width: 16%;
+		animation-fill-mode: forwards;
+    }
+}
+
 .scrollabletextbox {
     display: inline;
     /*margin-left: auto;*/
@@ -23,6 +53,5 @@
 }
 
 .results_scroll {
-    padding-top: 10px;
-	padding-bottom: 30px;
+	padding-bottom: 40px;
 }
