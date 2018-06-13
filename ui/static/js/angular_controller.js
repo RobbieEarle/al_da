@@ -1,5 +1,5 @@
 // Module Initialization
-var app = angular.module('al_da', ['ngAnimate']);
+var app = angular.module('al_da', ['ngAnimate', 'ui.bootstrap']);
 
 // Socket Initialization
 var socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -7,7 +7,7 @@ var socket = io.connect('http://' + document.domain + ':' + location.port);
 
 /* ============== Controllers ==============*/
 
-// Controls main kiosk output console and output icon
+// MAIN: Controls main kiosk output console and output icon
 app.controller('MainController', ['$scope',
 
     function MainController($scope) {
@@ -21,9 +21,9 @@ app.controller('MainController', ['$scope',
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
             'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
             'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
-            'the submitter.'
+            'the device owner.';
         $scope.kiosk_img = $scope.kiosk_img_new;
-        $scope.kiosk_status = 'Please plug in a device to begin'
+        $scope.kiosk_status = 'Please plug in a device to begin';
         $scope.show_main = true;
         $scope.kiosk_output = '';
 
@@ -109,10 +109,14 @@ app.controller('MainController', ['$scope',
 
         // ----------
 
+        $scope.action = function() {
+            document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+
     }
 ]);
 
-// Controls the results page that is brought up by main kiosk console
+// RESULTS: Controls the results page that is brought up by main kiosk console
 app.controller('ResultsController', ['$scope',
 
     function ResultsController($scope) {
@@ -121,7 +125,22 @@ app.controller('ResultsController', ['$scope',
         // ----------------------- Default Property Values
 
         // By default the results panel is not shown
-        $scope.show_results = false;
+        $scope.show_results = true;
+
+        $scope.tbl_all_files = [{"alert": {"sid": "21aaa2dc-0c07-4892-aad7-1aaf85c681e6"},
+            "entropy": 3.188721875540867, "md5": "a1ceb4b583d7a7a7f5a17d4cb48bb1b3",
+            "metadata": {"al_score": 0, "filename": "WPSettings.dat",
+                "path": "/home/user/al_ui/imported_files/dev/sdb1/temp_device/System Volume Information/WPSettings.dat",
+                "ts": "2018-06-13T15:52:36.531014Z", "type": "TERMINAL"}, "overrides": {"classification": "U",
+                "deep_scan": false, "description": "[TERMINAL] Inspection of file: WPSettings.dat",
+                "generate_alert": false, "groups": ["ADMIN", "INTERNAL", "USERS"],
+                "ignore_cache": false, "ignore_filtering": false, "max_extracted": 100, "max_supplementary": 100,
+                "notification_queue": "nq-ingest_queue", "notification_threshold": null, "params": {}, "priority": 150,
+                "profile": true, "resubmit_to": [], "scan_key": "67796ccbc4082aca0d2853d30bfb0bcav0",
+                "selected": ["Extraction", "Static Analysis"], "submitter": "admin", "ttl": 1}, "priority": 150,
+            "sha1": "bc6f55eceec05885d317848d6aa83546a4d20ccd",
+            "sha256": "132eba38061e6afab4b530304b2c4ac79821df924c1adeb04b743b0f93741654", "size": 12,
+            "type": "TERMINAL"}];
 
         // ----------
 
@@ -177,6 +196,15 @@ app.controller('ResultsController', ['$scope',
                     });
                 });
             }
+        });
+
+        socket.on('all_files', function(all_files){
+            _.defer(function() {
+                $scope.$apply(function () {
+                    console.log("Received files")
+                    $scope.tbl_all_files = JSON.parse(all_files);
+                });
+            });
         });
 
         // ----------

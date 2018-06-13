@@ -25,40 +25,56 @@
                 //kiosk_header//
             </div>
             <div class="user_output" id="device_conn_img">
-
-
                 <img class="user_output_img kiosk-img" main_show="show_main" id="user_output_img" src=//kiosk_img//>
-
-
                 <textarea class="scrollabletextbox kiosk_txt_hide pad text-muted" id="kiosk_output_txt" readonly>
                     //kiosk_output//
                 </textarea>
             </div>
-            <!--<div class="pad text-center text-muted">-->
+            <div class="pad text-center text-muted">
                 <!--//kiosk_status//-->
-                <!--<button ng-click="play()">play</button>-->
-            <!--</div>-->
+                <!--<button ng-click="action()">Scroll Results Page</button>-->
+            </div>
         </section>
     </section>
     <div id="results_scroll_to" class="results_scroll"></div>
     <br />
     <br />
-
-
-    <section role="main" class="results_section" id="results" ng-show="show_results" ng-controller="ResultsController">
-
-
-        <section id="results_header" class="container container-with-overflow">
+    <section id="results" ng-show="show_results" ng-controller="ResultsController">
+        <section id="results_body" role="main" class="container container-with-overflow">
             <div class="pad text-center text-muted">
                <img class="results_img" src="/static/images/scrape_pass.svg">
-                <div class="pad text-center text-muted">
-                    <b>Pass</b>
-                </div>
-                <br /><br /><br /><br /><br /><br /><br /><br />
-                <br /><br /><br /><br /><br /><br /><br /><br />
-                <br /><br /><br /><br /><br /><br /><br /><br />
-                <br /><br /><br /><br /><br /><br /><br /><br />
             </div>
+            <div class="text-muted text-center results-h1">
+                <b>No malware was detected on this device</b>
+            </div>
+            <div class="text-muted text-center results-h2">
+                You may safely disconnect
+            </div>
+
+            <accordion close-others="true" class="table text-muted table-striped table-clickthrough">
+                <accordion-group ng-repeat="file in tbl_all_files | orderBy : '-metadata.al_score'">
+                    <accordion-heading>
+                        <div class="row text-muted">
+                            <div class="cellHead">//file.metadata.filename//</div>
+                            <div class="cellHead text-right">//file.metadata.al_score//</div>
+                        </div>
+                    </accordion-heading>
+
+                    <table class="table text-muted table-striped table-clickthrough">
+                        <tbody>
+                            <tr>
+                                <th>Path</th><th>SID</th>
+                            </tr>
+                            <tr>
+                                <td>//file.metadata.path//</td>
+                                <td>//file.alert.sid//</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </accordion-group>
+            </accordion>
+
         </section>
     </section>
 {% endblock %}

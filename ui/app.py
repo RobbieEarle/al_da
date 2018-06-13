@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request
+
+from flask import Flask, render_template, request, json, jsonify, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 
@@ -76,13 +77,15 @@ def to_kiosk(args):
 # Called by scrape_drive.py when all files have been ingested. Argument will be dict containing all ingested file info
 @socketio.on('all_files')
 def to_kiosk(all_files):
-    for x in all_files:
-        print x
+    print json.dumps(all_files)
+    all_files_json = json.dumps(all_files)
+    socketio.emit('all_files', all_files_json)
 
 
 # Called by scrape_drive.py to activate an automatic scroll event. Argument contains location to scroll to
 @socketio.on('scroll')
 def to_kiosk(args):
+    # socketio.emit('scroll', scroll)
     global scroll
     scroll = args
 
