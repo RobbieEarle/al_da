@@ -87,7 +87,7 @@ def to_kiosk(pass_files):
 # files that did not pass the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('mal_files')
 def to_kiosk(mal_files):
-    print json.dumps(mal_files)
+    # print json.dumps(mal_files)
     mal_files_json = json.dumps(mal_files)
     socketio.emit('mal_files_json', mal_files_json)
 

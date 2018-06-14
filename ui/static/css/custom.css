@@ -85,3 +85,7 @@
 .mal_file_header {
     opacity: 0.8;
 }
+
+.results-alert {
+    color: #b76361;
+}

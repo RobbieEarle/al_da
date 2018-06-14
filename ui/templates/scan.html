@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "results.html" %}
 {% block css_import %}
 <link rel="stylesheet" href="/static/css/animations.css"/>
 <link rel="stylesheet" href="/static/css/custom.css"/>
@@ -7,7 +7,7 @@
 <script type="text/javascript" src="/static/js/socket.io.js"></script>
 <script src="/static/js/angular_controller.js"></script>
 {% endblock %}
-{% block content %}
+{% block scan %}
     <section id="main" role="main">
         <section id="appHeader" class="container container-with-overflow">
 
@@ -39,88 +39,6 @@
                 <!--//kiosk_status//-->
                 <!--<button ng-click="action()">Scroll Results Page</button>-->
             <!--</div>-->
-
-        </section>
-    </section>
-
-    <div id="results_scroll_to" class="results_scroll"></div>
-    <br />
-    <br />
-
-    <section id="results" ng-show="show_results" ng-controller="ResultsController">
-        <section id="results_body" role="main" class="container container-with-overflow">
-
-            <div class="pad text-center text-muted">
-               <img class="results_img" src="/static/images/scrape_pass.svg" ng-if="scan_success">
-                <img class="results_img" src="/static/images/scrape_fail.svg" ng-if="!scan_success">
-            </div>
-
-            <div class="text-muted text-center results-h1">
-                <b ng-if="scan_success">No malware was detected on this device</b>
-                <b ng-if="!scan_success">Malware has been detected on this device</b>
-            </div>
-
-            <div class="text-muted text-center results-h2">
-                <p ng-if="scan_success">You may safely disconnect your device</p>
-                <p ng-if="!scan_success">Please read below for more details about which files have been flagged and
-                why. You may safely disconnect your device.</p>
-            </div>
-
-            <div class="text-muted text-center">
-                <p ng-if="no_files">No files were detected on this device</p>
-            </div>
-
-            <accordion close-others="true" class="table text-muted" ng-if="!scan_success">
-                <p>Potentially malicious files</p>
-                <accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-metadata.al_score'" class="panel-danger">
-
-                    <accordion-heading>
-                        <div class="row mal_file_header">
-                            <div class="cellHead">//file.metadata.filename//</div>
-                            <div class="cellHead text-right">//file.metadata.al_score//</div>
-                        </div>
-                    </accordion-heading>
-
-                    <table class="table text-muted table-striped">
-                        <tbody>
-                            <tr>
-                                <th>Path</th><th>SID</th>
-                            </tr>
-                            <tr>
-                                <td>//file.metadata.path//</td>
-                                <td>//file.alert.sid//</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                </accordion-group>
-            </accordion>
-
-            <accordion close-others="true" class="table text-muted">
-                <p ng-if="show_pass_header">Safe files</p>
-                <accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'">
-
-                    <accordion-heading>
-                        <div class="row text-muted">
-                            <div class="cellHead">//file.metadata.filename//</div>
-                            <div class="cellHead text-right">//file.metadata.al_score//</div>
-                        </div>
-                    </accordion-heading>
-
-                    <table class="table text-muted table-striped">
-                        <tbody>
-                            <tr>
-                                <th>Path</th><th>SID</th>
-                            </tr>
-                            <tr>
-                                <td>//file.metadata.path//</td>
-                                <td>//file.alert.sid//</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                </accordion-group>
-            </accordion>
 
         </section>
     </section>
