@@ -78,7 +78,7 @@ def to_kiosk(args):
 # files that passed the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('pass_files')
 def to_kiosk(pass_files):
-    print json.dumps(pass_files)
+    # print json.dumps(pass_files)
     pass_files_json = json.dumps(pass_files)
     socketio.emit('pass_files_json', pass_files_json)
 
