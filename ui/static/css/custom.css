@@ -9,7 +9,7 @@
 	animation-fill-mode: forwards;
 }
 
-@media (min-width: 992px){
+@media (min-width: 992px) {
     .user_output_img {
 		width: 16%;
 		animation-fill-mode: forwards;
@@ -21,7 +21,7 @@
 	animation-fill-mode: forwards;
 }
 
-@media (min-width: 992px){
+@media (min-width: 992px) {
     .results_img {
 		width: 16%;
 		animation-fill-mode: forwards;
@@ -66,18 +66,22 @@
     padding-bottom: 40px;
 }
 
-.row{
+.row {
     display: table-row;
 }
 
-.cellHead{
+.cellHead {
     display: table-cell;
     font-size: 95%;
     width:100%;
 }
 
-.cellCollapse{
+.cellCollapse {
     display: table-cell;
     font-size: 85%;
     width:33%;
+}
+
+.mal_file_header {
+    opacity: 0.8;
 }

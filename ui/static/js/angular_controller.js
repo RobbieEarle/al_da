@@ -126,21 +126,25 @@ app.controller('ResultsController', ['$scope',
 
         // By default the results panel is not shown
         $scope.show_results = true;
+        $scope.show_pass_header = false;
+        $scope.show_mal_header = true;
+        $scope.scan_success = false;
+        $scope.no_files = false;
 
-        $scope.tbl_all_files = [{"alert": {"sid": "21aaa2dc-0c07-4892-aad7-1aaf85c681e6"},
-            "entropy": 3.188721875540867, "md5": "a1ceb4b583d7a7a7f5a17d4cb48bb1b3",
-            "metadata": {"al_score": 0, "filename": "WPSettings.dat",
-                "path": "/home/user/al_ui/imported_files/dev/sdb1/temp_device/System Volume Information/WPSettings.dat",
-                "ts": "2018-06-13T15:52:36.531014Z", "type": "TERMINAL"}, "overrides": {"classification": "U",
-                "deep_scan": false, "description": "[TERMINAL] Inspection of file: WPSettings.dat",
-                "generate_alert": false, "groups": ["ADMIN", "INTERNAL", "USERS"],
-                "ignore_cache": false, "ignore_filtering": false, "max_extracted": 100, "max_supplementary": 100,
+        $scope.tbl_mal_files = [{"alert": {"sid": "4242602c-16b3-4ce7-8f07-e1a0acf5680d"}, "entropy": 7.99979132865562,
+            "md5": "a98d13885e7788529aaaae9e3a7826b1", "metadata": {"al_score": 3010,
+                "filename": "282f5511c4fd43fbea6964ac71dca495.cart",
+                "path": "/home/user/al_ui/imported_files/dev/sdb2/temp_device/282f5511c4fd43fbea6964ac71dca495.cart",
+                "ts": "2018-06-13T19:26:23.960380Z", "type": "TERMINAL"}, "overrides": {"classification": "U",
+                "deep_scan": false, "description": "[TERMINAL] Inspection of file: 282f5511c4fd43fbea6964ac71dca495.cart",
+                "generate_alert": false, "groups": ["ADMIN", "INTERNAL", "USERS"], "ignore_cache": false,
+                "ignore_filtering": false, "max_extracted": 100, "max_supplementary": 100,
                 "notification_queue": "nq-ingest_queue", "notification_threshold": null, "params": {}, "priority": 150,
-                "profile": true, "resubmit_to": [], "scan_key": "67796ccbc4082aca0d2853d30bfb0bcav0",
+                "profile": true, "resubmit_to": [], "scan_key": "3a5272f260593de5f790bba35bf6b355v0",
                 "selected": ["Extraction", "Static Analysis"], "submitter": "admin", "ttl": 1}, "priority": 150,
-            "sha1": "bc6f55eceec05885d317848d6aa83546a4d20ccd",
-            "sha256": "132eba38061e6afab4b530304b2c4ac79821df924c1adeb04b743b0f93741654", "size": 12,
-            "type": "TERMINAL"}];
+            "sha1": "7d142a3c8bebdd40c06a0747c9973036994b8e74",
+            "sha256": "9abfe28034469dc17803dd5565afb86a09851de2df2c8f753832f4f41b756ad6",
+            "size": 902026, "type": "TERMINAL"}];
 
         // ----------
 
@@ -198,13 +202,45 @@ app.controller('ResultsController', ['$scope',
             }
         });
 
-        socket.on('all_files', function(all_files){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    console.log("Received files")
-                    $scope.tbl_all_files = JSON.parse(all_files);
+        socket.on('mal_files_json', function(mal_files){
+            if (!_.isEmpty(mal_files)) {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.scan_success = false;
+                        console.log("Parsing mal_files");
+                        console.log(mal_files);
+                        $scope.tbl_mal_files = JSON.parse(mal_files);
+                    });
                 });
-            });
+            }
+            else {
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.scan_success = true;
+                    });
+                });
+            }
+        });
+
+        socket.on('pass_files_json', function(pass_files){
+            if (!_.isEmpty(pass_files))
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.no_files = false;
+                        $scope.show_pass_header = true;
+                        $scope.tbl_pass_files = JSON.parse(pass_files);
+                    });
+                });
+            else {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.show_pass_header = false;
+                        if ($scope.scan_success)
+                            $scope.no_files = true;
+                    });
+                });
+            }
+
         });
 
         // ----------

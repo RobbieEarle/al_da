@@ -74,12 +74,22 @@ def to_kiosk(args):
     output = args
 
 
-# Called by scrape_drive.py when all files have been ingested. Argument will be dict containing all ingested file info
-@socketio.on('all_files')
-def to_kiosk(all_files):
-    print json.dumps(all_files)
-    all_files_json = json.dumps(all_files)
-    socketio.emit('all_files', all_files_json)
+# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
+# files that passed the scan. List is JSONified and sent to angular_controller.js
+@socketio.on('pass_files')
+def to_kiosk(pass_files):
+    print json.dumps(pass_files)
+    pass_files_json = json.dumps(pass_files)
+    socketio.emit('pass_files_json', pass_files_json)
+
+
+# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
+# files that did not pass the scan. List is JSONified and sent to angular_controller.js
+@socketio.on('mal_files')
+def to_kiosk(mal_files):
+    print json.dumps(mal_files)
+    mal_files_json = json.dumps(mal_files)
+    socketio.emit('mal_files_json', mal_files_json)
 
 
 # Called by scrape_drive.py to activate an automatic scroll event. Argument contains location to scroll to
