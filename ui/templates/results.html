@@ -49,12 +49,24 @@
                     <p style="display:inline">//file_child.name//  :  </p>
                     <p ng-if="file_child.score>=500" style="display:inline" class="results-alert"><b>//file_child.score//</b></p>
                     <p ng-if="file_child.score<500" style="display:inline">//file_child.score//</p>
+
+
+                    <!--START HERE: need to change this to instead be all services with score 500+-->
+                    <div class="pad">
+                        <div ng-repeat="result in file.results">
+                            <p class="results-detail" ng-if="key==result.srl && result.result.score>0">
+                                //result.response.service_name// : //result.result.score//
+                            </p>
+                        </div>
+                    </div>
+
                     <div ng-if="file_child.children">
-                        <div ng-repeat="file_child in file_child.children" ng-include="'file_tree'">
+                        <div ng-repeat="(key, file_child) in file_child.children" ng-include="'file_tree'">
                         </div>
                     </div>
                 </script>
-                <div ng-repeat="file_child in file.file_tree" ng-include="'file_tree'"></div>
+                <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
+
 
             </accordion-group>
         </accordion>
