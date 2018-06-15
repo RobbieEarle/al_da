@@ -109,9 +109,9 @@ app.controller('MainController', ['$scope',
 
         // ----------
 
-        $scope.action = function() {
-            document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
-        }
+        // $scope.action = function() {
+        //     document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
+        // }
 
     }
 ]);
@@ -131,6 +131,8 @@ app.controller('ResultsController', ['$scope',
         $scope.scan_success = false;
         $scope.no_files = false;
         $scope.file_tree = [];
+
+        // $scope.result_select = '';
 
         $scope.tbl_pass_files = [{"alert": {"sid": "ae638cb2-473b-42f7-9fdb-a6b343b0dff2"},
             "entropy": 7.998910633683879, "md5": "9b7e276dbf10e878bbb1da3a3527298b", "metadata": {"al_score": 10,
@@ -732,6 +734,15 @@ app.controller('ResultsController', ['$scope',
 
         // ----------
 
+        // $scope.collapseResult = function(id) {
+        //     _.defer(function() {
+        //         $scope.$apply(function () {
+        //             $scope.result_select = id;
+        //             console.log($scope.result_select);
+        //         });
+        //     });
+        // }
+
     }
 ]);
 
@@ -756,4 +767,10 @@ app.directive('mainShow', function($animate) {
             });
         }
     }
+});
+
+app.directive('resultDetail', function() {
+    return {
+      scope: {}
+    };
 });

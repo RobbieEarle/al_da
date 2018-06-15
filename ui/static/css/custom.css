@@ -90,6 +90,10 @@
     color: #b76361;
 }
 
+.results-title {
+    cursor: pointer;
+}
+
 .results-detail {
     text-indent: 15px;
     font-size: 85%;
