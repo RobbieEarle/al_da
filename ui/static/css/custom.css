@@ -90,6 +90,14 @@
     color: #b76361;
 }
 
+.results-safe {
+    color: #5471a8;
+}
+
+.text-semi-muted {
+  color: #757575;
+}
+
 .results-title {
     cursor: pointer;
     -webkit-user-select: none;

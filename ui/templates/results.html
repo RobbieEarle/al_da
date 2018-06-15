@@ -8,28 +8,31 @@
 <section id="results" ng-show="show_results" ng-controller="ResultsController">
     <section id="results_body" role="main" class="container container-with-overflow">
 
-        <div class="pad text-center text-muted">
+        <div class="pad text-center">
            <img class="results_img" src="/static/images/scrape_pass.svg" ng-if="scan_success">
             <img class="results_img" src="/static/images/scrape_fail.svg" ng-if="!scan_success">
         </div>
 
-        <div class="text-muted text-center results-h1">
-            <b ng-if="scan_success">No malware was detected on this device</b>
-            <b ng-if="!scan_success">Malware has been detected on this device</b>
+        <div class="text-semi-muted text-center">
+            <div class="results-h1">
+                <b ng-if="scan_success">No malware was detected on this device</b>
+                <b ng-if="!scan_success">Malware has been detected on this device</b>
+            </div>
+
+            <div class="results-h2">
+                <p ng-if="scan_success">You may safely disconnect your device</p>
+                <p ng-if="!scan_success">Please read below for more details about which files have been flagged and
+                why. You may safely disconnect your device.</p>
+            </div>
+
+            <div>
+                <p ng-if="no_files">No files were detected on this device</p>
+            </div>
         </div>
 
-        <div class="text-muted text-center results-h2">
-            <p ng-if="scan_success">You may safely disconnect your device</p>
-            <p ng-if="!scan_success">Please read below for more details about which files have been flagged and
-            why. You may safely disconnect your device.</p>
-        </div>
 
-        <div class="text-muted text-center">
-            <p ng-if="no_files">No files were detected on this device</p>
-        </div>
-
-        <accordion close-others="true" class="table text-muted" ng-if="!scan_success">
-            <p>Potentially malicious files</p>
+        <accordion close-others="true" class="table text-semi-muted" ng-if="!scan_success">
+            <p><b>Potentially malicious files</b></p>
             <accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
 
                 <accordion-heading>
@@ -51,7 +54,7 @@
                         <div ng-click="isCollapsed = !isCollapsed" class="results-title">
                             <span ng-if="isCollapsed" class="fas fa-chevron-circle-right results-glyph" style="display:inline"></span>
                             <span ng-if="!isCollapsed" class="fas fa-chevron-circle-down results-glyph" style="display:inline"></span>
-                            <p style="display:inline" class="results-alert"><b>//file_child.score//</b></p>
+                            <p style="display:inline" ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}"><b>//file_child.score//</b></p>
                             <p style="display:inline">  ::  //nameStrip(file_child.name)//</p>
                         </div>
 
@@ -59,10 +62,10 @@
                             <div collapse="isCollapsed" ng-init="isCollapsed=true">
                                 <div ng-repeat="result in file.results">
                                     <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
-                                        <p style="display:inline" class="results-alert"><b>//result.result.score//</b></p>
+                                        <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
                                         <p style="display:inline">  ::  //result.response.service_name//</p>
                                         <div ng-repeat="detail in result.result.sections" class="results-detail2">
-                                            <p style="display:inline" class="results-alert"><b>//detail.score//</b></p>
+                                            <p style="display:inline" ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}"><b>//detail.score//</b></p>
                                             <p style="display:inline">  ::  //detail.title_text//</p>
                                         </div>
                                     </div>
@@ -81,12 +84,12 @@
             </accordion-group>
         </accordion>
 
-        <accordion close-others="true" class="table text-muted">
-            <p ng-if="show_pass_header">Safe files</p>
+        <accordion close-others="true" class="pad table text-semi-muted">
+            <p ng-if="show_pass_header"><b>Safe files</b></p>
             <accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'">
 
                 <accordion-heading>
-                    <div class="row text-muted">
+                    <div class="row text-semi-muted">
                         <div class="cellHead">//file.metadata.filename//</div>
                         <div class="cellHead text-right">//file.metadata.al_score//</div>
                     </div>
