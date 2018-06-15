@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block results %}
 
 <div id="results_scroll_to" class="results_scroll"></div>
@@ -43,22 +44,29 @@
                     <p><b>SID:</b> //file.submission.sid//</p>
                 </div>
 
-                <div class="pad"><b>File Contents</b></div>
+                <div class="pad"><b>File Contents:</b></div>
 
-                <script type="text/ng-template" id="file_tree" result-detail>
-                    <div ng-click="isCollapsed = !isCollapsed" class="results-title">
-                        <p style="display:inline">//file_child.name//  :  </p>
-                        <p ng-if="file_child.score>=500" style="display:inline" class="results-alert"><b>//file_child.score//</b></p>
-                        <p ng-if="file_child.score<500" style="display:inline">//file_child.score//</p>
-                    </div>
+                <script type="text/ng-template" id="file_tree">
+                    <div ng-if="file_child.score>=500">
+                        <div ng-click="isCollapsed = !isCollapsed" class="results-title">
+                            <span ng-if="isCollapsed" class="fas fa-chevron-circle-right results-glyph" style="display:inline"></span>
+                            <span ng-if="!isCollapsed" class="fas fa-chevron-circle-down results-glyph" style="display:inline"></span>
+                            <p style="display:inline" class="results-alert"><b>//file_child.score//</b></p>
+                            <p style="display:inline">  ::  //nameStrip(file_child.name)//</p>
+                        </div>
 
-                    <!--START HERE: need to change this to instead be all services with score 500+-->
-                    <div class="pad">
-                        <div collapse="isCollapsed" ng-init="isCollapsed=true">
-                            <div ng-repeat="result in file.results">
-                                <p class="results-detail" ng-if="key==result.srl && result.result.score>0">
-                                    //result.response.service_name// : //result.result.score//
-                                </p>
+                        <div class="collapse-pad">
+                            <div collapse="isCollapsed" ng-init="isCollapsed=true">
+                                <div ng-repeat="result in file.results">
+                                    <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
+                                        <p style="display:inline" class="results-alert"><b>//result.result.score//</b></p>
+                                        <p style="display:inline">  ::  //result.response.service_name//</p>
+                                        <div ng-repeat="detail in result.result.sections" class="results-detail2">
+                                            <p style="display:inline" class="results-alert"><b>//detail.score//</b></p>
+                                            <p style="display:inline">  ::  //detail.title_text//</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -66,6 +74,7 @@
                     <div ng-if="file_child.children">
                         <div ng-repeat="(key, file_child) in file_child.children" ng-include="'file_tree'"></div>
                     </div>
+
                 </script>
                 <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
 

@@ -92,10 +92,36 @@
 
 .results-title {
     cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /*background: #f5f5f5;*/
+}
+
+.results-title:hover {
+    opacity: 0.7;
+}
+
+.results-glyph {
+    /*padding-left: 5px;*/
+    padding-right: 10px;
+    vertical-align: middle;
 }
 
 .results-detail {
-    text-indent: 15px;
     font-size: 85%;
+    text-indent: 40px;
     display: block;
+}
+
+.results-detail2 {
+    text-indent: 65px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+.collapse-pad {
+    padding-top: 15px;
+	padding-bottom: 15px;
 }

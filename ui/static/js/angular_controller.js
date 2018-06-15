@@ -734,14 +734,13 @@ app.controller('ResultsController', ['$scope',
 
         // ----------
 
-        // $scope.collapseResult = function(id) {
-        //     _.defer(function() {
-        //         $scope.$apply(function () {
-        //             $scope.result_select = id;
-        //             console.log($scope.result_select);
-        //         });
-        //     });
-        // }
+
+        // ----------------------- Helper Functions
+
+        // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
+        $scope.nameStrip = function(name) {
+            return name.toString();
+        }
 
     }
 ]);
@@ -767,10 +766,4 @@ app.directive('mainShow', function($animate) {
             });
         }
     }
-});
-
-app.directive('resultDetail', function() {
-    return {
-      scope: {}
-    };
 });
