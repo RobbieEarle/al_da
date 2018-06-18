@@ -772,18 +772,128 @@ app.controller('serviceController', ['$scope', '$modal',
             $scope.service_name = service_name;
 
             switch(service_name) {
-                case 'Extract':
-                    $scope.service_descript = "Extract description....";
+                case 'APKaye':
+                    $scope.service_descript = "APKaye is a service that focuses on detecting potentially malicious " +
+                        "content within android applications (APK's)." +
+                        "\r\n\r\n" +
+                        "Files are first run through Apktool, which decompiles / pulls them apart, reviews any " +
+                        "network indicators, analyzes the script's native libraries and binaries, and validates the " +
+                        "signing certificate that links the app to its original author." +
+                        "\r\n\r\n" +
+                        "The decompiled files are then run through dex2jar, which will revert any .dex files back " +
+                        "into .jar format. The .jar files will then be passed to the Espresso service for further " +
+                        "analysis." +
+                        "\r\n\r\n" +
+                        "Finally, the metadata from the APK is analyzed using the Android Asset Packaging Tool " +
+                        "(aapt). Aapt is used to examine the APK's manifest for suspicious settings, and to analyze " +
+                        "Strings that occur within the APK.";
                     break;
 
-                case 'Yara':
-                    $scope.service_descript = "Yara description....";
+                case 'Avg':
+                    $scope.service_descript = "Avg is a wrapper for AVG Antivirus' Linux command line " +
+                        "scanner 'avgscan'. If the user has purchased a license for AVG, this service simply submits " +
+                        "files of any type to their scanning service and assigns an Assemblyline score based on the " +
+                        "output.";
                     break;
+
+                case 'Beaver':
+                    $scope.service_descript = "BeAVER is a service which takes the hash of a submitted file and " +
+                        "passes it to the CCIRC Malware Database API to determine whether or not the file has been " +
+                        "seen before by the CCIRC Malware Analysis team.";
+                    break;
+
+                case 'Binja':
+                    $scope.service_descript = "Binja uses the BinaryNinja to examine Windows executable files. " +
+                        "BinaryNinja disassembles the machine code being run by the executable, and then scans for " +
+                        "any API calls that are made by the executable to sources flagged by the user." ;
+                    break;
+
+                case 'BitDefender':
+                    $scope.service_descript = "BitDefender is a wrapper for Bitdefender's Linux command line " +
+                        "scanner 'bdscan'. If the user has purchased a license for Bitdefender, this service simply " +
+                        "submits files of any type to their scanning service and assigns an Assemblyline score based " +
+                        "on the output.";
+                    break;
+
+                case 'CFMD':
+                    $scope.service_descript = "CFMD is a service which takes the hash of a submitted file and " +
+                        "passes it to Microsoft's Clean File Metadata database API to determine whether or not the " +
+                        "file has been seen before by the Microsoft Security Response Center team.";
+                    break;
+
+                case 'Characterize':
+                    $scope.service_descript = "Characterize partitions our file (breaks it up into parts), and " +
+                        "determines the visual entropy for each partition. Entropy (randomness) in a file is " +
+                        "a measure of the predictability of any specific character based on the preceding characters. " +
+                        "Files with high entropy values are likely to be encrypted or compressed, as truly random " +
+                        "data is not common in typical user data." +
+                        "\r\n\r\n" +
+                        "A high entropy value on its own is not indicative of a malicious file (indeed, compression " +
+                        "is used frequently today by all kinds of complex files), but if the file's source is " +
+                        "unknown we can use its entropy value to determine whether or not it has something to hide.";
+                    break;
+
+                case 'Cleaver':
+                    $scope.service_descript = "Cleaver is used to extract metadata from files. It is specifically " +
+                        "geared towards parsing files in OLE2 format - a file type created by Microsoft for Office " +
+                        "products which houses embedded objects and links to other documents. These files are easily " +
+                        "exploited, and if one is detected Cleaver will dig down into its components to detect " +
+                        "potentially malicious anomalies.";
+                    break;
+
+                case 'ConfigDecoder':
+                    $scope.service_descript = "Works in conjunction with the Yara service. When Yara identifies a " +
+                        "potentially malicious file, it is then sent to ConfigDecoder to extract more information, " +
+                        "such as: domains, IPs, mutex names, crypto keys and other configuration block information.";
+                    break;
+
+                case 'Crowbar':
+                    $scope.service_descript = "Script obfuscation refers to the purposeful addition of superfluous " +
+                        "/ unnecessary code to a script by a malicious actor, typically with the goal of hiding the " +
+                        "programs true purpose and circumventing detection. Crowbar is a de-obfuscator which runs " +
+                        "files through a series of modules in an attempt to extract useful identifiers that a script " +
+                        "has been purposefully obfuscated.";
+                    break;
+
+                case 'Cuckoo':
+                    $scope.service_descript = "Cuckoo submits files to Cuckoo Sandbox, a standalone malware analysis " +
+                        "system. Cuckoo opens files and monitors execution, filesystem, and network activity that " +
+                        "occurs as a result, outputting this information to Assemblyline.";
+                    break;
+
+                case 'Espresso':
+                    $scope.service_descript = "Espresso is used by Assemblyline to analyze JAR files. All files are " +
+                        "extracted, and .java files found inside are decompiled back into readable code using the " +
+                        "CFR Decompiler tool. Once decompiled all files are analyzed for malicious behaviour.";
+                    break;
+
+                case 'Extract':
+                    $scope.service_descript = "The extract service is used simply to extract files out of containers " +
+                        "and resubmit them for analysis. If extract is unable to extract the file's contents, it is " +
+                        "automatically flagged.";
+                    break;
+
+                case 'FSecure':
+                    $scope.service_descript = "FSecure is used to submit files to F-Secure's Internet Gatekeeper ICAP " +
+                        "proxy server. Files are sent to the proxy server for analysis using F-Secure's antivirus " +
+                        "software, and the results are sent back to Assemblyline.";
+                    break;
+
+                case 'FrankenStrings':
+                    $scope.service_descript = "";
+                    break;
+
+                default:
+                    $scope.service_descript = "No quick description available for this service. Please contact a " +
+                        "network administrator for more information.";
+                    break;
+
             }
 
             var modalInstance = $modal.open({
                 templateUrl: '/static/ng-template/popup.html',
                 controller: 'popupController',
+                size: 'lg',
                 resolve: {
                     pop_scope: function(){
                         return $scope;
@@ -802,7 +912,7 @@ app.controller('serviceController', ['$scope', '$modal',
 app.controller('popupController',
 
     function PopupController($scope, $modalInstance, pop_scope) {
-        $scope.pop_header = pop_scope.service_name;
+        $scope.pop_header = 'Service: ' + pop_scope.service_name;
         $scope.pop_body = pop_scope.service_descript;
         $scope.close = function () {
             $modalInstance.dismiss('close');
