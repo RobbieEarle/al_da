@@ -62,8 +62,10 @@
                             <div collapse="isCollapsed" ng-init="isCollapsed=true">
                                 <div ng-repeat="result in file.results">
                                     <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
-                                        <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
-                                        <p style="display:inline">  ::  //result.response.service_name//</p>
+                                        <div class="results-title" ng-click="serviceInfo(result.response.service_name)" ng-controller="serviceController">
+                                            <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
+                                            <p style="display:inline"><b>  ::  //result.response.service_name//</b></p>
+                                        </div>
                                         <div ng-repeat="detail in result.result.sections" class="results-detail2">
                                             <p style="display:inline" ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}"><b>//detail.score//</b></p>
                                             <p style="display:inline">  ::  //detail.title_text//</p>

@@ -735,6 +735,20 @@ app.controller('ResultsController', ['$scope',
         // ----------
 
 
+        // ----------------------- User Interaction Event Handlers
+
+        $scope.serviceInfo = function(service_name) {
+            console.log(service_name)
+            switch(service_name) {
+                case 'Extract':
+
+                    break;
+            }
+        };
+
+        // ----------
+
+
         // ----------------------- Helper Functions
 
         // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
@@ -742,8 +756,61 @@ app.controller('ResultsController', ['$scope',
             return name.toString();
         }
 
+        // ----------
+
     }
+
 ]);
+
+// SERVICE: Controls when a service is clicked on; brings up popup window
+app.controller('serviceController', ['$scope', '$modal',
+
+    function ServiceController($scope, $modal) {
+
+        $scope.serviceInfo = function(service_name) {
+            console.log(service_name);
+            $scope.service_name = service_name;
+
+            switch(service_name) {
+                case 'Extract':
+                    $scope.service_descript = "Extract description....";
+                    break;
+
+                case 'Yara':
+                    $scope.service_descript = "Yara description....";
+                    break;
+            }
+
+            var modalInstance = $modal.open({
+                templateUrl: '/static/ng-template/popup.html',
+                controller: 'popupController',
+                resolve: {
+                    pop_scope: function(){
+                        return $scope;
+                    }
+                }
+            });
+
+        };
+
+    }
+
+]);
+
+
+// POPUP: Controls new popup window
+app.controller('popupController',
+
+    function PopupController($scope, $modalInstance, pop_scope) {
+        $scope.pop_header = pop_scope.service_name;
+        $scope.pop_body = pop_scope.service_descript;
+        $scope.close = function () {
+            $modalInstance.dismiss('close');
+        };
+
+    }
+
+);
 
 
 /* ============== Directives ==============*/
