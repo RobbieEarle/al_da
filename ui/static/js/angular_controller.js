@@ -776,9 +776,9 @@ app.controller('serviceController', ['$scope', '$modal',
                     $scope.service_descript = "APKaye is a service that focuses on detecting potentially malicious " +
                         "content within android applications (APK's)." +
                         "\r\n\r\n" +
-                        "Files are first run through Apktool, which decompiles / pulls them apart, reviews any " +
-                        "network indicators, analyzes the script's native libraries and binaries, and validates the " +
-                        "signing certificate that links the app to its original author." +
+                        "Files are first run through Apktool, which decompiles / pulls them apart, checks for " +
+                        "suspicious network indicators, analyzes the script's native libraries and binaries, and " +
+                        "validates the signing certificate that links the app to its original author." +
                         "\r\n\r\n" +
                         "The decompiled files are then run through dex2jar, which will revert any .dex files back " +
                         "into .jar format. The .jar files will then be passed to the Espresso service for further " +
@@ -791,9 +791,8 @@ app.controller('serviceController', ['$scope', '$modal',
 
                 case 'Avg':
                     $scope.service_descript = "Avg is a wrapper for AVG Antivirus' Linux command line " +
-                        "scanner 'avgscan'. If the user has purchased a license for AVG, this service simply submits " +
-                        "files of any type to their scanning service and assigns an Assemblyline score based on the " +
-                        "output.";
+                        "scanner 'avgscan'. This service simply submits files of any type to their scanning " +
+                        "service and assigns an Assemblyline score based on the output.";
                     break;
 
                 case 'Beaver':
@@ -811,8 +810,8 @@ app.controller('serviceController', ['$scope', '$modal',
                 case 'BitDefender':
                     $scope.service_descript = "BitDefender is a wrapper for Bitdefender's Linux command line " +
                         "scanner 'bdscan'. If the user has purchased a license for Bitdefender, this service simply " +
-                        "submits files of any type to their scanning service and assigns an Assemblyline score based " +
-                        "on the output.";
+                        "submits files of any type to their scanning service and assigns an Assemblyline score " +
+                        "based on the output.";
                     break;
 
                 case 'CFMD':
@@ -824,9 +823,9 @@ app.controller('serviceController', ['$scope', '$modal',
                 case 'Characterize':
                     $scope.service_descript = "Characterize partitions our file (breaks it up into parts), and " +
                         "determines the visual entropy for each partition. Entropy (randomness) in a file is " +
-                        "a measure of the predictability of any specific character based on the preceding characters. " +
-                        "Files with high entropy values are likely to be encrypted or compressed, as truly random " +
-                        "data is not common in typical user data." +
+                        "a measure of the predictability of any specific character based on the preceding " +
+                        "characters. Files with high entropy values are likely to be encrypted or compressed, as " +
+                        "truly random data is not common in typical user data." +
                         "\r\n\r\n" +
                         "A high entropy value on its own is not indicative of a malicious file (indeed, compression " +
                         "is used frequently today by all kinds of complex files), but if the file's source is " +
@@ -836,9 +835,9 @@ app.controller('serviceController', ['$scope', '$modal',
                 case 'Cleaver':
                     $scope.service_descript = "Cleaver is used to extract metadata from files. It is specifically " +
                         "geared towards parsing files in OLE2 format - a file type created by Microsoft for Office " +
-                        "products which houses embedded objects and links to other documents. These files are easily " +
-                        "exploited, and if one is detected Cleaver will dig down into its components to detect " +
-                        "potentially malicious anomalies.";
+                        "products which houses embedded objects and links to other documents. These files are " +
+                        "easily exploited, and if one is detected Cleaver will dig down into its components to " +
+                        "detect potentially malicious anomalies.";
                     break;
 
                 case 'ConfigDecoder':
@@ -847,18 +846,18 @@ app.controller('serviceController', ['$scope', '$modal',
                         "such as: domains, IPs, mutex names, crypto keys and other configuration block information.";
                     break;
 
-                case 'Crowbar':
+                case 'CrowBar':
                     $scope.service_descript = "Script obfuscation refers to the purposeful addition of superfluous " +
                         "/ unnecessary code to a script by a malicious actor, typically with the goal of hiding the " +
                         "programs true purpose and circumventing detection. Crowbar is a de-obfuscator which runs " +
-                        "files through a series of modules in an attempt to extract useful identifiers that a script " +
-                        "has been purposefully obfuscated.";
+                        "files through a series of modules in an attempt to extract useful identifiers that a " +
+                        "script has been purposefully obfuscated.";
                     break;
 
                 case 'Cuckoo':
-                    $scope.service_descript = "Cuckoo submits files to Cuckoo Sandbox, a standalone malware analysis " +
-                        "system. Cuckoo opens files and monitors execution, filesystem, and network activity that " +
-                        "occurs as a result, outputting this information to Assemblyline.";
+                    $scope.service_descript = "Cuckoo submits files to Cuckoo Sandbox, a standalone malware " +
+                        "analysis system. Cuckoo opens files and monitors execution, filesystem, and network " +
+                        "activity that occurs as a result, outputting this information to Assemblyline.";
                     break;
 
                 case 'Espresso':
@@ -868,24 +867,182 @@ app.controller('serviceController', ['$scope', '$modal',
                     break;
 
                 case 'Extract':
-                    $scope.service_descript = "The extract service is used simply to extract files out of containers " +
-                        "and resubmit them for analysis. If extract is unable to extract the file's contents, it is " +
-                        "automatically flagged.";
+                    $scope.service_descript = "The extract service is used simply to extract files out of " +
+                        "containers and resubmit them for analysis. If extract is unable to extract a file's " +
+                        "contents, it is automatically flagged.";
                     break;
 
                 case 'FSecure':
-                    $scope.service_descript = "FSecure is used to submit files to F-Secure's Internet Gatekeeper ICAP " +
-                        "proxy server. Files are sent to the proxy server for analysis using F-Secure's antivirus " +
-                        "software, and the results are sent back to Assemblyline.";
+                    $scope.service_descript = "FSecure is used to submit files to F-Secure's Internet Gatekeeper " +
+                        "ICAP proxy server. Files are sent to the proxy server for analysis using F-Secure's " +
+                        "antivirus software, and the results are sent back to Assemblyline.";
                     break;
 
                 case 'FrankenStrings':
-                    $scope.service_descript = "";
+                    $scope.service_descript = "The FrankenStrings service offers two main functions: to extract and " +
+                        "identify potentially harmful strings within a file, and to further break files down into " +
+                        "their component parts (if necessary) so that the strings in those components can be " +
+                        "analyzed as well. FrankenStrings uses three primary tools in its analysis - FireEye Flare " +
+                        "FLOSS, Balbuzard, and base64dump." +
+                        "\r\n\r\n" +
+                        "FLOSS is a standalone obfuscated String Solver that is used to extract static strings " +
+                        "(from ASCII or Unicode files), stacked strings, and encoded / obfuscated strings. It is " +
+                        "the primary tool used by FrankenStrings in string extraction for executable files, and its " +
+                        "static string modules are used in the examination of all other submitted files as well." +
+                        "\r\n\r\n" +
+                        "Balbuzard refers to a package of Python modules used to identify patterns of interest in " +
+                        "suspicious files (IP addresses, domain names, known file headers, interesting strings, " +
+                        "etc). Within the FrankenStrings service it is used mainly to decode and analyze strings " +
+                        "from files with XOR encoding." +
+                        "\r\n\r\n" +
+                        "Base64dump is a utility used to decode and analyze base64 encoded files." +
+                        "\r\n\r\n" +
+                        "Used in conjunction, these tools offer a robust service which can be used to decode and " +
+                        "identify potentially malicious strings from files encoded in a variety of ways. If a " +
+                        "string of interest is found within a file by any of the above utilities it is " +
+                        "assigned a score based on the likelihood of that string occurring in a non-malicious file.";
+                    break;
+
+                case 'KasperskyIcap':
+                    $scope.service_descript = "KesperskyIcap is used to submit files to Kaspersky Antivirus's " +
+                        "ICAP proxy server. Files are sent to the proxy server for analysis using Kaspersky's " +
+                        "antivirus software, and the results are sent back to Assemblyline.";
+                    break;
+
+                case 'McAfee':
+                    $scope.service_descript = "McAfee is a wrapper for McAfee Antivirus' Linux command line " +
+                        "scanner 'uvscan'. This service simply submits files of any type to their scanning " +
+                        "service and assigns an Assemblyline score based on the output.";
+                    break;
+
+                case 'MetaDefender':
+                    $scope.service_descript = "MetaDefender is used to submit files to the API of MetaDefender " +
+                        "Core's cyber security server. Files are sent to the server for analysis using " +
+                        "MetaDefender's threat prevention platform, and the results are sent back to Assemblyline.";
+                    break;
+
+                case 'MetaPeek':
+                    $scope.service_descript = "MetaPeek is used to analyze the metadata of a submitted file. It " +
+                        "looks for anomalies that are typically employed by spam writers to trick people into " +
+                        "clicking on embedded files, such as: double file extension, empty file names, excessive " +
+                        "use of whitespace, or bi-directional unicode control characters.";
+                    break;
+
+                case 'NSRL':
+                    $scope.service_descript = "NSRL is a service which takes a file's hash and looks it up against " +
+                        "the National Software Reference Library's database of known malicious files. If the hash " +
+                        "is recognized the file is automatically flagged in Assemblyline";
+                    break;
+
+                case 'Oletools':
+                    $scope.service_descript = "Oletools is a service aimed specifically at analyzing and detecting " +
+                        "threats in Microsoft OLE files and in XML documents. Specifically Oletools reviews macros " +
+                        "for SHA256 encoded content, suspicious strings, and malicious network indicators. " +
+                        "Additionally Oletools will identify potentially harmfull document streams, and suspicious " +
+                        "XML content as determined by the FrankenStrings module.";
+                    break;
+
+                case 'PDFId':
+                    $scope.service_descript = "PDFId is a tool for examining the metadata of, and objects contained " +
+                        "within, PDF files. PDFId runs two default services: PDFId by Didier Stevens, and " +
+                        "PDFParser." +
+                        "\r\n\r\n" +
+                        "These tools work to differentiate ordinary PDFs from potentially malicious ones by " +
+                        "analyzing things like header strings, streams, embedded files, full objects, javascript " +
+                        "scripts, entropy, and more. Once information on a PDF has been extracted by PDFId, it is " +
+                        "submitted to a series of Python PDFId plugins which assign an Assembyline score to the " +
+                        "file.";
+                    break;
+
+                case 'PEFile':
+                    $scope.service_descript = "PEFile is a service that targets windows executable files. It " +
+                        "attempts to extract the PE header to obtain information such as: entry point address, " +
+                        "linker version, OS version, time date stamp, machine type, rich header info, data " +
+                        "directory info, sections info, debug info, import / export info, and resources info. " +
+                        "Any anomalies or indicators of compromise will be flagged.";
+                    break;
+
+                case 'PeePDF':
+                    $scope.service_descript = "PeePDF uses the Python PeePDF library to break down and analyze PDF " +
+                        "files. Collects information on the pdf (MD5 and SHA256 hashes, size, version, streams, " +
+                        "etc), and applies a variety of heuristic techniques to detect anomalies (embedded PDF in " +
+                        "XDP, potentially malicious javascript, CVE identifiers, suspicious URL detection).";
+                    break;
+
+                case 'Suricata':
+                    $scope.service_descript = "The Suricata service opens a file and submits a tcpdump of the " +
+                        "resulting network activity to the open source Suricata intrusion detection system. " +
+                        "Suricata inspects network traffic and will return a warning if any suspicious behaviour " +
+                        "is detected when the file is opened; an Assemblyline score is generated accordingly.";
+                    break;
+
+                case 'Swiffer':
+                    $scope.service_descript = "Swiffer is a service aimed at detecting malicious SWF files " +
+                        "generated by Adobe Flash. It examines file metadata and applies a variety of heuristic " +
+                        "functions to determine if the file is suspicious, for example: checks for large printable " +
+                        "character buffers, checks if SWF was compiled within last 24 hours, looks for embedded " +
+                        "binary data, and attempts to identify intentional obfuscation.";
+                    break;
+
+                case 'Symantec':
+                    $scope.service_descript = "Symantec is a service that interfaces with the ICAP proxy of " +
+                        "Symantec's Protection Engine for Cloud Services. Files are sent to the server and " +
+                        "analyzed, and results are passed back to Assemblyline which assigns a score based on the " +
+                        "results.";
+                    break;
+
+                case 'Sync':
+                    $scope.service_descript = "Ensures that when a file is submitted to Assemblyline, it is " +
+                        "successfully copied to all file transport layers within the system. This service runs as a " +
+                        "system service and cannot be turned off. If this service is returning an error, please " +
+                        "contact a network administrator.";
+                    break;
+
+                case 'TagCheck':
+                    $scope.service_descript = "TagCheck is a post-scan service that is run once the initial scan of " +
+                        "a file is complete. It is designed to examine all tags generated by other services and " +
+                        "compare them to an internal database of known malicious signatures. In the event of a " +
+                        "signature match, the corresponding file can have its score elevated, more tags generated, " +
+                        "or further analysis performed on it, depending on the signature.";
+                    break;
+
+                case 'TorrentSlicer':
+                    $scope.service_descript = "Torrent slicer is a service aimed at extracting information from " +
+                        "torrent files, with the help of the Bencode Python module. It collects torrent metadata, " +
+                        "file information, and URL lists (if found), and also works to calculate relevant " +
+                        "information such as the type of torrent, number of pieces, last piece size, and the size " +
+                        "of the torrent. The file is automatically flagged if any return information is deemed " +
+                        "suspicious.";
+                    break;
+
+                case 'Unpacker':
+                    $scope.service_descript = "The unpacker service is used simply to unpack files from UPX packed " +
+                        "executable files and resubmit them for analysis. If unpacker is unable to unpack a " +
+                        "file's contents, it is automatically flagged.";
+                    break;
+
+                case 'VirusTotalDynamic':
+                    $scope.service_descript = "VirusTotalDynamic simply submits a file to VirusTotal for analysis " +
+                        "and assigns an Assemblyline score based on the results.";
+                    break;
+
+                case 'VirusTotalStatic':
+                    $scope.service_descript = "VirusTotalStatic checks the hash of a given file against the " +
+                        "VirusTotal API and returns the results.";
+                    break;
+
+                case 'Yara':
+                    $scope.service_descript = "This service runs all files through the Yara application. Yara is a " +
+                        "malware pattern matching system that houses a long list of code snippets that are known to " +
+                        "be present in various types of malware (these snippets are called 'rules'), and returns a " +
+                        "warning for any file whose content or binary data matches a rule. In addition to Yara's " +
+                        "pattern matching utility, this service also supports the following external modules: " +
+                        "Dotnet, ELF, Hash, Magic, Math, and PE.";
                     break;
 
                 default:
                     $scope.service_descript = "No quick description available for this service. Please contact a " +
-                        "network administrator for more information.";
+                        "network administrator for more information. ";
                     break;
 
             }
