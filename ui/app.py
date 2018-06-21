@@ -3,6 +3,9 @@ from flask import Flask, render_template, request, json, jsonify, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 
+# import virtualbox
+# from virtualbox import library
+
 from helper.views import create_menu
 import eventlet
 
@@ -63,6 +66,7 @@ def start():
     output = ''
     last_output = ''
 
+
     if my_thread is None:
         my_thread = socketio.start_background_task(target=background_thread)
 
@@ -81,6 +85,11 @@ def to_kiosk(pass_files):
     # print json.dumps(pass_files)
     pass_files_json = json.dumps(pass_files)
     socketio.emit('pass_files_json', pass_files_json)
+
+
+@socketio.on('clear')
+def clear():
+    socketio.emit('clear')
 
 
 # Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
@@ -172,3 +181,7 @@ def background_thread():
 def render(template, path):
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin',
                            user_output=output)
+
+
+# def restore_snapshot():
+#

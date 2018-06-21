@@ -6,15 +6,10 @@ name = "pypi"
 [dev-packages]
 
 [packages]
-flask-cors = "*"
-socketio = "*"
-python-socketio = "*"
-gevent = "*"
-gevent-websocket = "*"
 flask = "*"
 flask-socketio = "*"
+flask-cors = "*"
 eventlet = "*"
-werkzeug = "*"
 
 [requires]
 python_version = "2.7"

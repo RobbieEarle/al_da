@@ -677,14 +677,12 @@ app.controller('ResultsController', ['$scope',
         });
 
         // Listens for output from al_scrape. If the command is clear, then the results page is made invisible
-        socket.on('output', function(output_txt){
-            if(output_txt === 'clear') {
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.show_results = false;
-                    });
+        socket.on('clear', function(){
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.show_results = false;
                 });
-            }
+            });
         });
 
         // Listens for the transmission of our mal_files JSON object, containing all information on potentially
@@ -771,6 +769,7 @@ app.controller('serviceController', ['$scope', '$modal',
             console.log(service_name);
             $scope.service_name = service_name;
 
+            // Gives a brief description of whichever service has been clicked on
             switch(service_name) {
                 case 'APKaye':
                     $scope.service_descript = "APKaye is a service that focuses on detecting potentially malicious " +
@@ -1052,7 +1051,7 @@ app.controller('serviceController', ['$scope', '$modal',
                 controller: 'popupController',
                 size: 'lg',
                 resolve: {
-                    pop_scope: function(){
+                    popup_scope: function(){
                         return $scope;
                     }
                 }
@@ -1068,9 +1067,9 @@ app.controller('serviceController', ['$scope', '$modal',
 // POPUP: Controls new popup window
 app.controller('popupController',
 
-    function PopupController($scope, $modalInstance, pop_scope) {
-        $scope.pop_header = 'Service: ' + pop_scope.service_name;
-        $scope.pop_body = pop_scope.service_descript;
+    function PopupController($scope, $modalInstance, popup_scope) {
+        $scope.pop_header = 'Service: ' + popup_scope.service_name;
+        $scope.pop_body = popup_scope.service_descript;
         $scope.close = function () {
             $modalInstance.dismiss('close');
         };
