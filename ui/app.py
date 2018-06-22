@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, json, jsonify, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
+import subprocess
 
 # import virtualbox
 # from virtualbox import library
@@ -81,7 +82,7 @@ def to_kiosk(args):
 # Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
 # files that passed the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('pass_files')
-def to_kiosk(pass_files):
+def output_pass_files(pass_files):
     # print json.dumps(pass_files)
     pass_files_json = json.dumps(pass_files)
     socketio.emit('pass_files_json', pass_files_json)
@@ -95,7 +96,7 @@ def clear():
 # Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
 # files that did not pass the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('mal_files')
-def to_kiosk(mal_files):
+def output_mal_files(mal_files):
     # print json.dumps(mal_files)
     mal_files_json = json.dumps(mal_files)
     socketio.emit('mal_files_json', mal_files_json)
@@ -103,10 +104,17 @@ def to_kiosk(mal_files):
 
 # Called by scrape_drive.py to activate an automatic scroll event. Argument contains location to scroll to
 @socketio.on('scroll')
-def to_kiosk(args):
+def output_scroll(args):
     # socketio.emit('scroll', scroll)
     global scroll
     scroll = args
+
+
+@socketio.on('snapshot_restore')
+def snapshot_restore():
+    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
+    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
+    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless')
 
 
 # Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
@@ -181,7 +189,3 @@ def background_thread():
 def render(template, path):
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin',
                            user_output=output)
-
-
-# def restore_snapshot():
-#

@@ -38,18 +38,22 @@ app.controller('MainController', ['$scope',
             socket.emit('start');
         });
 
+        // Listens for output from al_scrape. If the command is clear, then the output console is cleared
+        socket.on('clear', function(){
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.kiosk_output = '';
+                });
+            });
+        });
+
         // Listens for console output messages from al_scrape
         socket.on('output', function(output_txt){
             _.defer(function() {
                 $scope.$apply(function () {
 
-                    // If the console text is 'clear', clears the UI console
-                    if (output_txt === 'clear') {
-                        $scope.kiosk_output = '';
-                    }
-                    // Otherwise, outputs to the UI console
-                    else
-                        $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
+                    // Outputs text to console
+                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
 
                     // Makes sure UI console keeps scrolling down automatically when UI console overflows
                     var textarea = document.getElementById('kiosk_output_txt');
@@ -692,8 +696,7 @@ app.controller('ResultsController', ['$scope',
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.scan_success = false;
-                        console.log("Parsing mal_files");
-                        console.log(JSON.parse(mal_files));
+                        // console.log(JSON.parse(mal_files));
                         $scope.tbl_mal_files = JSON.parse(mal_files);
                     });
                 });
@@ -736,7 +739,6 @@ app.controller('ResultsController', ['$scope',
         // ----------------------- User Interaction Event Handlers
 
         $scope.serviceInfo = function(service_name) {
-            console.log(service_name)
             switch(service_name) {
                 case 'Extract':
 
@@ -766,7 +768,6 @@ app.controller('serviceController', ['$scope', '$modal',
     function ServiceController($scope, $modal) {
 
         $scope.serviceInfo = function(service_name) {
-            console.log(service_name);
             $scope.service_name = service_name;
 
             // Gives a brief description of whichever service has been clicked on
