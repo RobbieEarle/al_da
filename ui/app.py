@@ -114,7 +114,8 @@ def output_scroll(args):
 def snapshot_restore():
     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
-    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless')
+    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
+                    '--type headless')
 
 
 # Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
