@@ -2,109 +2,128 @@
 
 {% block results %}
 
-<div id="results_scroll_to" class="results_scroll"></div>
-<br />
-<br />
-<section id="results" ng-show="show_results" ng-controller="ResultsController">
-    <section id="results_body" role="main" class="container container-with-overflow">
+    <div id="results_scroll_to" class="section-break"></div>
+        <br />
+        <br />
 
-        <div class="pad text-center">
-           <img class="results_img" src="/static/images/scrape_pass.svg" ng-if="scan_success">
-            <img class="results_img" src="/static/images/scrape_fail.svg" ng-if="!scan_success">
-        </div>
+    <section id="results" ng-show="show_results" ng-controller="ResultsController">
 
-        <div class="text-semi-muted text-center">
-            <div class="results-h1">
-                <b ng-if="scan_success">No malware was detected on this device</b>
-                <b ng-if="!scan_success">Malware has been detected on this device</b>
+        <section id="resultsHeader" class="container container-with-overflow">
+            <div class="section-header font-mont-400">
+                <b>Scan Results</b>
             </div>
-
-            <div class="results-h2">
-                <p ng-if="scan_success">You may safely disconnect your device</p>
-                <p ng-if="!scan_success">Please read below for more details about which files have been flagged and
-                why. You may safely disconnect your device.</p>
+        </section>
+        <section ng-if="scan_success" id="resultPass" class="container container-with-overflow pad bg-green">
+            <div class="section-subheader font-mont-400">
+                <b>No malware was detected on this device</b>
             </div>
-
-            <div>
-                <p ng-if="no_files">No files were detected on this device</p>
+        </section>
+        <div ng-if="!scan_success" id="resultFail" class="container container-with-overflow pad bg-red">
+            <div class="section-subheader font-mont-400">
+                Malware has been detected on this device
             </div>
         </div>
 
+        <section id="results_body" role="main" class="container container-with-overflow">
 
-        <accordion close-others="true" class="table text-semi-muted" ng-if="!scan_success">
-            <p><b>Potentially malicious files</b></p>
-            <accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
+            <!--<div class="pad text-center">-->
+               <!--<img class="results_img" src="/static/images/scrape_pass.svg" ng-if="scan_success">-->
+                <!--<img class="results_img" src="/static/images/scrape_fail.svg" ng-if="!scan_success">-->
+            <!--</div>-->
 
-                <accordion-heading>
-                    <div class="row mal_file_header">
-                        <div class="cellHead">//file.submission.metadata.filename//</div>
-                        <div class="cellHead text-right">//file.submission.max_score//</div>
-                    </div>
-                </accordion-heading>
+            <!--<div class="text-semi-muted text-center">-->
+                <!--<div class="results-h1">-->
+                    <!--<b ng-if="scan_success">No malware was detected on this device</b>-->
+                    <!--<b ng-if="!scan_success">Malware has been detected on this device</b>-->
+                <!--</div>-->
 
-                <div class="pad">
-                    <p><b>Path:</b> //file.submission.metadata.path//</p>
-                    <p><b>SID:</b> //file.submission.sid//</p>
-                </div>
+                <!--<div class="results-h2">-->
+                    <!--<p ng-if="scan_success">You may safely disconnect your device</p>-->
+                    <!--<p ng-if="!scan_success">Please read below for more details about which files have been flagged and-->
+                    <!--why. You may safely disconnect your device.</p>-->
+                <!--</div>-->
 
-                <div class="pad"><b>File Contents:</b></div>
+                <!--<div>-->
+                    <!--<p ng-if="no_files">No files were detected on this device</p>-->
+                <!--</div>-->
+            <!--</div>-->
 
-                <script type="text/ng-template" id="file_tree">
-                    <div ng-if="file_child.score>=500">
-                        <div ng-click="isCollapsed = !isCollapsed" class="results-title">
-                            <span ng-if="isCollapsed" class="fas fa-chevron-circle-right results-glyph" style="display:inline"></span>
-                            <span ng-if="!isCollapsed" class="fas fa-chevron-circle-down results-glyph" style="display:inline"></span>
-                            <p style="display:inline" ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}"><b>//file_child.score//</b></p>
-                            <p style="display:inline">  ::  //nameStrip(file_child.name)//</p>
+            <div class="pad-head">
+                <accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success">
+                    <p><b>Potentially malicious files</b></p>
+                    <accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
+
+                        <accordion-heading>
+                            <div class="row mal_file_header">
+                                <div class="cellHead">//file.submission.metadata.filename//</div>
+                                <div class="cellHead text-right">//file.submission.max_score//</div>
+                            </div>
+                        </accordion-heading>
+
+                        <div class="pad">
+                            <p><b>Path:</b> //file.submission.metadata.path//</p>
+                            <p><b>SID:</b> //file.submission.sid//</p>
                         </div>
 
-                        <div class="collapse-pad">
-                            <div collapse="isCollapsed" ng-init="isCollapsed=true">
-                                <div ng-repeat="result in file.results">
-                                    <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
-                                        <div class="results-title" ng-click="serviceInfo(result.response.service_name)" ng-controller="serviceController">
-                                            <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
-                                            <p style="display:inline"><b>  ::  //result.response.service_name//</b></p>
-                                        </div>
-                                        <div ng-repeat="detail in result.result.sections" class="results-detail2">
-                                            <p style="display:inline" ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}"><b>//detail.score//</b></p>
-                                            <p style="display:inline">  ::  //detail.title_text//</p>
+                        <div class="pad"><b>File Contents:</b></div>
+
+                        <script type="text/ng-template" id="file_tree">
+                            <div ng-if="file_child.score>=500">
+                                <div ng-click="isCollapsed = !isCollapsed" class="results-title">
+                                    <span ng-if="isCollapsed" class="fas fa-chevron-circle-right results-glyph" style="display:inline"></span>
+                                    <span ng-if="!isCollapsed" class="fas fa-chevron-circle-down results-glyph" style="display:inline"></span>
+                                    <p style="display:inline" ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}"><b>//file_child.score//</b></p>
+                                    <p style="display:inline">  ::  //nameStrip(file_child.name)//</p>
+                                </div>
+
+                                <div class="collapse-pad">
+                                    <div collapse="isCollapsed" ng-init="isCollapsed=true">
+                                        <div ng-repeat="result in file.results">
+                                            <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
+                                                <div class="results-title" ng-click="serviceInfo(result.response.service_name)" ng-controller="serviceController">
+                                                    <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
+                                                    <p style="display:inline"><b>  ::  //result.response.service_name//</b></p>
+                                                </div>
+                                                <div ng-repeat="detail in result.result.sections" class="results-detail2">
+                                                    <p style="display:inline" ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}"><b>//detail.score//</b></p>
+                                                    <p style="display:inline">  ::  //detail.title_text//</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <div ng-if="file_child.children">
+                                <div ng-repeat="(key, file_child) in file_child.children" ng-include="'file_tree'"></div>
+                            </div>
+
+                        </script>
+                        <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
+
+                    </accordion-group>
+                </accordion>
+
+                <accordion close-others="true" class="pad table text-semi-muted">
+                    <p ng-if="show_pass_header"><b>Safe files</b></p>
+                    <accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'">
+
+                        <accordion-heading>
+                            <div class="row text-semi-muted">
+                                <div class="cellHead">//file.metadata.filename//</div>
+                                <div class="cellHead text-right">//file.metadata.al_score//</div>
+                            </div>
+                        </accordion-heading>
+
+                        <div class="pad">
+                            <p><b>Path:</b> //file.metadata.path//</p>
+                            <p><b>SID:</b> //file.alert.sid//</p>
                         </div>
-                    </div>
 
-                    <div ng-if="file_child.children">
-                        <div ng-repeat="(key, file_child) in file_child.children" ng-include="'file_tree'"></div>
-                    </div>
+                    </accordion-group>
+                </accordion>
+            </div>
 
-                </script>
-                <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
-
-            </accordion-group>
-        </accordion>
-
-        <accordion close-others="true" class="pad table text-semi-muted">
-            <p ng-if="show_pass_header"><b>Safe files</b></p>
-            <accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'">
-
-                <accordion-heading>
-                    <div class="row text-semi-muted">
-                        <div class="cellHead">//file.metadata.filename//</div>
-                        <div class="cellHead text-right">//file.metadata.al_score//</div>
-                    </div>
-                </accordion-heading>
-
-                <div class="pad">
-                    <p><b>Path:</b> //file.metadata.path//</p>
-                    <p><b>SID:</b> //file.alert.sid//</p>
-                </div>
-
-            </accordion-group>
-        </accordion>
-
+        </section>
     </section>
-</section>
 {% endblock %}

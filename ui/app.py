@@ -67,9 +67,14 @@ def start():
     output = ''
     last_output = ''
 
-
     if my_thread is None:
         my_thread = socketio.start_background_task(target=background_thread)
+
+
+# @socketio.on('refreshVM')
+# def refreshVM():
+#     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
+#                     '--type headless')
 
 
 # Called by scrape_drive.py whenever it wants to output information to the console
@@ -115,7 +120,7 @@ def snapshot_restore():
     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
-                    '--type headless')
+                                        '--type headless')
 
 
 # Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
@@ -126,21 +131,7 @@ def device_event(args):
     global new_socket_msg
 
     print args
-
-    if args == 'connected':
-        socket_msg['device_conn']['active'] = True
-        socket_msg['device_conn']['url'] = '/static/images/scrape_conn.svg'
-        new_socket_msg = True
-    if args == 'disconnected':
-        socket_msg['device_conn']['active'] = True
-        socket_msg['device_conn']['url'] = '/static/images/scrape_no_conn.svg'
-        new_socket_msg = True
-    if args == 'loading':
-        socket_msg['loading']['active'] = True
-        new_socket_msg = True
-    if args == 'done_loading':
-        socket_msg['done_loading']['active'] = True
-        new_socket_msg = True
+    socketio.emit('dev_event', args)
 
 
 # ============== Background Threads ==============
@@ -164,19 +155,6 @@ def background_thread():
             if output != last_output:
                 socketio.emit('output', output)
                 last_output = output
-
-        # Handles changes to the webapp device connection icon (user_output_img)
-        if new_socket_msg:
-            for msg in socket_msg:
-                if socket_msg[msg]['active'] is True:
-                    if msg == 'device_conn':
-                        socketio.emit(msg, socket_msg['device_conn']['url'])
-                    if msg == 'loading':
-                        socketio.emit(msg)
-                    if msg == 'done_loading':
-                        socketio.emit(msg, socket_msg['device_conn']['url'])
-                    socket_msg[msg]['active'] = False
-            new_socket_msg = False
 
         # Handles scroll events
         if scroll != '':

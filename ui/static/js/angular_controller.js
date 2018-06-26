@@ -15,16 +15,21 @@ app.controller('MainController', ['$scope',
 
         // ----------------------- Default Property Values
 
-        $scope.kiosk_img_new = '/static/images/scrape_no_conn.svg';
-        $scope.kiosk_header = 'To submit files for analysis simply plug a ' +
-            'block device (ie. USB device or external hard drive) into the terminal and wait for all files to be ' +
+        $scope.kiosk_header = '*To submit files for analysis please enter valid credentials, plug a ' +
+            'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
             'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
             'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
             'the device owner.';
-        $scope.kiosk_img = $scope.kiosk_img_new;
+        $scope.output_header = 'Device not connected';
         $scope.kiosk_status = 'Please plug in a device to begin';
+        $scope.deviceEvent = '';
+        $scope.deviceConnected = false;
         $scope.show_main = true;
+        $scope.kiosk_output = '';
+        $scope.fName = '';
+        $scope.lName = '';
+        $scope.credentialsGiven = false;
         $scope.kiosk_output = '';
 
         // ----------
@@ -53,7 +58,7 @@ app.controller('MainController', ['$scope',
                 $scope.$apply(function () {
 
                     // Outputs text to console
-                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
+                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + '   ' + output_txt;
 
                     // Makes sure UI console keeps scrolling down automatically when UI console overflows
                     var textarea = document.getElementById('kiosk_output_txt');
@@ -64,31 +69,11 @@ app.controller('MainController', ['$scope',
         });
 
         // Listens for when a device is connected
-        socket.on('device_conn', function(img_url){
+        socket.on('dev_event', function(event){
+            console.log(event);
             _.defer(function() {
-                $scope.kiosk_img_new = img_url;
                 $scope.$apply(function () {
-                    $scope.show_main = false;
-                });
-            });
-        });
-
-        // Listens for when files are being sent to server
-        socket.on('loading', function(){
-            _.defer(function() {
-                $scope.kiosk_img_new = '/static/images/ripple2.svg';
-                $scope.$apply(function () {
-                    $scope.show_main = false;
-                });
-            });
-        });
-
-        // Listens for when all files have been sent to server
-        socket.on('done_loading', function(img_url){
-            _.defer(function() {
-                $scope.kiosk_img_new = img_url;
-                $scope.$apply(function () {
-                    $scope.show_main = false;
+                    $scope.deviceEvent = event;
                 });
             });
         });
@@ -99,19 +84,36 @@ app.controller('MainController', ['$scope',
         // ----------------------- Animation Event Handlers
 
         // Called after show animation has completed on user_output_img
-        $scope.afterMainShow = function() {
+        $scope.outputHeaderAfterShow = function() {
+            $scope.deviceEvent = '';
+            console.log('Done')
         }
 
         // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
         // makes it automatically reappear
-        $scope.afterMainHide = function() {
+        $scope.outputHeaderAfterHide = function() {
+            console.log('Switch Image')
             _.defer(function(){
-                $scope.$apply(function(){ $scope.kiosk_img = $scope.kiosk_img_new});
+                $scope.$apply(function(){
+                    $scope.deviceConnected = !$scope.deviceConnected;
+                    if ($scope.deviceConnected)
+                        $scope.output_header = 'Device connected';
+                    else if (!$scope.deviceConnected)
+                        $scope.output_header = 'Device not connected';
+                    $scope.deviceEvent = 'done';
+                });
             });
-            $scope.show_main = true;
         }
 
         // ----------
+
+        $scope.confirmCred = function(){
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.credentialsGiven = !$scope.credentialsGiven;
+                });
+            });
+        }
 
         // $scope.action = function() {
         //     document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -735,19 +737,6 @@ app.controller('ResultsController', ['$scope',
         // ----------
 
 
-        // ----------------------- User Interaction Event Handlers
-
-        $scope.serviceInfo = function(service_name) {
-            switch(service_name) {
-                case 'Extract':
-
-                    break;
-            }
-        };
-
-        // ----------
-
-
         // ----------------------- Helper Functions
 
         // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
@@ -1082,19 +1071,23 @@ app.controller('popupController',
 /* ============== Directives ==============*/
 
 // Handles show / hide events being applied to user_output_img. The myShow variable is linked to the show variable of
-// the conroller; when its value is changed, an event is called accordingly to animate it fading in / out. Once the
+// the controller; when its value is changed, an event is called accordingly to animate it fading in / out. Once the
 // animation is complete, calls afterShow() or afterHide() as necessary
-app.directive('mainShow', function($animate) {
+app.directive('animOutputHeader', function($animate) {
     return {
         link: function (scope, elem, attr) {
-            scope.$watch(attr.mainShow, function () {
-                if (scope.show_main) {
+            scope.$watch(attr.animOutputHeader, function () {
+                console.log("Animate Event: " + scope.deviceEvent + ' ' + scope.deviceConnected + ' ' + elem);
+                if (scope.deviceEvent === 'done') {
+                    console.log('Show')
                     $animate.removeClass(elem, 'hidden');
-                    $animate.removeClass(elem, 'img-hide').then(scope.afterMainShow);
+                    $animate.removeClass(elem, 'img-hide').then(scope.outputHeaderAfterShow);
                 }
-                if (!scope.show_main) {
+                if (scope.deviceEvent === 'connected' && scope.deviceConnected === false ||
+                scope.deviceEvent === 'disconnected' && scope.deviceConnected === true) {
+                    console.log('Hide')
                     $animate.addClass(elem, 'hidden');
-                    $animate.addClass(elem, 'img-hide').then(scope.afterMainHide);
+                    $animate.addClass(elem, 'img-hide').then(scope.outputHeaderAfterHide);
                 }
             });
         }

@@ -9,30 +9,36 @@
 {% endblock %}
 {% block scan %}
     <section id="main" role="main">
-        <section id="appHeader" class="container container-with-overflow">
 
-            <div class="pad">
-                <div class="banner">
-                    {% block banner %}<img class="banner_img" src="/static/images/banner.svg">{% endblock %}
-                </div>
+        <section id="appBodyHeader" class="container container-with-overflow">
+            <div class="section-header font-mont-400">
+                <b>Assembyline Device Auditor</b>
             </div>
-
         </section>
-        <section id="appBody" class="container container-with-overflow" ng-controller="MainController">
+        <section id="appBody" class="container container-with-overflow sec-main" ng-controller="MainController">
 
-            <div class="pad text-center text-semi-muted">
-                <b>Welcome to Assembyline Device Auditor</b>
+            <div class="form-style-8 font-mont-400">
+                <form novalidate class="text-semi-muted pad">
+                    <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName"/></label>
+                    <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName"/></label>
+                    <div class="btn-cred">
+                        <button type="button" class='btn btn-default text-semi-muted' ng-disabled="!fName || !lName" ng-click="confirmCred()">Confirm</button>
+                    </div>
+                </form>
             </div>
 
-            <div class="text-note">
+            <div class="pad user_output output-fade" id="device_conn_img" ng-if="credentialsGiven">
+                    <div class="output-header kiosk-img font-mont-400" ng-class="{'bg-red': !deviceConnected, 'bg-green': deviceConnected}" anim-output-header="deviceEvent">
+                        <span class="fab fa-usb results-glyph" style="display:inline"></span>
+                        //output_header//
+                    </div>
+                    <textarea class="scrollabletextbox pad text-muted" id="kiosk_output_txt" readonly>
+                        //kiosk_output//
+                    </textarea>
+            </div>
+
+            <div class="pad text-note font-mont-400">
                 //kiosk_header//
-            </div>
-
-            <div class="user_output" id="device_conn_img">
-                <img class="user_output_img kiosk-img" main_show="show_main" id="user_output_img" src=//kiosk_img//>
-                <textarea class="scrollabletextbox kiosk_txt_hide pad text-muted" id="kiosk_output_txt" readonly>
-                    //kiosk_output//
-                </textarea>
             </div>
 
             <!--<div class="pad text-center text-muted">-->
