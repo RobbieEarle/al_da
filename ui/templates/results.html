@@ -26,39 +26,17 @@
 
         <section id="results_body" role="main" class="container container-with-overflow">
 
-            <!--<div class="pad text-center">-->
-               <!--<img class="results_img" src="/static/images/scrape_pass.svg" ng-if="scan_success">-->
-                <!--<img class="results_img" src="/static/images/scrape_fail.svg" ng-if="!scan_success">-->
-            <!--</div>-->
-
-            <!--<div class="text-semi-muted text-center">-->
-                <!--<div class="results-h1">-->
-                    <!--<b ng-if="scan_success">No malware was detected on this device</b>-->
-                    <!--<b ng-if="!scan_success">Malware has been detected on this device</b>-->
-                <!--</div>-->
-
-                <!--<div class="results-h2">-->
-                    <!--<p ng-if="scan_success">You may safely disconnect your device</p>-->
-                    <!--<p ng-if="!scan_success">Please read below for more details about which files have been flagged and-->
-                    <!--why. You may safely disconnect your device.</p>-->
-                <!--</div>-->
-
-                <!--<div>-->
-                    <!--<p ng-if="no_files">No files were detected on this device</p>-->
-                <!--</div>-->
-            <!--</div>-->
-
             <div class="pad-head">
-                <accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success">
                     <p><b>Potentially malicious files</b></p>
-                    <accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
+                    <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
 
-                        <accordion-heading>
+                        <div uib-accordion-heading>
                             <div class="row mal_file_header">
                                 <div class="cellHead">//file.submission.metadata.filename//</div>
                                 <div class="cellHead text-right">//file.submission.max_score//</div>
                             </div>
-                        </accordion-heading>
+                        </div>
 
                         <div class="pad">
                             <p><b>Path:</b> //file.submission.metadata.path//</p>
@@ -77,7 +55,7 @@
                                 </div>
 
                                 <div class="collapse-pad">
-                                    <div collapse="isCollapsed" ng-init="isCollapsed=true">
+                                    <div uib-collapse="isCollapsed" ng-init="isCollapsed=true">
                                         <div ng-repeat="result in file.results">
                                             <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
                                                 <div class="results-title" ng-click="serviceInfo(result.response.service_name)" ng-controller="serviceController">
@@ -101,27 +79,27 @@
                         </script>
                         <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
 
-                    </accordion-group>
-                </accordion>
+                    </div>
+                </div>
 
-                <accordion close-others="true" class="pad table text-semi-muted">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted">
                     <p ng-if="show_pass_header"><b>Safe files</b></p>
-                    <accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'">
+                    <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'" class="panel-default">
 
-                        <accordion-heading>
+                        <div uib-accordion-heading>
                             <div class="row text-semi-muted">
                                 <div class="cellHead">//file.metadata.filename//</div>
                                 <div class="cellHead text-right">//file.metadata.al_score//</div>
                             </div>
-                        </accordion-heading>
+                        </div>
 
                         <div class="pad">
                             <p><b>Path:</b> //file.metadata.path//</p>
                             <p><b>SID:</b> //file.alert.sid//</p>
                         </div>
 
-                    </accordion-group>
-                </accordion>
+                    </div>
+                </div>
             </div>
 
         </section>

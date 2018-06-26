@@ -1,8 +1,7 @@
 .user_output {
 	width: 100%;
 	min-width: 250px;
-    /*display: inline-block;*/
-	/*text-align: center;*/
+    padding-top: 40px;
 }
 
 .font-mont-400 {
@@ -18,6 +17,12 @@
 }
 
 .btn-new-session:hover {
+    background-color: #0f1c2e;
+    border-color: #0f1c2e;
+    color: #ffffff;
+}
+
+.btn-new-session:disabled {
     background-color: #0f1c2e;
     border-color: #0f1c2e;
     color: #ffffff;
@@ -44,7 +49,6 @@
     padding-right: 30px;
     background: #FFFFFF;
     display: inline;
-    /*margin: 50px auto;*/
 }
 .form-style-8 h2{
     background: #4D4D4D;
@@ -63,11 +67,9 @@
     outline: none;
     display: inline;
     width: 100%;
-    /*padding: 7px;*/
     border: none;
     border-bottom: 1px solid #ddd;
     background: transparent;
-    /*margin-bottom: 10px;*/
     font: 12px 'Montserrat', sans-serif;
     height: 45px;
 }
@@ -81,10 +83,6 @@
 .btn-cred {
     padding-top: 15px;
     text-align: center;
-}
-
-.form-input {
-    font-weight: normal;
 }
 
 .output-header {
@@ -231,6 +229,7 @@
     text-align: left;
     vertical-align: middle;
     white-space: pre-line;
+    width: 70%;
 }
 
 .pad-head {

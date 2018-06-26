@@ -17,24 +17,34 @@
         </section>
         <section id="appBody" class="container container-with-overflow sec-main" ng-controller="MainController">
 
-            <div class="form-style-8 font-mont-400">
-                <form novalidate class="text-semi-muted pad">
-                    <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName"/></label>
-                    <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName"/></label>
-                    <div class="btn-cred">
-                        <button type="button" class='btn btn-default text-semi-muted' ng-disabled="!fName || !lName" ng-click="confirmCred()">Confirm</button>
-                    </div>
-                </form>
+            <div uib-collapse="currScreen<1">
+                <div class="form-style-8 font-mont-400">
+                    <form novalidate class="text-semi-muted pad">
+                        <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName"/></label>
+                        <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName"/></label>
+                        <!--<div class="btn-cred">-->
+                            <!--<button type="button" class='btn btn-default text-semi-muted' ng-disabled="!fName || !lName" ng-click="confirmCred()">Confirm</button>-->
+                        <!--</div>-->
+                    </form>
+                </div>
             </div>
 
-            <div class="pad user_output output-fade" id="device_conn_img" ng-if="credentialsGiven">
+            <div class="pad">
+                <button type="button" class='btn btn-default btn-new-session font-mont-400' ng-disabled="currScreen==1 && (!fName || !lName)" ng-click="btnHandleNav()">//btnText//</button>
+            </div>
+
+            <div uib-collapse="currScreen<2">
+                <div class="pad user_output output-fade" id="device_conn_img">
                     <div class="output-header kiosk-img font-mont-400" ng-class="{'bg-red': !deviceConnected, 'bg-green': deviceConnected}" anim-output-header="deviceEvent">
                         <span class="fab fa-usb results-glyph" style="display:inline"></span>
                         //output_header//
                     </div>
-                    <textarea class="scrollabletextbox pad text-muted" id="kiosk_output_txt" readonly>
-                        //kiosk_output//
-                    </textarea>
+                    <div uib-collapse="kiosk_output==''">
+                        <textarea class="scrollabletextbox pad text-muted" id="kiosk_output_txt" readonly>
+                            //kiosk_output//
+                        </textarea>
+                    </div>
+                </div>
             </div>
 
             <div class="pad text-note font-mont-400">

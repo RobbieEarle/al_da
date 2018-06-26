@@ -31,6 +31,8 @@ app.controller('MainController', ['$scope',
         $scope.lName = '';
         $scope.credentialsGiven = false;
         $scope.kiosk_output = '';
+        $scope.currScreen = 0;
+        $scope.btnText = "Start new session"
 
         // ----------
 
@@ -86,13 +88,11 @@ app.controller('MainController', ['$scope',
         // Called after show animation has completed on user_output_img
         $scope.outputHeaderAfterShow = function() {
             $scope.deviceEvent = '';
-            console.log('Done')
         }
 
         // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
         // makes it automatically reappear
         $scope.outputHeaderAfterHide = function() {
-            console.log('Switch Image')
             _.defer(function(){
                 $scope.$apply(function(){
                     $scope.deviceConnected = !$scope.deviceConnected;
@@ -107,13 +107,24 @@ app.controller('MainController', ['$scope',
 
         // ----------
 
-        $scope.confirmCred = function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.credentialsGiven = !$scope.credentialsGiven;
+        $scope.btnHandleNav = function(){
+            if ($scope.currScreen === 0)
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.btnText = "Confirm credentials"
+                        $scope.currScreen++;
+                    });
                 });
-            });
+            if ($scope.currScreen === 1)
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.btnText = "Start new session"
+                        $scope.currScreen++;
+                    });
+                });
         }
+
+
 
         // $scope.action = function() {
         //     document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -751,9 +762,9 @@ app.controller('ResultsController', ['$scope',
 ]);
 
 // SERVICE: Controls when a service is clicked on; brings up popup window
-app.controller('serviceController', ['$scope', '$modal',
+app.controller('serviceController', ['$scope', '$uibModal',
 
-    function ServiceController($scope, $modal) {
+    function ServiceController($scope, $uibModal) {
 
         $scope.serviceInfo = function(service_name) {
             $scope.service_name = service_name;
@@ -1035,7 +1046,7 @@ app.controller('serviceController', ['$scope', '$modal',
 
             }
 
-            var modalInstance = $modal.open({
+            var uibModalInstance = $uibModal.open({
                 templateUrl: '/static/ng-template/popup.html',
                 controller: 'popupController',
                 size: 'lg',
@@ -1056,11 +1067,11 @@ app.controller('serviceController', ['$scope', '$modal',
 // POPUP: Controls new popup window
 app.controller('popupController',
 
-    function PopupController($scope, $modalInstance, popup_scope) {
+    function PopupController($scope, $uibModalInstance, popup_scope) {
         $scope.pop_header = 'Service: ' + popup_scope.service_name;
         $scope.pop_body = popup_scope.service_descript;
         $scope.close = function () {
-            $modalInstance.dismiss('close');
+            $uibModalInstance.dismiss('close');
         };
 
     }
@@ -1077,15 +1088,12 @@ app.directive('animOutputHeader', function($animate) {
     return {
         link: function (scope, elem, attr) {
             scope.$watch(attr.animOutputHeader, function () {
-                console.log("Animate Event: " + scope.deviceEvent + ' ' + scope.deviceConnected + ' ' + elem);
                 if (scope.deviceEvent === 'done') {
-                    console.log('Show')
                     $animate.removeClass(elem, 'hidden');
                     $animate.removeClass(elem, 'img-hide').then(scope.outputHeaderAfterShow);
                 }
                 if (scope.deviceEvent === 'connected' && scope.deviceConnected === false ||
                 scope.deviceEvent === 'disconnected' && scope.deviceConnected === true) {
-                    console.log('Hide')
                     $animate.addClass(elem, 'hidden');
                     $animate.addClass(elem, 'img-hide').then(scope.outputHeaderAfterHide);
                 }
