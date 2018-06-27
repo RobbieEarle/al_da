@@ -18,33 +18,57 @@
         <section id="appBody" class="container container-with-overflow sec-main" ng-controller="MainController">
 
             <div uib-collapse="currScreen<1">
+
                 <div class="form-style-8 font-mont-400">
-                    <form novalidate class="text-semi-muted pad">
-                        <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName"/></label>
-                        <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName"/></label>
+
+                    <form novalidate class="text-semi-muted pad main-split" ng-class="{'disable': currScreen!=1}">
+                        <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName" ng-disabled="currScreen!=1"/></label>
+                        <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName" ng-disabled="currScreen!=1"/></label>
                         <!--<div class="btn-cred">-->
                             <!--<button type="button" class='btn btn-default text-semi-muted' ng-disabled="!fName || !lName" ng-click="confirmCred()">Confirm</button>-->
                         <!--</div>-->
                     </form>
+
+                    <div class="main-split">
+                        <div uib-collapse="currScreen<2">
+                            <div class="user_output output-fade" id="device_conn_img" ng-class="{'disable': scan_finished}">
+                                <div>
+                                    <img class="user_output_img kiosk-img" anim-output-header="deviceEvent" id="user_output_img" src=//kiosk_img//>
+                                    <div class="text-semi-muted font-mont-400 user_output_img_sub">
+                                        <b>//kiosk_img_sub//</b>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div uib-collapse="kiosk_output=='' || currScreen<2">
+                <div class="btn-pad">
+                    <div uib-progress ng-class="{'progress-striped active': receivedType=='scanning'}">
+                        <div uib-bar value="percentageReceived" type=//receivedType//>
+                            <span ng-hide="percentageReceived < 3">//received_output//</span>
+                        </div>
+                        <div uib-bar value="percentageSent" type=//sentType//>
+                            <span ng-hide="percentageSent < 3">//submit_output//</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="pad">
+            <div uib-collapse="kiosk_output=='' || currScreen<2">
+                <div class="output-box">
+                    <textarea class="scrollabletextbox text-muted" id="kiosk_output_txt" readonly>
+                        //kiosk_output//
+                    </textarea>
+                </div>
+            </div>
+
+            <div class="btn-pad">
                 <button type="button" class='btn btn-default btn-new-session font-mont-400' ng-disabled="currScreen==1 && (!fName || !lName)" ng-click="btnHandleNav()">//btnText//</button>
-            </div>
-
-            <div uib-collapse="currScreen<2">
-                <div class="pad user_output output-fade" id="device_conn_img">
-                    <div class="output-header kiosk-img font-mont-400" ng-class="{'bg-red': !deviceConnected, 'bg-green': deviceConnected}" anim-output-header="deviceEvent">
-                        <span class="fab fa-usb results-glyph" style="display:inline"></span>
-                        //output_header//
-                    </div>
-                    <div uib-collapse="kiosk_output==''">
-                        <textarea class="scrollabletextbox pad text-muted" id="kiosk_output_txt" readonly>
-                            //kiosk_output//
-                        </textarea>
-                    </div>
-                </div>
             </div>
 
             <div class="pad text-note font-mont-400">

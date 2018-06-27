@@ -1,5 +1,5 @@
 .kiosk-img{
-  display:inline-block !important;
+  display:inline !important;
   animation-fill-mode: forwards;
 }
 

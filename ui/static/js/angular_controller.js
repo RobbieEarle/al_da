@@ -14,25 +14,34 @@ app.controller('MainController', ['$scope',
 
 
         // ----------------------- Default Property Values
-
         $scope.kiosk_header = '*To submit files for analysis please enter valid credentials, plug a ' +
             'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
             'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
             'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
             'the device owner.';
-        $scope.output_header = 'Device not connected';
-        $scope.kiosk_status = 'Please plug in a device to begin';
+        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+        $scope.kiosk_img_sub = 'Please attach device';
         $scope.deviceEvent = '';
         $scope.deviceConnected = false;
-        $scope.show_main = true;
         $scope.kiosk_output = '';
         $scope.fName = '';
         $scope.lName = '';
         $scope.credentialsGiven = false;
-        $scope.kiosk_output = '';
+        $scope.scan_finished = false;
         $scope.currScreen = 0;
-        $scope.btnText = "Start new session"
+        $scope.btnText = "Start new session";
+
+        $scope.files_submitted = 0;
+        $scope.files_received = 0;
+        $scope.files_waiting = 0;
+        $scope.percentageReceived = 0;
+        $scope.percentageSent = 0;
+        $scope.received_outout = '';
+        $scope.submit_outout = '';
+        $scope.receivedType = 'received';
+        $scope.sentType = 'sent';
+
 
         // ----------
 
@@ -60,7 +69,7 @@ app.controller('MainController', ['$scope',
                 $scope.$apply(function () {
 
                     // Outputs text to console
-                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + '   ' + output_txt;
+                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
 
                     // Makes sure UI console keeps scrolling down automatically when UI console overflows
                     var textarea = document.getElementById('kiosk_output_txt');
@@ -70,14 +79,67 @@ app.controller('MainController', ['$scope',
             });
         });
 
+        socket.on('update_ingest', function(args){
+            _.defer(function() {
+                $scope.$apply(function () {
+
+                    if (args === 'submit_file') {
+                        $scope.files_submitted++;
+                    }
+                    if (args === 'receive_file') {
+                        $scope.files_received++;
+                        $scope.percentageReceived = 100 * ($scope.files_received / $scope.files_submitted);
+                    }
+
+                    $scope.percentageSent = 100 - $scope.percentageReceived;
+                    $scope.files_waiting = $scope.files_submitted - $scope.files_received;
+
+                    if ($scope.files_waiting !== 0) {
+                        $scope.receivedType = 'received';
+                        $scope.sentType = 'sent';
+                        $scope.received_output = "Scanned: " + $scope.files_received;
+                        $scope.submit_output = "Found: " + $scope.files_waiting;
+                    }
+                    else if (!$scope.scan_finished){
+                        setTimeout(function(){
+                            if ($scope.files_waiting === 0 && !$scope.scan_finished) {
+                                _.defer(function() {
+                                    $scope.$apply(function () {
+                                        $scope.receivedType = 'scanning';
+                                        $scope.received_output = "Searching for more files";
+                                    });
+                                });
+                            }
+                        }, 1000);
+                    }
+
+                });
+            });
+        });
+
         // Listens for when a device is connected
         socket.on('dev_event', function(event){
-            console.log(event);
+
+            if (event === 'done_loading')
+                _.defer(function() {
+                    $scope.$apply(function () {$scope.scan_finished = true;});
+                    $scope.receivedType = 'done';
+                    $scope.received_output = "All files successfully scanned";
+                    $scope.kiosk_img = '/static/images/scrape_pass.svg';
+                    $scope.kiosk_img_sub = "Session complete";
+                });
+
+            if (event === 'disconnected' && $scope.scan_finished)
+                _.defer(function() {
+                    $scope.$apply(function () {socket.emit('vm_control', 'reset');});
+                });
+
             _.defer(function() {
                 $scope.$apply(function () {
                     $scope.deviceEvent = event;
                 });
             });
+
         });
 
         // ----------
@@ -95,40 +157,100 @@ app.controller('MainController', ['$scope',
         $scope.outputHeaderAfterHide = function() {
             _.defer(function(){
                 $scope.$apply(function(){
+
                     $scope.deviceConnected = !$scope.deviceConnected;
-                    if ($scope.deviceConnected)
-                        $scope.output_header = 'Device connected';
-                    else if (!$scope.deviceConnected)
-                        $scope.output_header = 'Device not connected';
+                    if ($scope.deviceConnected){
+                        $scope.kiosk_img = '/static/images/scrape_conn.svg';
+                        $scope.kiosk_img_sub = 'Device connected';
+                    }
+                    else if (!$scope.deviceConnected && !$scope.scan_finished){
+                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+                        $scope.kiosk_img_sub = 'Please attach device';
+                    }
+
                     $scope.deviceEvent = 'done';
+
                 });
             });
         }
 
         // ----------
 
-        $scope.btnHandleNav = function(){
+
+        // ----------------------- Button Event Handlers
+
+        $scope.btnHandleNav = function() {
             if ($scope.currScreen === 0)
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.btnText = "Confirm credentials"
                         $scope.currScreen++;
+                        socket.emit('vm_control', 'turn_on');
                     });
                 });
             if ($scope.currScreen === 1)
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.btnText = "Start new session"
+                        $scope.btnText = "End session"
                         $scope.currScreen++;
+                    });
+                });
+            if ($scope.currScreen === 2)
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.newSession();
                     });
                 });
         }
 
+        // ----------
 
 
-        // $scope.action = function() {
-        //     document.getElementById('results_scroll_to').scrollIntoView({behavior: 'smooth', block: 'start'});
-        // }
+        // ----------------------- Helper Functions
+
+        $scope.newSession = function() {
+
+            socket.emit('clear');
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.currScreen = 0;
+                        $scope.btnText = "Start new session";
+                        socket.emit('vm_control', 'reset');
+                    })
+                })
+            }, 500);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+
+                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+                        $scope.kiosk_img_sub = 'Please attach device';
+                        $scope.deviceEvent = '';
+                        $scope.deviceConnected = false;
+                        $scope.kiosk_output = '';
+                        $scope.fName = '';
+                        $scope.lName = '';
+                        $scope.credentialsGiven = false;
+                        $scope.scan_finished = false;
+
+                        $scope.files_submitted = 0;
+                        $scope.files_received = 0;
+                        $scope.files_waiting = 0;
+                        $scope.percentageReceived = 0;
+                        $scope.percentageSent = 0;
+                        $scope.received_outout = '';
+                        $scope.submit_outout = '';
+                        $scope.receivedType = 'received';
+                        $scope.sentType = 'sent';
+
+                    });
+                });
+            }, 1500);
+
+        }
 
     }
 ]);
@@ -658,22 +780,24 @@ app.controller('ResultsController', ['$scope',
             if (scroll_location === 'results'){
                 _.defer(function() {
 
-                    // Creates a new intersection observer which is used to detect when the results section
-                    // comes on screen. When it does, we scroll to it
-                    const intersectionObserver = new IntersectionObserver((entries) => {
-                      let [entry] = entries;
-                      if (entry.isIntersecting) {
-                        setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        }))
-                      }
-                    });
-                    intersectionObserver.observe(results);
-
                     $scope.$apply(function () {
                         $scope.show_results = true;
                     });
+
+                    setTimeout(function() {
+                        // Creates a new intersection observer which is used to detect when the results section
+                        // comes on screen. When it does, we scroll to it
+                        const intersectionObserver = new IntersectionObserver((entries) => {
+                            let [entry] = entries;
+                            if (entry.isIntersecting) {
+                                setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                }))
+                            }
+                        });
+                        intersectionObserver.observe(results);
+                    }, 100);
 
                 });
             }
@@ -682,13 +806,26 @@ app.controller('ResultsController', ['$scope',
             else if (scroll_location === 'main'){
                 _.defer(function() {
                     $scope.$apply(function () {
-                        document.getElementById('main').scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
+
+                        setTimeout(function() {
+                            // Creates a new intersection observer which is used to detect when the results section
+                            // comes on screen. When it does, we scroll to it
+                            const intersectionObserver = new IntersectionObserver((entries) => {
+                                let [entry] = entries;
+                                if (entry.isIntersecting) {
+                                    setTimeout(() => document.getElementById('main').scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start'
+                                    }))
+                                }
+                            });
+                            intersectionObserver.observe(results);
+                        }, 500);
+
                     });
 
                 });
+
             }
         });
 

@@ -71,17 +71,16 @@ def start():
         my_thread = socketio.start_background_task(target=background_thread)
 
 
-# @socketio.on('refreshVM')
-# def refreshVM():
-#     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
-#                     '--type headless')
-
-
 # Called by scrape_drive.py whenever it wants to output information to the console
 @socketio.on('to_kiosk')
 def to_kiosk(args):
     global output
     output = args
+
+
+@socketio.on('ingest_status')
+def new_file(args):
+    socketio.emit('update_ingest', args)
 
 
 # Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
@@ -115,12 +114,15 @@ def output_scroll(args):
     scroll = args
 
 
-@socketio.on('snapshot_restore')
-def snapshot_restore():
-    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
-    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
-    subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
-                                        '--type headless')
+@socketio.on('vm_control')
+def vm_control(args):
+    print "VM Control: " + args
+    if args == 'reset' or 'turn_on':
+        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
+        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
+    if args == 'turn_on':
+        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
+                        '--type headless')
 
 
 # Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
