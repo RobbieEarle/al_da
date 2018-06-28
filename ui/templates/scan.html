@@ -46,7 +46,7 @@
 
             </div>
 
-            <div uib-collapse="kiosk_output=='' || currScreen<2">
+            <div uib-collapse="kiosk_output=='' || currScreen<2 || hide_output">
                 <div class="btn-pad">
                     <div uib-progress ng-class="{'progress-striped active': receivedType=='scanning'}">
                         <div uib-bar value="percentageReceived" type=//receivedType//>
@@ -59,7 +59,7 @@
                 </div>
             </div>
 
-            <div uib-collapse="kiosk_output=='' || currScreen<2">
+            <div uib-collapse="kiosk_output=='' || currScreen<2 || hide_output">
                 <div class="output-box">
                     <textarea class="scrollabletextbox text-muted" id="kiosk_output_txt" readonly>
                         //kiosk_output//

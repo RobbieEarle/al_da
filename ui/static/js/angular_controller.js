@@ -25,6 +25,7 @@ app.controller('MainController', ['$scope', '$rootScope',
         $scope.deviceEvent = '';
         $scope.deviceConnected = false;
         $scope.kiosk_output = '';
+        $scope.hide_output = false;
         $scope.fName = '';
         $scope.lName = '';
         $scope.credentialsGiven = false;
@@ -98,7 +99,7 @@ app.controller('MainController', ['$scope', '$rootScope',
                         $scope.receivedType = 'received';
                         $scope.sentType = 'sent';
                         $scope.received_output = "Scanned: " + $scope.files_received;
-                        $scope.submit_output = "Found: " + $scope.files_waiting;
+                        $scope.submit_output = "Queue: " + $scope.files_waiting;
                     }
                     else if (!$scope.scan_finished){
                         setTimeout(function(){
@@ -128,20 +129,54 @@ app.controller('MainController', ['$scope', '$rootScope',
                     $scope.kiosk_img = '/static/images/scrape_pass.svg';
                     $scope.kiosk_img_sub = "Session complete";
 
-                    // setTimeout(function(){
-                    //     _.defer(function() {
-                    //         $scope.$apply(function () {
-                    //             $scope.kiosk_output = '';
-                    //         })
-                    //     })
-                    // }, 1000);
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                $scope.hide_output = true;
+                            })
+                        })
+                    }, 1000);
+
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                $rootScope.$emit("ScrollResults", {});
+                            })
+                        })
+                    }, 1000);
 
                 });
 
-            if (event === 'disconnected' && $scope.scan_finished)
+            if (event === 'disconnected' && $scope.scan_finished) {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        socket.emit('vm_control', 'reset');
+                    });
+                });
+
                 _.defer(function() {
-                    $scope.$apply(function () {socket.emit('vm_control', 'reset');});
+                    $scope.$apply(function () {
+
+                        // setTimeout(function() {
+                            // Creates a new intersection observer which is used to detect when the results section
+                            // comes on screen. When it does, we scroll to it
+                            const intersectionObserver = new IntersectionObserver((entries) => {
+                                let [entry] = entries;
+                                if (entry.isIntersecting) {
+                                    setTimeout(() => document.getElementById('main').scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start'
+                                    }))
+                                }
+                            });
+                            intersectionObserver.observe(results);
+                        // }, 500);
+
+                    });
+
                 });
+
+            }
 
             _.defer(function() {
                 $scope.$apply(function () {
@@ -212,10 +247,6 @@ app.controller('MainController', ['$scope', '$rootScope',
                 });
         };
 
-        $scope.btnTest = function() {
-            $rootScope.$emit("ClearResults", {});
-        };
-
         // ----------
 
 
@@ -244,6 +275,7 @@ app.controller('MainController', ['$scope', '$rootScope',
                         $scope.deviceEvent = '';
                         $scope.deviceConnected = false;
                         $scope.kiosk_output = '';
+                        $scope.hide_output = false;
                         $scope.fName = '';
                         $scope.lName = '';
                         $scope.credentialsGiven = false;
@@ -788,61 +820,6 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
         // ----------------------- Socket Event Listeners
 
-        // Listens for scroll events from al_scrape
-        socket.on('scroll', function(scroll_location){
-            // If the console text is 'scroll_results', scrolls down to results
-            if (scroll_location === 'results'){
-                _.defer(function() {
-
-                    $scope.$apply(function () {
-                        $scope.show_results = true;
-                    });
-
-                    setTimeout(function() {
-                        // Creates a new intersection observer which is used to detect when the results section
-                        // comes on screen. When it does, we scroll to it
-                        const intersectionObserver = new IntersectionObserver((entries) => {
-                            let [entry] = entries;
-                            if (entry.isIntersecting) {
-                                setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                }))
-                            }
-                        });
-                        intersectionObserver.observe(results);
-                    }, 100);
-
-                });
-            }
-
-            // If the console text is 'scroll_main', scrolls up to results
-            else if (scroll_location === 'main'){
-                _.defer(function() {
-                    $scope.$apply(function () {
-
-                        setTimeout(function() {
-                            // Creates a new intersection observer which is used to detect when the results section
-                            // comes on screen. When it does, we scroll to it
-                            const intersectionObserver = new IntersectionObserver((entries) => {
-                                let [entry] = entries;
-                                if (entry.isIntersecting) {
-                                    setTimeout(() => document.getElementById('main').scrollIntoView({
-                                        behavior: 'smooth',
-                                        block: 'start'
-                                    }))
-                                }
-                            });
-                            intersectionObserver.observe(results);
-                        }, 500);
-
-                    });
-
-                });
-
-            }
-        });
-
         // Listens for the transmission of our mal_files JSON object, containing all information on potentially
         // malicious files from our scan
         socket.on('mal_files_json', function(mal_files){
@@ -926,12 +903,33 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         };
 
 
-        /*$rootScope.$on("ClearResults", function() {
-           $scope.clearResults();
+        $rootScope.$on("ScrollResults", function() {
+           $scope.scrollResults();
         });
-        $scope.clearResults = function() {
+        $scope.scrollResults = function() {
+            _.defer(function() {
 
-        };*/
+                $scope.$apply(function () {
+                    $scope.show_results = true;
+                });
+
+                setTimeout(function() {
+                    // Creates a new intersection observer which is used to detect when the results section
+                    // comes on screen. When it does, we scroll to it
+                    const intersectionObserver = new IntersectionObserver((entries) => {
+                        let [entry] = entries;
+                        if (entry.isIntersecting) {
+                            setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            }))
+                        }
+                    });
+                    intersectionObserver.observe(results);
+                }, 500);
+
+            });
+        };
 
         // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
         $scope.nameStrip = function(name) {

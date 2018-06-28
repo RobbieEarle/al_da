@@ -101,14 +101,6 @@ def output_mal_files(mal_files):
     socketio.emit('mal_files_json', mal_files_json)
 
 
-# Called by scrape_drive.py to activate an automatic scroll event. Argument contains location to scroll to
-@socketio.on('scroll')
-def output_scroll(args):
-    # socketio.emit('scroll', scroll)
-    global scroll
-    scroll = args
-
-
 @socketio.on('vm_control')
 def vm_control(args):
     print "VM Control: " + args
@@ -152,11 +144,6 @@ def background_thread():
             if output != last_output:
                 socketio.emit('output', output)
                 last_output = output
-
-        # Handles scroll events
-        if scroll != '':
-            socketio.emit('scroll', scroll)
-            scroll = ''
 
 
 # ============== Helper Functions ==============
