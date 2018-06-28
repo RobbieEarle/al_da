@@ -18,8 +18,8 @@ eventlet.monkey_patch()
 my_thread = None
 output = ''
 last_output = ''
-scroll = ''
-scrape_refresh = False
+client_fname = ''
+client_lname = ''
 
 new_socket_msg = False
 socket_msg = {'device_conn': {'active': False, 'url': '/static/images/scrape_no_conn.svg'},
@@ -67,8 +67,30 @@ def start():
     output = ''
     last_output = ''
 
+    vm_control('restart')
+
     if my_thread is None:
         my_thread = socketio.start_background_task(target=background_thread)
+
+
+@socketio.on('connect_request')
+def connect_request():
+    global client_fname, client_lname
+    print 'Request'
+    return client_fname, client_lname
+
+
+@socketio.on('session_credentials')
+def session_credentials(fName, lName):
+    global client_fname, client_lname
+
+    client_fname = fName
+    client_lname = lName
+
+
+@socketio.on('connected')
+def connected():
+    print "Success!!"
 
 
 # Called by scrape_drive.py whenever it wants to output information to the console
@@ -103,11 +125,17 @@ def output_mal_files(mal_files):
 
 @socketio.on('vm_control')
 def vm_control(args):
+    global client_fname, client_lname
+
+    client_fname = ''
+    client_lname = ''
+
     print "VM Control: " + args
-    if args == 'reset' or 'turn_on':
+
+    if args == 'off' or 'restart':
         subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
-        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
-    if args == 'turn_on':
+        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test')
+    if args == 'restart' or 'on':
         subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
                         '--type headless')
 
@@ -118,8 +146,11 @@ def vm_control(args):
 def device_event(args):
     global socket_msg
     global new_socket_msg
+    global begin_scrape
 
     print args
+    if args == 'disconnected':
+        begin_scrape = False
     socketio.emit('dev_event', args)
 
 
@@ -131,7 +162,6 @@ def background_thread():
     global output
     global new_socket_msg
     global socket_msg
-    global scroll
     global last_output
 
     while True:

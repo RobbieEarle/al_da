@@ -87,7 +87,7 @@ app.controller('MainController', ['$scope', '$rootScope',
                     if (args === 'submit_file') {
                         $scope.files_submitted++;
                     }
-                    if (args === 'receive_file') {
+                    else if (args === 'receive_file') {
                         $scope.files_received++;
                         $scope.percentageReceived = 100 * ($scope.files_received / $scope.files_submitted);
                     }
@@ -147,19 +147,37 @@ app.controller('MainController', ['$scope', '$rootScope',
 
                 });
 
-            if (event === 'disconnected' && $scope.scan_finished) {
+            else if (event === 'connected') {
                 _.defer(function () {
                     $scope.$apply(function () {
-                        socket.emit('vm_control', 'reset');
+                        $scope.files_submitted = 0;
+                        $scope.files_received = 0;
+                        $scope.files_waiting = 0;
+                        $scope.percentageReceived = 0;
+                        $scope.percentageSent = 0;
+                        $scope.received_outout = '';
+                        $scope.submit_outout = '';
+                        $scope.receivedType = 'received';
+                        $scope.sentType = 'sent';
+                        $scope.kiosk_output = '';
+                        $scope.hide_output = false;
                     });
                 });
+            }
 
-                _.defer(function() {
-                    $scope.$apply(function () {
+            else if (event === 'disconnected') {
 
-                        // setTimeout(function() {
-                            // Creates a new intersection observer which is used to detect when the results section
-                            // comes on screen. When it does, we scroll to it
+                if ($scope.scan_finished) {
+
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            socket.emit('vm_control', 'restart');
+                        });
+                    });
+
+                    _.defer(function () {
+                        $scope.$apply(function () {
+
                             const intersectionObserver = new IntersectionObserver((entries) => {
                                 let [entry] = entries;
                                 if (entry.isIntersecting) {
@@ -170,11 +188,34 @@ app.controller('MainController', ['$scope', '$rootScope',
                                 }
                             });
                             intersectionObserver.observe(results);
-                        // }, 500);
+
+                        });
 
                     });
 
-                });
+                }
+
+                else {
+
+                    $scope.files_submitted = 0;
+                    $scope.files_received = 0;
+                    $scope.files_waiting = 0;
+                    $scope.percentageReceived = 0;
+                    $scope.percentageSent = 0;
+                    $scope.received_outout = '';
+                    $scope.submit_outout = '';
+                    $scope.receivedType = 'received';
+                    $scope.sentType = 'sent';
+
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                $scope.hide_output = true;
+                            })
+                        })
+                    }, 1000);
+
+                }
 
             }
 
@@ -229,7 +270,7 @@ app.controller('MainController', ['$scope', '$rootScope',
                     $scope.$apply(function () {
                         $scope.btnText = "Confirm credentials"
                         $scope.currScreen++;
-                        socket.emit('vm_control', 'turn_on');
+                        // socket.emit('vm_control', 'on');
                     });
                 });
             if ($scope.currScreen === 1)
@@ -237,6 +278,7 @@ app.controller('MainController', ['$scope', '$rootScope',
                     $scope.$apply(function () {
                         $scope.btnText = "End session"
                         $scope.currScreen++;
+                        socket.emit('session_credentials', $scope.fName, $scope.lName);
                     });
                 });
             if ($scope.currScreen === 2)
@@ -261,7 +303,7 @@ app.controller('MainController', ['$scope', '$rootScope',
                     $scope.$apply(function () {
                         $scope.currScreen = 0;
                         $scope.btnText = "Start new session";
-                        socket.emit('vm_control', 'reset');
+                        // socket.emit('vm_control', 'off');
                     })
                 })
             }, 500);
