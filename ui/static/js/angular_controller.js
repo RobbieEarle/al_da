@@ -8,9 +8,9 @@ var socket = io.connect('http://' + document.domain + ':' + location.port);
 /* ============== Controllers ==============*/
 
 // MAIN: Controls main kiosk output console and output icon
-app.controller('MainController', ['$scope',
+app.controller('MainController', ['$scope', '$rootScope',
 
-    function MainController($scope) {
+    function MainController($scope, $rootScope) {
 
 
         // ----------------------- Default Property Values
@@ -127,6 +127,15 @@ app.controller('MainController', ['$scope',
                     $scope.received_output = "All files successfully scanned";
                     $scope.kiosk_img = '/static/images/scrape_pass.svg';
                     $scope.kiosk_img_sub = "Session complete";
+
+                    // setTimeout(function(){
+                    //     _.defer(function() {
+                    //         $scope.$apply(function () {
+                    //             $scope.kiosk_output = '';
+                    //         })
+                    //     })
+                    // }, 1000);
+
                 });
 
             if (event === 'disconnected' && $scope.scan_finished)
@@ -150,7 +159,7 @@ app.controller('MainController', ['$scope',
         // Called after show animation has completed on user_output_img
         $scope.outputHeaderAfterShow = function() {
             $scope.deviceEvent = '';
-        }
+        };
 
         // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
         // makes it automatically reappear
@@ -172,7 +181,7 @@ app.controller('MainController', ['$scope',
 
                 });
             });
-        }
+        };
 
         // ----------
 
@@ -201,7 +210,11 @@ app.controller('MainController', ['$scope',
                         $scope.newSession();
                     });
                 });
-        }
+        };
+
+        $scope.btnTest = function() {
+            $rootScope.$emit("ClearResults", {});
+        };
 
         // ----------
 
@@ -210,7 +223,7 @@ app.controller('MainController', ['$scope',
 
         $scope.newSession = function() {
 
-            socket.emit('clear');
+            $rootScope.$emit("ClearResults", {});
 
             setTimeout(function(){
                 _.defer(function() {
@@ -250,15 +263,15 @@ app.controller('MainController', ['$scope',
                 });
             }, 1500);
 
-        }
+        };
 
     }
 ]);
 
 // RESULTS: Controls the results page that is brought up by main kiosk console
-app.controller('ResultsController', ['$scope',
+app.controller('ResultsController', ['$scope', '$rootScope',
 
-    function ResultsController($scope) {
+    function ResultsController($scope, $rootScope) {
 
 
         // ----------------------- Default Property Values
@@ -269,8 +282,9 @@ app.controller('ResultsController', ['$scope',
         $scope.scan_success = false;
         $scope.no_files = false;
         $scope.file_tree = [];
-
-        // $scope.result_select = '';
+        $scope.clear_results = false;
+        $scope.tbl_pass_files = [];
+        $scope.tbl_mal_files = [];
 
         // $scope.tbl_pass_files = [{"alert": {"sid": "ae638cb2-473b-42f7-9fdb-a6b343b0dff2"},
         //     "entropy": 7.998910633683879, "md5": "9b7e276dbf10e878bbb1da3a3527298b", "metadata": {"al_score": 10,
@@ -829,15 +843,6 @@ app.controller('ResultsController', ['$scope',
             }
         });
 
-        // Listens for output from al_scrape. If the command is clear, then the results page is made invisible
-        socket.on('clear', function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.show_results = false;
-                });
-            });
-        });
-
         // Listens for the transmission of our mal_files JSON object, containing all information on potentially
         // malicious files from our scan
         socket.on('mal_files_json', function(mal_files){
@@ -886,6 +891,47 @@ app.controller('ResultsController', ['$scope',
 
 
         // ----------------------- Helper Functions
+
+        // Clears and resets the results section
+        $rootScope.$on("ClearResults", function() {
+           $scope.clearResults();
+        });
+        $scope.clearResults = function() {
+
+            $scope.clear_results = true;
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.show_results = false;
+                    })
+                })
+            }, 200);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.clear_results = false;
+                        $scope.show_pass_header = false;
+                        $scope.scan_success = false;
+                        $scope.no_files = false;
+                        $scope.file_tree = [];
+                        $scope.clear_results = false;
+                        $scope.tbl_pass_files = [];
+                        $scope.tbl_mal_files = [];
+                    })
+                })
+            }, 1000);
+
+        };
+
+
+        /*$rootScope.$on("ClearResults", function() {
+           $scope.clearResults();
+        });
+        $scope.clearResults = function() {
+
+        };*/
 
         // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
         $scope.nameStrip = function(name) {

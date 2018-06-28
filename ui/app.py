@@ -92,11 +92,6 @@ def output_pass_files(pass_files):
     socketio.emit('pass_files_json', pass_files_json)
 
 
-@socketio.on('clear')
-def clear():
-    socketio.emit('clear')
-
-
 # Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
 # files that did not pass the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('mal_files')

@@ -27,7 +27,7 @@
         <section id="results_body" role="main" class="container container-with-overflow">
 
             <div class="pad-head">
-                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success" uib-collapse="clear_results">
                     <p><b>Potentially malicious files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
 
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <div uib-accordion close-others="true" class="pad table text-semi-muted">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted" uib-collapse="clear_results">
                     <p ng-if="show_pass_header"><b>Safe files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'" class="panel-default">
 

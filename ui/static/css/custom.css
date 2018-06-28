@@ -70,10 +70,6 @@
     padding-bottom: 25px;
 }
 
-.output-box:hover {
-    cursor: pointer;
-}
-
 .progress-bar-received {
     background-color: #72c86f;
 }
