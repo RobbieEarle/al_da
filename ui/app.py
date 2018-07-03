@@ -3,9 +3,9 @@ from flask import Flask, render_template, request, json, jsonify, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import subprocess
-
-# import virtualbox
-# from virtualbox import library
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
 
 from helper.views import create_menu
 import eventlet
@@ -21,6 +21,11 @@ last_output = ''
 client_fname = ''
 client_lname = ''
 vmConnected = False
+
+from_addr = "rb504035@dal.ca"
+recipients = ['robearle11@gmail.com', 'robert.earle@165gc.onmicrosoft.com']
+server_addr = 'outlook.office365.com'
+server_pass = 'PASSWORD'
 
 new_socket_msg = False
 socket_msg = {'device_conn': {'active': False, 'url': '/static/images/scrape_no_conn.svg'},
@@ -119,6 +124,7 @@ def output_pass_files(pass_files):
 def output_mal_files(mal_files):
     # print json.dumps(mal_files)
     mal_files_json = json.dumps(mal_files)
+    email_alert(mal_files_json)
     socketio.emit('mal_files_json', mal_files_json)
 
 
@@ -180,3 +186,25 @@ def background_thread():
 def render(template, path):
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin',
                            user_output=output)
+
+
+def email_alert(mal_files):
+    global from_addr, recipients, server_addr, server_pass
+
+    print "Send email!"
+
+    msg = MIMEMultipart()
+    msg['From'] = from_addr
+    msg['To'] = ", ".join(recipients)
+    msg['Subject'] = "Malicious files detected on device"
+
+    body = "   ".join(mal_files)
+    msg.attach(MIMEText(body, 'plain'))
+
+    server = smtplib.SMTP(server_addr, 587)
+    server.starttls()
+    server.login(from_addr, server_pass)
+    text = msg.as_string()
+    server.sendmail(from_addr, recipients, text)
+    server.quit()
+
