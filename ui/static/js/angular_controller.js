@@ -32,6 +32,8 @@ app.controller('MainController', ['$scope', '$rootScope',
         $scope.scan_finished = false;
         $scope.currScreen = 0;
         $scope.btnText = "Start new session";
+        $scope.vmRestart = true;
+        $scope.show_refresh = true;
 
         $scope.files_submitted = 0;
         $scope.files_received = 0;
@@ -169,11 +171,8 @@ app.controller('MainController', ['$scope', '$rootScope',
 
                 if ($scope.scan_finished) {
 
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            socket.emit('vm_control', 'restart');
-                        });
-                    });
+                    socket.emit('vm_control', 'restart');
+                    $scope.vmRestart = true;
 
                     _.defer(function () {
                         $scope.$apply(function () {
@@ -192,6 +191,15 @@ app.controller('MainController', ['$scope', '$rootScope',
                         });
 
                     });
+
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                if ($scope.vmRestart)
+                                    $scope.show_refresh = true;
+                            });
+                        });
+                    }, 2000);
 
                 }
 
@@ -225,6 +233,15 @@ app.controller('MainController', ['$scope', '$rootScope',
                 });
             });
 
+        });
+
+        socket.on('vmOn', function(){
+            _.defer(function(){
+                $scope.$apply(function(){
+                    $scope.vmRestart = false;
+                    $scope.show_refresh = false;
+                });
+            });
         });
 
         // ----------
@@ -270,7 +287,6 @@ app.controller('MainController', ['$scope', '$rootScope',
                     $scope.$apply(function () {
                         $scope.btnText = "Confirm credentials"
                         $scope.currScreen++;
-                        // socket.emit('vm_control', 'on');
                     });
                 });
             if ($scope.currScreen === 1)
@@ -281,12 +297,24 @@ app.controller('MainController', ['$scope', '$rootScope',
                         socket.emit('session_credentials', $scope.fName, $scope.lName);
                     });
                 });
-            if ($scope.currScreen === 2)
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.newSession();
-                    });
-                });
+            if ($scope.currScreen === 2) {
+
+                if (!$scope.scan_finished){
+                    socket.emit('vm_control', 'restart');
+                    $scope.vmRestart = true;
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                if ($scope.vmRestart)
+                                    $scope.show_refresh = true;
+                            });
+                        });
+                    }, 3000);
+                }
+
+                $scope.newSession();
+
+            }
         };
 
         // ----------
@@ -352,13 +380,17 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
         // By default the results panel is not shown
         $scope.show_results = false;
-        $scope.show_pass_header = false;
+        $scope.show_pass_header = true;
         $scope.scan_success = false;
         $scope.no_files = false;
         $scope.file_tree = [];
         $scope.clear_results = false;
         $scope.tbl_pass_files = [];
         $scope.tbl_mal_files = [];
+        $scope.pass_message = "Use of this device on-site is permitted."
+        $scope.failure_message = "Use of this device on-site is strictly prohibited without exception. " +
+            "An alert for this session has been generated - for more information on why this device was flagged " +
+            "and for repair advice, please contact network administration.";
 
         // $scope.tbl_pass_files = [{"alert": {"sid": "ae638cb2-473b-42f7-9fdb-a6b343b0dff2"},
         //     "entropy": 7.998910633683879, "md5": "9b7e276dbf10e878bbb1da3a3527298b", "metadata": {"al_score": 10,

@@ -20,6 +20,7 @@ output = ''
 last_output = ''
 client_fname = ''
 client_lname = ''
+vmConnected = False
 
 new_socket_msg = False
 socket_msg = {'device_conn': {'active': False, 'url': '/static/images/scrape_no_conn.svg'},
@@ -75,22 +76,20 @@ def start():
 
 @socketio.on('connect_request')
 def connect_request():
-    global client_fname, client_lname
-    print 'Request'
+    global client_fname, client_lname, vmConnected
+
+    if not vmConnected:
+        vmConnected = True
+        socketio.emit('vmOn')
+
     return client_fname, client_lname
 
 
 @socketio.on('session_credentials')
 def session_credentials(fName, lName):
     global client_fname, client_lname
-
     client_fname = fName
     client_lname = lName
-
-
-@socketio.on('connected')
-def connected():
-    print "Success!!"
 
 
 # Called by scrape_drive.py whenever it wants to output information to the console
@@ -125,10 +124,11 @@ def output_mal_files(mal_files):
 
 @socketio.on('vm_control')
 def vm_control(args):
-    global client_fname, client_lname
+    global client_fname, client_lname, vmConnected
 
     client_fname = ''
     client_lname = ''
+    vmConnected = False
 
     print "VM Control: " + args
 
@@ -149,8 +149,6 @@ def device_event(args):
     global begin_scrape
 
     print args
-    if args == 'disconnected':
-        begin_scrape = False
     socketio.emit('dev_event', args)
 
 

@@ -5,10 +5,13 @@
 }
 
 .user_output {
-	/*width: 100%;*/
-	/*min-width: 250px;*/
-    /*padding-top: 10px;*/
     text-align: center;
+}
+
+.refresh {
+    text-align: center;
+    padding-top: 25px;
+    padding-bottom: 10px;
 }
 
 .big-pad {
@@ -23,14 +26,33 @@
     vertical-align: center;
 }
 
+.refresh_img {
+    width: 20%;
+    opacity: 0.8;
+    display: inline-block;
+    vertical-align: center;
+}
+
 @media (min-width: 992px) {
     .user_output_img {
 		width: 25%;
     }
 }
 
+@media (min-width: 992px) {
+    .refresh_img {
+		width: 5%;
+    }
+}
+
 .user_output_img_sub {
     font-size: 18px;
+    display: inline;
+    vertical-align: center;
+}
+
+.refresh_img_sub {
+    font-size: 14px;
     display: inline;
     vertical-align: center;
 }
@@ -60,9 +82,10 @@
 }
 
 .btn-new-session:disabled {
-    background-color: #0f1c2e;
-    border-color: #0f1c2e;
+    background-color: #29406c;
+    border-color: #29406c;
     color: #ffffff;
+    opacity: 0.5;
 }
 
 .output-box {
@@ -236,6 +259,37 @@
 
 .text-semi-muted {
     color: #757575;
+}
+
+.failure-split-left {
+    width: 60%;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.failure-split-right {
+    width: 39%;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: right;
+}
+
+.failure-img {
+    width: 40%;
+    display: inline-block;
+    vertical-align: center;
+}
+
+@media (min-width: 992px) {
+    .failure-img {
+		width: 15%;
+    }
+}
+
+.failure_message {
+    font-size: 9px;
+    padding-top: 5px;
+    color: #ffffff;
 }
 
 .results-title {
