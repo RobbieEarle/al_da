@@ -213,7 +213,7 @@
     color: #ffffff;
 }
 
-#appBodyHeader, #resultsHeader {
+#appBodyHeader, #resultsHeader, #settingsHeader {
 	background-color: #0f1c2e;
     vertical-align: middle;
     color: #ffffff;

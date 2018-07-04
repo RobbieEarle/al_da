@@ -1,13 +1,6 @@
 {% extends "results.html" %}
-{% block css_import %}
-<link rel="stylesheet" href="/static/css/animations.css"/>
-<link rel="stylesheet" href="/static/css/custom.css"/>
-{% endblock %}
-{% block js_import %}
-<script type="text/javascript" src="/static/js/socket.io.js"></script>
-<script src="/static/js/angular_controller.js"></script>
-{% endblock %}
-{% block scan %}
+
+{% block main %}
     <section id="main" role="main">
 
         <section id="appBodyHeader" class="container container-with-overflow">
@@ -15,7 +8,7 @@
                 <b>Assembyline Device Auditor</b>
             </div>
         </section>
-        <section id="appBody" class="container container-with-overflow" ng-controller="MainController">
+        <section id="appBody" class="container container-with-overflow" ng-controller="ScanController">
 
             <div uib-collapse="currScreen<1">
 
@@ -24,9 +17,6 @@
                     <form novalidate class="text-semi-muted pad main-split" ng-class="{'disable': currScreen!=1}">
                         <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName" ng-disabled="currScreen!=1"/></label>
                         <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName" ng-disabled="currScreen!=1"/></label>
-                        <!--<div class="btn-cred">-->
-                            <!--<button type="button" class='btn btn-default text-semi-muted' ng-disabled="!fName || !lName" ng-click="confirmCred()">Confirm</button>-->
-                        <!--</div>-->
                     </form>
 
                     <div class="main-split">

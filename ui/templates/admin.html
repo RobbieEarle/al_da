@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block css_import %}
+<link rel="stylesheet" href="/static/css/settings.css"/>
+{% endblock %}
+{% block main %}
+
+    <section id="main" ng-controller="SettingsController">
+        <section id="settingsHeader" class="container container-with-overflow">
+            <div class="section-header font-mont-400">
+                <b>Admin Settings</b>
+            </div>
+        </section>
+        <section id="settingsConfig" class="container container-with-overflow text-semi-muted">
+            <div class="settingsHeader" ng-click="config_collapse=!config_collapse">
+                <span>Configuration</span>
+            </div>
+            <div class="pad" uib-collapse="config_collapse">
+
+                <div class="font-mont-400">
+                    <form novalidate >
+                        <div class="font-mont-400 settingsTitle pad"><b>Terminal Name</b></div>
+                        <input type="text" class="settingsForm text" ng-value="default_settings.terminal" ng-model="terminal"/>
+                    </form>
+                </div>
+
+                <div class="font-mont-400">
+                    <form novalidate >
+                        <div class="font-mont-400 settingsTitle pad"><b>Assemblyline Server IP Address</b></div>
+                        <input type="text" class="settingsForm" ng-value="default_settings.al_address" ng-model="al_address"/>
+                    </form>
+                </div>
+
+                <div class="font-mont-400">
+                    <form novalidate >
+                        <div class="font-mont-400 settingsTitle pad"><b>Assemblyline Username</b></div>
+                        <input type="text" class="settingsForm" ng-value="default_settings.al_username" ng-model="al_username"/>
+                    </form>
+                </div>
+
+                <div class="font-mont-400">
+                    <form novalidate >
+                        <div class="font-mont-400 settingsTitle pad"><b>Assemblyline API Key</b></div>
+                        <input type="text" class="settingsForm" ng-value="default_settings.al_api_key" ng-model="al_api_key"/>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+    </section>
+
+{% endblock %}

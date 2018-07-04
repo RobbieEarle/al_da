@@ -7,10 +7,10 @@ var socket = io.connect('http://' + document.domain + ':' + location.port);
 
 /* ============== Controllers ==============*/
 
-// MAIN: Controls main kiosk output console and output icon
-app.controller('MainController', ['$scope', '$rootScope',
+// SCAN: Controls main kiosk output console and output icon
+app.controller('ScanController', ['$scope', '$rootScope',
 
-    function MainController($scope, $rootScope) {
+    function ScanController($scope, $rootScope) {
 
 
         // ----------------------- Default Property Values
@@ -32,8 +32,8 @@ app.controller('MainController', ['$scope', '$rootScope',
         $scope.scan_finished = false;
         $scope.currScreen = 0;
         $scope.btnText = "Start new session";
-        $scope.vmRestart = true;
-        $scope.show_refresh = true;
+        $scope.vmRestart = false;
+        $scope.show_refresh = false;
 
         $scope.files_submitted = 0;
         $scope.files_received = 0;
@@ -45,7 +45,6 @@ app.controller('MainController', ['$scope', '$rootScope',
         $scope.receivedType = 'received';
         $scope.sentType = 'sent';
 
-
         // ----------
 
 
@@ -54,7 +53,8 @@ app.controller('MainController', ['$scope', '$rootScope',
         // Listens for initial connect message from the socketio server. Starts background thread to process input from
         // al_scrape
         socket.on('connect', function() {
-            socket.emit('start');
+            socket.emit('scan_start');
+            console.log('Scan');
         });
 
         // Listens for output from al_scrape. If the command is clear, then the output console is cleared
@@ -235,6 +235,7 @@ app.controller('MainController', ['$scope', '$rootScope',
 
         });
 
+        // Called when our VM has finished resetting and is ready to receive more files
         socket.on('vmOn', function(){
             _.defer(function(){
                 $scope.$apply(function(){
@@ -388,7 +389,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         $scope.tbl_pass_files = [];
         $scope.tbl_mal_files = [];
         $scope.pass_message = "Use of this device on-site is permitted."
-        $scope.failure_message = "Use of this device on-site is strictly prohibited without exception. " +
+        $scope.failure_message = "Use of this device on-site is strictly prohibited, without exception. " +
             "An alert for this session has been generated - for more information on why this device was flagged " +
             "and for repair advice, please contact network administration.";
 
@@ -901,7 +902,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.scan_success = false;
-                        // console.log(JSON.parse(mal_files));
+                        console.log(JSON.parse(mal_files));
                         $scope.tbl_mal_files = JSON.parse(mal_files);
                     });
                 });
@@ -1318,7 +1319,6 @@ app.controller('serviceController', ['$scope', '$uibModal',
 
 ]);
 
-
 // POPUP: Controls new popup window
 app.controller('popupController',
 
@@ -1333,6 +1333,36 @@ app.controller('popupController',
 
 );
 
+// SETTINGS: Controls main kiosk output console and output icon
+app.controller('SettingsController', ['$scope',
+
+    function SettingsController($scope) {
+
+        $scope.default_settings = [];
+
+        socket.on('connect', function() {
+            socket.emit('settings_start');
+        });
+
+        socket.on('populate_settings', function(default_settings){
+            _.defer(function() {
+                $scope.$apply(function () {
+
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            console.log(JSON.parse(default_settings));
+                            $scope.default_settings = JSON.parse(default_settings);
+                        });
+                    });
+
+                    // $scope.default_terminal_name = terminal_name;
+                    // $scope.default_al_address = al_address;
+                });
+            });
+        });
+
+    }
+]);
 
 /* ============== Directives ==============*/
 
