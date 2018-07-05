@@ -1,51 +1,90 @@
 {% extends "base.html" %}
 {% block css_import %}
-<link rel="stylesheet" href="/static/css/settings.css"/>
+<link rel="stylesheet" href="/static/css/admin.css"/>
 {% endblock %}
 {% block main %}
 
     <section id="main" ng-controller="SettingsController">
-        <section id="settingsHeader" class="container container-with-overflow">
-            <div class="section-header font-mont-400">
+
+        <section id="header" class="container container-with-overflow container-header">
+            <!--<div class="_header_title">-->
                 <b>Admin Settings</b>
-            </div>
+            <!--</div>-->
         </section>
-        <section id="settingsConfig" class="container container-with-overflow text-semi-muted">
-            <div class="settingsHeader" ng-click="config_collapse=!config_collapse">
+
+        <section id="body" class="container container-with-overflow text-semi-muted">
+
+            <div class="main-title" ng-click="account_collapse=!account_collapse">
+                <span>Account</span>
+            </div>
+            <div class="pad" uib-collapse="account_collapse">
+
+                <div class="small-pad">
+                    <form novalidate >
+                        <div class="form-title pad"><b>User ID</b></div>
+                        <input type="text" class="form" ng-value="default_settings.user_id" ng-model="user_id"/>
+                    </form>
+                </div>
+
+                <div class="small-pad">
+                    <form novalidate >
+                        <div class="form-title pad"><b>New Password</b></div>
+                        <input type="text" class="form" ng-model="new_pw"/>
+                    </form>
+                </div>
+
+                <div class="small-pad">
+                    <form novalidate >
+                        <div class="form-title pad"><b>Confirm Password</b></div>
+                        <input type="text" class="form" ng-model="confirm_pw"/>
+                    </form>
+                </div>
+
+            </div>
+
+            <div class="main-title" ng-click="config_collapse=!config_collapse">
                 <span>Configuration</span>
             </div>
             <div class="pad" uib-collapse="config_collapse">
 
-                <div class="font-mont-400">
+                <div class="small-pad">
                     <form novalidate >
-                        <div class="font-mont-400 settingsTitle pad"><b>Terminal Name</b></div>
-                        <input type="text" class="settingsForm text" ng-value="default_settings.terminal" ng-model="terminal"/>
+                        <div class="form-title pad"><b>Terminal Name</b></div>
+                        <input type="text" class="form" ng-value="default_settings.terminal" ng-model="terminal"/>
                     </form>
                 </div>
 
-                <div class="font-mont-400">
-                    <form novalidate >
-                        <div class="font-mont-400 settingsTitle pad"><b>Assemblyline Server IP Address</b></div>
-                        <input type="text" class="settingsForm" ng-value="default_settings.al_address" ng-model="al_address"/>
-                    </form>
-                </div>
+                <div id="_body-inset_" class="_body-inset_block">
 
-                <div class="font-mont-400">
-                    <form novalidate >
-                        <div class="font-mont-400 settingsTitle pad"><b>Assemblyline Username</b></div>
-                        <input type="text" class="settingsForm" ng-value="default_settings.al_username" ng-model="al_username"/>
-                    </form>
-                </div>
+                    <div class="small-pad">
+                        <form novalidate >
+                            <div class="form-title pad"><b>Assemblyline Server IP Address</b></div>
+                            <input type="text" class="form" ng-value="default_settings.al_address" ng-model="al_address"/>
+                        </form>
+                    </div>
 
-                <div class="font-mont-400">
-                    <form novalidate >
-                        <div class="font-mont-400 settingsTitle pad"><b>Assemblyline API Key</b></div>
-                        <input type="text" class="settingsForm" ng-value="default_settings.al_api_key" ng-model="al_api_key"/>
-                    </form>
+                    <div class="small-pad">
+                        <form novalidate >
+                            <div class="form-title pad"><b>Assemblyline Username</b></div>
+                            <input type="text" class="form" ng-value="default_settings.al_username" ng-model="al_username"/>
+                        </form>
+                    </div>
+
+                    <div class="small-pad">
+                        <form novalidate >
+                            <div class="form-title pad"><b>Assemblyline API Key</b></div>
+                            <input type="text" class="form" ng-value="default_settings.al_api_key" ng-model="al_api_key"/>
+                        </form>
+                    </div>
+
                 </div>
 
             </div>
+
+            <div class="pad"><br /></div>
+
         </section>
+
     </section>
 
 {% endblock %}

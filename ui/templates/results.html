@@ -1,24 +1,24 @@
 {% extends "base.html" %}
-
+{% block css_import %}
+<link rel="stylesheet" href="/static/css/results.css"/>
+{% endblock %}
 {% block results %}
 
     <div id="results_scroll_to" class="section-break"></div>
-        <br />
-        <br />
 
     <section id="results" uib-collapse="!show_results" ng-controller="ResultsController">
 
-        <section id="resultsHeader" class="container container-with-overflow">
-            <div class="section-header font-mont-400">
+        <section id="resultsHeader" class="container container-with-overflow container-header">
+            <div class="">
                 <b>Scan Results</b>
             </div>
         </section>
         <div ng-if="scan_success" id="resultPass" class="container container-with-overflow pad bg-green">
             <div class="failure-split-left">
-                <div class="section-subheader font-mont-400">
+                <div class="section-subheader">
                     <b>No malware was detected on this device</b>
                 </div>
-                <div class="failure_message text-semi-muted font-mont-400">
+                <div class="failure_message text-semi-muted">
                     //pass_message//
                 </div>
             </div>
@@ -28,10 +28,10 @@
         </div>
         <div ng-if="!scan_success" id="resultFail" class="container container-with-overflow pad bg-red">
             <div class="failure-split-left">
-                <div class="section-subheader font-mont-400">
+                <div class="section-subheader">
                     <b>Warning: Malware has been detected on this device</b>
                 </div>
-                <div class="failure_message text-semi-muted font-mont-400">
+                <div class="failure_message text-semi-muted">
                     //failure_message//
                 </div>
             </div>

@@ -1,29 +1,39 @@
-.settingsHeader {
+/* ------- Elements ------- */
+
+.main-title {
     font-size: 150%;
     border-bottom: 1px solid #EEE;
-    padding-top: 15px;
+    padding-top: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.settingsHeader:hover {
+.main-title:hover {
     opacity: 0.7;
 }
 
-.settingsTitle {
+.form-title {
     font-size: 14px;
 }
 
-.settingsForm {
-    display: block;
+.form {
+    /*display: block;*/
     width: 100%;
     height: 34px;
     padding: 12px 14px;
     font-size: 12px;
     line-height: 1.428571429;
+    /*letter-spacing: 2px;*/
     color: #555;
     background-color: #fff;
     background-image: none;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+._body-inset_ {
+
+}
+
+
+/* ------- Modifiers ------- */

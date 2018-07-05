@@ -14,7 +14,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
 
         // ----------------------- Default Property Values
-        $scope.kiosk_header = '*To submit files for analysis please enter valid credentials, plug a ' +
+        $scope.kiosk_footer = '*To submit files for analysis please enter valid credentials, plug a ' +
             'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
             'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
@@ -22,28 +22,28 @@ app.controller('ScanController', ['$scope', '$rootScope',
             'the device owner.';
         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
         $scope.kiosk_img_sub = 'Please attach device';
-        $scope.deviceEvent = '';
-        $scope.deviceConnected = false;
+        $scope.device_event = '';
+        $scope.device_connected = false;
         $scope.kiosk_output = '';
         $scope.hide_output = false;
-        $scope.fName = '';
-        $scope.lName = '';
-        $scope.credentialsGiven = false;
+        $scope.f_name = '';
+        $scope.l_name = '';
+        $scope.credentials_given = false;
         $scope.scan_finished = false;
-        $scope.currScreen = 0;
-        $scope.btnText = "Start new session";
-        $scope.vmRestart = false;
+        $scope.curr_screen = 0;
+        $scope.btn_text = "Start new session";
+        $scope.vm_restart = false;
         $scope.show_refresh = false;
 
         $scope.files_submitted = 0;
         $scope.files_received = 0;
         $scope.files_waiting = 0;
-        $scope.percentageReceived = 0;
-        $scope.percentageSent = 0;
+        $scope.percentage_received = 0;
+        $scope.percentage_sent = 0;
         $scope.received_outout = '';
         $scope.submit_outout = '';
-        $scope.receivedType = 'received';
-        $scope.sentType = 'sent';
+        $scope.received_type = 'received';
+        $scope.sent_type = 'sent';
 
         // ----------
 
@@ -91,15 +91,15 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     }
                     else if (args === 'receive_file') {
                         $scope.files_received++;
-                        $scope.percentageReceived = 100 * ($scope.files_received / $scope.files_submitted);
+                        $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
                     }
 
-                    $scope.percentageSent = 100 - $scope.percentageReceived;
+                    $scope.percentage_sent = 100 - $scope.percentage_received;
                     $scope.files_waiting = $scope.files_submitted - $scope.files_received;
 
                     if ($scope.files_waiting !== 0) {
-                        $scope.receivedType = 'received';
-                        $scope.sentType = 'sent';
+                        $scope.received_type = 'received';
+                        $scope.sent_type = 'sent';
                         $scope.received_output = "Scanned: " + $scope.files_received;
                         $scope.submit_output = "Queue: " + $scope.files_waiting;
                     }
@@ -108,7 +108,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                             if ($scope.files_waiting === 0 && !$scope.scan_finished) {
                                 _.defer(function() {
                                     $scope.$apply(function () {
-                                        $scope.receivedType = 'scanning';
+                                        $scope.received_type = 'scanning';
                                         $scope.received_output = "Searching for more files";
                                     });
                                 });
@@ -126,7 +126,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
             if (event === 'done_loading')
                 _.defer(function() {
                     $scope.$apply(function () {$scope.scan_finished = true;});
-                    $scope.receivedType = 'done';
+                    $scope.received_type = 'done';
                     $scope.received_output = "All files successfully scanned";
                     $scope.kiosk_img = '/static/images/scrape_pass.svg';
                     $scope.kiosk_img_sub = "Session complete";
@@ -155,12 +155,12 @@ app.controller('ScanController', ['$scope', '$rootScope',
                         $scope.files_submitted = 0;
                         $scope.files_received = 0;
                         $scope.files_waiting = 0;
-                        $scope.percentageReceived = 0;
-                        $scope.percentageSent = 0;
+                        $scope.percentage_received = 0;
+                        $scope.percentage_sent = 0;
                         $scope.received_outout = '';
                         $scope.submit_outout = '';
-                        $scope.receivedType = 'received';
-                        $scope.sentType = 'sent';
+                        $scope.received_type = 'received';
+                        $scope.sent_type = 'sent';
                         $scope.kiosk_output = '';
                         $scope.hide_output = false;
                     });
@@ -172,7 +172,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 if ($scope.scan_finished) {
 
                     socket.emit('vm_control', 'restart');
-                    $scope.vmRestart = true;
+                    $scope.vm_restart = true;
 
                     _.defer(function () {
                         $scope.$apply(function () {
@@ -195,7 +195,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     setTimeout(function(){
                         _.defer(function() {
                             $scope.$apply(function () {
-                                if ($scope.vmRestart)
+                                if ($scope.vm_restart)
                                     $scope.show_refresh = true;
                             });
                         });
@@ -208,12 +208,12 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     $scope.files_submitted = 0;
                     $scope.files_received = 0;
                     $scope.files_waiting = 0;
-                    $scope.percentageReceived = 0;
-                    $scope.percentageSent = 0;
+                    $scope.percentage_received = 0;
+                    $scope.percentage_sent = 0;
                     $scope.received_outout = '';
                     $scope.submit_outout = '';
-                    $scope.receivedType = 'received';
-                    $scope.sentType = 'sent';
+                    $scope.received_type = 'received';
+                    $scope.sent_type = 'sent';
 
                     setTimeout(function(){
                         _.defer(function() {
@@ -229,17 +229,17 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
             _.defer(function() {
                 $scope.$apply(function () {
-                    $scope.deviceEvent = event;
+                    $scope.device_event = event;
                 });
             });
 
         });
 
         // Called when our VM has finished resetting and is ready to receive more files
-        socket.on('vmOn', function(){
+        socket.on('vm_on', function(){
             _.defer(function(){
                 $scope.$apply(function(){
-                    $scope.vmRestart = false;
+                    $scope.vm_restart = false;
                     $scope.show_refresh = false;
                 });
             });
@@ -251,27 +251,27 @@ app.controller('ScanController', ['$scope', '$rootScope',
         // ----------------------- Animation Event Handlers
 
         // Called after show animation has completed on user_output_img
-        $scope.outputHeaderAfterShow = function() {
-            $scope.deviceEvent = '';
+        $scope.after_show_img = function() {
+            $scope.device_event = '';
         };
 
         // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
         // makes it automatically reappear
-        $scope.outputHeaderAfterHide = function() {
+        $scope.after_hide_img = function() {
             _.defer(function(){
                 $scope.$apply(function(){
 
-                    $scope.deviceConnected = !$scope.deviceConnected;
-                    if ($scope.deviceConnected){
+                    $scope.device_connected = !$scope.device_connected;
+                    if ($scope.device_connected){
                         $scope.kiosk_img = '/static/images/scrape_conn.svg';
                         $scope.kiosk_img_sub = 'Device connected';
                     }
-                    else if (!$scope.deviceConnected && !$scope.scan_finished){
+                    else if (!$scope.device_connected && !$scope.scan_finished){
                         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
                         $scope.kiosk_img_sub = 'Please attach device';
                     }
 
-                    $scope.deviceEvent = 'done';
+                    $scope.device_event = 'done';
 
                 });
             });
@@ -282,31 +282,31 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         // ----------------------- Button Event Handlers
 
-        $scope.btnHandleNav = function() {
-            if ($scope.currScreen === 0)
+        $scope.btn_handle_nav = function() {
+            if ($scope.curr_screen === 0)
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.btnText = "Confirm credentials"
-                        $scope.currScreen++;
+                        $scope.btn_text = "Confirm credentials"
+                        $scope.curr_screen++;
                     });
                 });
-            if ($scope.currScreen === 1)
+            if ($scope.curr_screen === 1)
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.btnText = "End session"
-                        $scope.currScreen++;
-                        socket.emit('session_credentials', $scope.fName, $scope.lName);
+                        $scope.btn_text = "End session"
+                        $scope.curr_screen++;
+                        socket.emit('session_credentials', $scope.f_name, $scope.l_name);
                     });
                 });
-            if ($scope.currScreen === 2) {
+            if ($scope.curr_screen === 2) {
 
                 if (!$scope.scan_finished){
                     socket.emit('vm_control', 'restart');
-                    $scope.vmRestart = true;
+                    $scope.vm_restart = true;
                     setTimeout(function(){
                         _.defer(function() {
                             $scope.$apply(function () {
-                                if ($scope.vmRestart)
+                                if ($scope.vm_restart)
                                     $scope.show_refresh = true;
                             });
                         });
@@ -330,8 +330,8 @@ app.controller('ScanController', ['$scope', '$rootScope',
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.currScreen = 0;
-                        $scope.btnText = "Start new session";
+                        $scope.curr_screen = 0;
+                        $scope.btn_text = "Start new session";
                         // socket.emit('vm_control', 'off');
                     })
                 })
@@ -343,24 +343,24 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
                         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
                         $scope.kiosk_img_sub = 'Please attach device';
-                        $scope.deviceEvent = '';
-                        $scope.deviceConnected = false;
+                        $scope.device_event = '';
+                        $scope.device_connected = false;
                         $scope.kiosk_output = '';
                         $scope.hide_output = false;
-                        $scope.fName = '';
-                        $scope.lName = '';
-                        $scope.credentialsGiven = false;
+                        $scope.f_name = '';
+                        $scope.l_name = '';
+                        $scope.credentials_given = false;
                         $scope.scan_finished = false;
 
                         $scope.files_submitted = 0;
                         $scope.files_received = 0;
                         $scope.files_waiting = 0;
-                        $scope.percentageReceived = 0;
-                        $scope.percentageSent = 0;
+                        $scope.percentage_received = 0;
+                        $scope.percentage_sent = 0;
                         $scope.received_outout = '';
                         $scope.submit_outout = '';
-                        $scope.receivedType = 'received';
-                        $scope.sentType = 'sent';
+                        $scope.received_type = 'received';
+                        $scope.sent_type = 'sent';
 
                     });
                 });
@@ -609,7 +609,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         //                         "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
         //                             "PE: RESOURCES", "truncated": false}, {"body": "LangId: 040904b0 (" +
         //                         "English-United States)\nLegalCopyright: Copyright (c) 1999-2018 Igor " +
-        //                         "Pavlov\nInternalName: 7z.sfx\nFileVersion: 18.05\nCompanyName: Igor " +
+        //                         "Pavlov\nInternal_name: 7z.sfx\nFileVersion: 18.05\nCompanyName: Igor " +
         //                         "Pavlov\nProductName: 7-Zip\nProductVersion: 18.05\nFileDescription: " +
         //                         "7z SFX\nOriginalFilename: 7z.sfx.exe", "body_format": null, "classification": "U",
         //                         "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
@@ -1373,14 +1373,14 @@ app.directive('animOutputHeader', function($animate) {
     return {
         link: function (scope, elem, attr) {
             scope.$watch(attr.animOutputHeader, function () {
-                if (scope.deviceEvent === 'done') {
+                if (scope.device_event === 'done') {
                     $animate.removeClass(elem, 'hidden');
-                    $animate.removeClass(elem, 'img-hide').then(scope.outputHeaderAfterShow);
+                    $animate.removeClass(elem, 'img-hide').then(scope.after_show_img);
                 }
-                if (scope.deviceEvent === 'connected' && scope.deviceConnected === false ||
-                scope.deviceEvent === 'disconnected' && scope.deviceConnected === true) {
+                if (scope.device_event === 'connected' && scope.device_connected === false ||
+                scope.device_event === 'disconnected' && scope.device_connected === true) {
                     $animate.addClass(elem, 'hidden');
-                    $animate.addClass(elem, 'img-hide').then(scope.outputHeaderAfterHide);
+                    $animate.addClass(elem, 'img-hide').then(scope.after_hide_img);
                 }
             });
         }

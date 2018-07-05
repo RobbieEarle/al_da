@@ -1,30 +1,33 @@
 {% extends "results.html" %}
-
+{% block css_import %}
+<link rel="stylesheet" href="/static/css/scan.css"/>
+{% endblock %}
 {% block main %}
-    <section id="main" role="main">
+    <section id="main">
 
-        <section id="appBodyHeader" class="container container-with-overflow">
-            <div class="section-header font-mont-400">
+        <section id="header" class="container container-with-overflow container-header">
+            <div>
                 <b>Assembyline Device Auditor</b>
             </div>
         </section>
-        <section id="appBody" class="container container-with-overflow" ng-controller="ScanController">
 
-            <div uib-collapse="currScreen<1">
+        <section id="body" class="container container-with-overflow" ng-controller="ScanController">
 
-                <div class="form-style-8 font-mont-400">
+            <div uib-collapse="curr_screen<1">
 
-                    <form novalidate class="text-semi-muted pad main-split" ng-class="{'disable': currScreen!=1}">
-                        <label class="credential-box pad font-mont-400"><b>First Name: </b><input type="text" class="form-input" ng-model="fName" ng-disabled="currScreen!=1"/></label>
-                        <label class="credential-box pad font-mont-400"><b>Last Name: </b><input type="text" class="form-input" ng-model="lName" ng-disabled="currScreen!=1"/></label>
+                <div class="form-style-8">
+
+                    <form novalidate class="split text-semi-muted pad" ng-class="{'disable': curr_screen!=1}">
+                        <label class="credential-box pad"><b>First Name: </b><input type="text" ng-model="f_name" ng-disabled="curr_screen!=1"/></label>
+                        <label class="credential-box pad"><b>Last Name: </b><input type="text" ng-model="l_name" ng-disabled="curr_screen!=1"/></label>
                     </form>
 
-                    <div class="main-split">
-                        <div uib-collapse="currScreen<2">
-                            <div class="user_output output-fade" id="device_conn_img" ng-class="{'disable': scan_finished}">
+                    <div class="split">
+                        <div uib-collapse="curr_screen<2">
+                            <div class="center-text" ng-class="{'disable': scan_finished}">
                                 <div>
-                                    <img class="user_output_img kiosk-img" anim-output-header="deviceEvent" id="user_output_img" src=//kiosk_img//>
-                                    <div class="text-semi-muted font-mont-400 user_output_img_sub">
+                                    <img class="fade-anim connect-icon" anim-output-header="device_event" src=//kiosk_img//>
+                                    <div class="connect-icon-sub text-semi-muted">
                                         <b>//kiosk_img_sub//</b>
                                     </div>
                                 </div>
@@ -36,54 +39,45 @@
 
             </div>
 
-            <div uib-collapse="kiosk_output=='' || currScreen<2 || hide_output">
-                <div class="btn-pad">
-                    <div uib-progress ng-class="{'progress-striped active': receivedType=='scanning'}">
-                        <div uib-bar value="percentageReceived" type=//receivedType//>
-                            <span ng-hide="percentageReceived < 5">//received_output//</span>
+            <div uib-collapse="kiosk_output=='' || curr_screen<2 || hide_output">
+                <div class="pad-button">
+                    <div uib-progress ng-class="{'progress-striped active': received_type=='scanning'}">
+                        <div uib-bar value="percentage_received" type=//received_type//>
+                            <span ng-hide="percentage_received < 5">//received_output//</span>
                         </div>
-                        <div uib-bar value="percentageSent" type=//sentType//>
-                            <span ng-hide="percentageSent < 5">//submit_output//</span>
+                        <div uib-bar value="percentage_sent" type=//sent_type//>
+                            <span ng-hide="percentage_sent < 5">//submit_output//</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div uib-collapse="kiosk_output=='' || currScreen<2 || hide_output">
-                <div class="output-box">
-                    <textarea class="scrollabletextbox text-muted" id="kiosk_output_txt" readonly>
+            <div uib-collapse="kiosk_output=='' || curr_screen<2 || hide_output">
+                <div class="pad-output-box">
+                    <textarea class="scrollabletextbox font-arial text-muted" id="kiosk_output_txt" readonly>
                         //kiosk_output//
                     </textarea>
                 </div>
             </div>
 
-            <div uib-collapse="currScreen!=0 || !show_refresh">
-                <div class="refresh">
-                    <img class="refresh_img" src="/static/images/bars.svg">
-                    <div class="text-semi-muted font-mont-400 refresh_img_sub">
+            <div uib-collapse="curr_screen!=0 || !show_refresh">
+                <div class="pad-refresh center-text">
+                    <img class="refresh-gif" src="/static/images/bars.svg">
+                    <div class="refresh-gif-sub text-semi-muted">
                         Refreshing virtual machine
                     </div>
                 </div>
             </div>
 
-            <div class="btn-pad">
-                <button type="button" class='btn btn-default btn-new-session font-mont-400'
-                        ng-disabled="(currScreen==1 && (!fName || !lName)) || (currScreen==0 && vmRestart)"
-                        ng-click="btnHandleNav()">//btnText//</button>
+            <div class="pad-button">
+                <button type="button" class='btn btn-default btn-new-session'
+                        ng-disabled="(curr_screen==1 && (!f_name || !l_name)) || (curr_screen==0 && vm_restart)"
+                        ng-click="btn_handle_nav()">//btn_text//</button>
             </div>
 
-            <!--<div class="btn-pad">-->
-                <!--<button type="button" class='btn btn-default btn-new-session font-mont-400' ng-click="btnTest()">View Results</button>-->
-            <!--</div>-->
-
-            <div class="pad text-note font-mont-400">
-                //kiosk_header//
+            <div class="pad font-arial fine-print">
+                //kiosk_footer//
             </div>
-
-            <!--<div class="pad text-center text-muted">-->
-                <!--//kiosk_status//-->
-                <!--<button ng-click="action()">Scroll Results Page</button>-->
-            <!--</div>-->
 
         </section>
     </section>

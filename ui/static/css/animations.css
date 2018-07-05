@@ -1,14 +1,14 @@
-.kiosk-img{
+.fade-anim{
   display:inline !important;
   animation-fill-mode: forwards;
 }
 
-.kiosk-img.hidden {
+.fade-anim.hidden {
   opacity: 0;
 }
 
-.kiosk-img.img-hide-add,
-.kiosk-img.img-hide-remove.img-hide-remove-active{
+.fade-anim.img-hide-add,
+.fade-anim.img-hide-remove.img-hide-remove-active{
   -webkit-transition: all ease-in-out 0.2s;
   -moz-transition: all ease-in-out 0.2s;
   -ms-transition: all ease-in-out 0.2s;
@@ -17,29 +17,12 @@
   opacity: 1;
 }
 
-.kiosk-img.img-hide-remove,
-.kiosk-img.img-hide-add.img-hide-add-active {
+.fade-anim.img-hide-remove,
+.fade-anim.img-hide-add.img-hide-add-active {
   -webkit-transition: all ease-in-out 0.2s;
   -moz-transition: all ease-in-out 0.2s;
   -ms-transition: all ease-in-out 0.2s;
   -o-transition: all ease-in-out 0.2s;
   transition: all ease-in-out 0.2s;
   opacity: 0;
-}
-
-.output-fade.ng-enter,
-.output-fade.ng-leave {
-  -webkit-transition: all ease-in-out 0.5s;
-  -moz-transition: all ease-in-out 0.5s;
-  -ms-transition: all ease-in-out 0.5s;
-  -o-transition: all ease-in-out 0.5s;
-  transition: all ease-in-out 0.5s;
-}
-.output-fade.ng-enter,
-.output-fade.ng-leave.ng-leave-active {
-  opacity: 0;
-}
-.output-fade.ng-leave,
-.output-fade.ng-enter.ng-enter-active {
-  opacity: 1;
 }
