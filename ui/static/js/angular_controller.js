@@ -142,7 +142,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     setTimeout(function(){
                         _.defer(function() {
                             $scope.$apply(function () {
-                                $rootScope.$emit("ScrollResults", {});
+                                $rootScope.$emit("scroll_results", {});
                             })
                         })
                     }, 1000);
@@ -313,7 +313,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     }, 3000);
                 }
 
-                $scope.newSession();
+                $scope.new_session();
 
             }
         };
@@ -323,16 +323,15 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         // ----------------------- Helper Functions
 
-        $scope.newSession = function() {
+        $scope.new_session = function() {
 
-            $rootScope.$emit("ClearResults", {});
+            $rootScope.$emit("clear_results", {});
 
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.curr_screen = 0;
                         $scope.btn_text = "Start new session";
-                        // socket.emit('vm_control', 'off');
                     })
                 })
             }, 500);
@@ -385,7 +384,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         $scope.scan_success = false;
         $scope.no_files = false;
         $scope.file_tree = [];
-        $scope.clear_results = false;
+        $scope.results_cleared = false;
         $scope.tbl_pass_files = [];
         $scope.tbl_mal_files = [];
         $scope.pass_message = "Use of this device on-site is permitted."
@@ -609,7 +608,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         //                         "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
         //                             "PE: RESOURCES", "truncated": false}, {"body": "LangId: 040904b0 (" +
         //                         "English-United States)\nLegalCopyright: Copyright (c) 1999-2018 Igor " +
-        //                         "Pavlov\nInternal_name: 7z.sfx\nFileVersion: 18.05\nCompanyName: Igor " +
+        //                         "Pavlov\nInternalName: 7z.sfx\nFileVersion: 18.05\nCompanyName: Igor " +
         //                         "Pavlov\nProductName: 7-Zip\nProductVersion: 18.05\nFileDescription: " +
         //                         "7z SFX\nOriginalFilename: 7z.sfx.exe", "body_format": null, "classification": "U",
         //                         "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
@@ -945,12 +944,12 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         // ----------------------- Helper Functions
 
         // Clears and resets the results section
-        $rootScope.$on("ClearResults", function() {
-           $scope.clearResults();
+        $rootScope.$on("clear_results", function() {
+           $scope.clear_results();
         });
-        $scope.clearResults = function() {
+        $scope.clear_results = function() {
 
-            $scope.clear_results = true;
+            $scope.results_cleared = true;
 
             setTimeout(function(){
                 _.defer(function() {
@@ -963,12 +962,12 @@ app.controller('ResultsController', ['$scope', '$rootScope',
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.clear_results = false;
+                        $scope.results_cleared = false;
                         $scope.show_pass_header = false;
                         $scope.scan_success = false;
                         $scope.no_files = false;
                         $scope.file_tree = [];
-                        $scope.clear_results = false;
+                        $scope.results_cleared = false;
                         $scope.tbl_pass_files = [];
                         $scope.tbl_mal_files = [];
                     })
@@ -978,10 +977,10 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         };
 
 
-        $rootScope.$on("ScrollResults", function() {
-           $scope.scrollResults();
+        $rootScope.$on("scroll_results", function() {
+           $scope.scroll_results();
         });
-        $scope.scrollResults = function() {
+        $scope.scroll_results = function() {
             _.defer(function() {
 
                 $scope.$apply(function () {
@@ -1007,7 +1006,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         };
 
         // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
-        $scope.nameStrip = function(name) {
+        $scope.name_strip = function(name) {
             return name.toString();
         }
 
@@ -1018,11 +1017,11 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 ]);
 
 // SERVICE: Controls when a service is clicked on; brings up popup window
-app.controller('serviceController', ['$scope', '$uibModal',
+app.controller('ServiceController', ['$scope', '$uibModal',
 
     function ServiceController($scope, $uibModal) {
 
-        $scope.serviceInfo = function(service_name) {
+        $scope.service_info = function(service_name) {
             $scope.service_name = service_name;
 
             // Gives a brief description of whichever service has been clicked on
@@ -1304,7 +1303,7 @@ app.controller('serviceController', ['$scope', '$uibModal',
 
             var uibModalInstance = $uibModal.open({
                 templateUrl: '/static/ng-template/popup.html',
-                controller: 'popupController',
+                controller: 'PopupController',
                 size: 'lg',
                 resolve: {
                     popup_scope: function(){
@@ -1320,7 +1319,7 @@ app.controller('serviceController', ['$scope', '$uibModal',
 ]);
 
 // POPUP: Controls new popup window
-app.controller('popupController',
+app.controller('PopupController',
 
     function PopupController($scope, $uibModalInstance, popup_scope) {
         $scope.pop_header = 'Service: ' + popup_scope.service_name;
@@ -1355,8 +1354,6 @@ app.controller('SettingsController', ['$scope',
                         });
                     });
 
-                    // $scope.default_terminal_name = terminal_name;
-                    // $scope.default_al_address = al_address;
                 });
             });
         });

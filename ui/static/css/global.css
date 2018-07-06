@@ -15,12 +15,6 @@ html, body{
 
 #main {
     padding-top: 75px;
-    padding-bottom: 15px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 400;
-}
-
-#results {
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
 }
@@ -43,8 +37,21 @@ html, body{
 }
 
 .big-pad {
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.pad-head {
     padding-top: 20px;
-    padding-bottom: 20px;
+}
+
+.pad-bottom {
+    padding-bottom: 10px;
+}
+
+.collapse-pad {
+    padding-top: 15px;
+	padding-bottom: 15px;
 }
 
 .text-large{
@@ -58,6 +65,15 @@ html, body{
 .disable {
     opacity: 0.5;
 }
+
+.font-arial {
+    font-family: 'Arial', sans-serif;
+}
+
+.opacity8 {
+    opacity: 0.8;
+}
+
 
 @media (min-width: 768px){
 	section.container{
@@ -146,4 +162,25 @@ section.container{
 	vertical-align: middle;
 	padding-top: 5px;
 	padding-bottom: 5px;
+}
+
+.modal {
+    text-align: center;
+    padding: 0!important;
+}
+
+.modal:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+    margin-right: -4px;
+}
+
+.modal-dialog {
+    display: inline-block;
+    text-align: left;
+    vertical-align: middle;
+    white-space: pre-line;
+    width: 70%;
 }

@@ -1,58 +1,60 @@
 {% extends "base.html" %}
-{% block css_import %}
-<link rel="stylesheet" href="/static/css/results.css"/>
-{% endblock %}
 {% block results %}
 
-    <div id="results_scroll_to" class="section-break"></div>
+    <div id="results_scroll_to"></div>
 
     <section id="results" uib-collapse="!show_results" ng-controller="ResultsController">
 
-        <section id="resultsHeader" class="container container-with-overflow container-header">
-            <div class="">
+        <section class="container container-with-overflow container-header">
+            <div>
                 <b>Scan Results</b>
             </div>
         </section>
-        <div ng-if="scan_success" id="resultPass" class="container container-with-overflow pad bg-green">
-            <div class="failure-split-left">
-                <div class="section-subheader">
+
+        <div ng-if="scan_success" class="container container-with-overflow pad bg-green">
+
+            <div class="result-split-left">
+                <div class="result-msg-title">
                     <b>No malware was detected on this device</b>
                 </div>
-                <div class="failure_message text-semi-muted">
+                <div class="result-msg-body text-semi-muted">
                     //pass_message//
                 </div>
             </div>
-            <div class="failure-split-right">
-                <img class="failure-img" src="/static/images/result_pass.svg">
+
+            <div class="result-split-right">
+                <img class="result-img" src="/static/images/result_pass.svg">
             </div>
+
         </div>
-        <div ng-if="!scan_success" id="resultFail" class="container container-with-overflow pad bg-red">
-            <div class="failure-split-left">
-                <div class="section-subheader">
+        <div ng-if="!scan_success" class="container container-with-overflow pad bg-red">
+
+            <div class="result-split-left">
+                <div class="result-msg-title">
                     <b>Warning: Malware has been detected on this device</b>
                 </div>
-                <div class="failure_message text-semi-muted">
+                <div class="result-msg-body text-semi-muted">
                     //failure_message//
                 </div>
             </div>
 
-            <div class="failure-split-right">
-                <img class="failure-img" src="/static/images/result_failure.svg">
+            <div class="result-split-right">
+                <img class="result-img" src="/static/images/result_failure.svg">
             </div>
 
         </div>
 
-        <section id="results_body" role="main" class="container container-with-overflow">
+        <section class="container container-with-overflow">
 
             <div class="pad-head">
-                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success" uib-collapse="clear_results">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success" uib-collapse="results_clear">
                     <p><b>Potentially malicious files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
 
                         <div uib-accordion-heading>
-                            <div class="row mal_file_header">
-                                <div class="cellHead">//file.submission.metadata.filename//</div>
-                                <div class="cellHead text-right">//file.submission.max_score//</div>
+                            <div class="row opacity8">
+                                <div class="result-detail-header">//file.submission.metadata.filename//</div>
+                                <div class="result-detail-header text-right">//file.submission.max_score//</div>
                             </div>
                         </div>
 
@@ -65,22 +67,22 @@
 
                         <script type="text/ng-template" id="file_tree">
                             <div ng-if="file_child.score>=500">
-                                <div ng-click="isCollapsed = !isCollapsed" class="results-title">
-                                    <span ng-if="isCollapsed" class="fas fa-chevron-circle-right results-glyph" style="display:inline"></span>
-                                    <span ng-if="!isCollapsed" class="fas fa-chevron-circle-down results-glyph" style="display:inline"></span>
+                                <div ng-click="is_collapsed = !is_collapsed" class="result-detail-title">
+                                    <span ng-if="is_collapsed" class="result-detail-glyph fas fa-chevron-circle-right" style="display:inline"></span>
+                                    <span ng-if="!is_collapsed" class="result-detail-glyph fas fa-chevron-circle-down" style="display:inline"></span>
                                     <p style="display:inline" ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}"><b>//file_child.score//</b></p>
-                                    <p style="display:inline">  ::  //nameStrip(file_child.name)//</p>
+                                    <p style="display:inline">  ::  //name_strip(file_child.name)//</p>
                                 </div>
 
                                 <div class="collapse-pad">
-                                    <div uib-collapse="isCollapsed" ng-init="isCollapsed=true">
+                                    <div uib-collapse="is_collapsed" ng-init="is_collapsed=true">
                                         <div ng-repeat="result in file.results">
-                                            <div class="results-detail" ng-if="key==result.srl && result.result.score>0">
-                                                <div class="results-title" ng-click="serviceInfo(result.response.service_name)" ng-controller="serviceController">
+                                            <div class="result-detail-service" ng-if="key==result.srl && result.result.score>0">
+                                                <div class="result-detail-title" ng-click="service_info(result.response.service_name)" ng-controller="ServiceController">
                                                     <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
                                                     <p style="display:inline"><b>  ::  //result.response.service_name//</b></p>
                                                 </div>
-                                                <div ng-repeat="detail in result.result.sections" class="results-detail2">
+                                                <div ng-repeat="detail in result.result.sections" class="result-detail-service-adv">
                                                     <p style="display:inline" ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}"><b>//detail.score//</b></p>
                                                     <p style="display:inline">  ::  //detail.title_text//</p>
                                                 </div>
@@ -100,14 +102,14 @@
                     </div>
                 </div>
 
-                <div uib-accordion close-others="true" class="pad table text-semi-muted" uib-collapse="clear_results">
+                <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted" uib-collapse="results_clear">
                     <p ng-if="show_pass_header"><b>Safe files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'" class="panel-default">
 
                         <div uib-accordion-heading>
                             <div class="row text-semi-muted">
-                                <div class="cellHead">//file.metadata.filename//</div>
-                                <div class="cellHead text-right">//file.metadata.al_score//</div>
+                                <div class="result-detail-header">//file.metadata.filename//</div>
+                                <div class="result-detail-header text-right">//file.metadata.al_score//</div>
                             </div>
                         </div>
 
