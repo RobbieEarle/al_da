@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main %}
 
-    <section id="results_scroll_to" ng-controller="SettingsController">
+    <section id="main" ng-controller="SettingsController">
 
         <section id="header" class="container container-with-overflow container-header">
             <!--<div class="_header_title">-->
@@ -11,66 +11,32 @@
 
         <section id="body" class="container container-with-overflow text-semi-muted">
 
-            <div class="main-title" ng-click="account_collapse=!account_collapse">
-                <span>Account</span>
-            </div>
-            <div class="pad" uib-collapse="account_collapse">
+            <div id="account" class="setting-category">
 
-                <div class="small-pad">
-                    <form novalidate >
-                        <div class="form-title pad"><b>User ID</b></div>
-                        <input type="text" class="form" ng-value="default_settings.user_id" ng-model="user_id"/>
-                    </form>
+                <div class="main-title" ng-click="account_collapse=!account_collapse">
+                    <span>Account</span>
                 </div>
 
-                <div class="small-pad">
-                    <form novalidate >
-                        <div class="form-title pad"><b>New Password</b></div>
-                        <input type="text" class="form" ng-model="new_pw"/>
-                    </form>
-                </div>
+                <div class="pad" uib-collapse="account_collapse">
 
-                <div class="small-pad">
-                    <form novalidate >
-                        <div class="form-title pad"><b>Confirm Password</b></div>
-                        <input type="text" class="form" ng-model="confirm_pw"/>
-                    </form>
-                </div>
-
-            </div>
-
-            <div class="main-title" ng-click="config_collapse=!config_collapse">
-                <span>Configuration</span>
-            </div>
-            <div class="pad" uib-collapse="config_collapse">
-
-                <div class="small-pad">
-                    <form novalidate >
-                        <div class="form-title pad"><b>Terminal Name</b></div>
-                        <input type="text" class="form" ng-value="default_settings.terminal" ng-model="terminal"/>
-                    </form>
-                </div>
-
-                <div id="_body-inset_" class="_body-inset_block">
-
-                    <div class="small-pad">
-                        <form novalidate >
-                            <div class="form-title pad"><b>Assemblyline Server IP Address</b></div>
-                            <input type="text" class="form" ng-value="default_settings.al_address" ng-model="al_address"/>
+                    <div class="small-pad setting-indent">
+                        <form novalidate class="form-large">
+                            <div class="form-title pad"><b>User ID</b></div>
+                            <input type="text" class="form" ng-value="default_settings.user_id" ng-model="user_id"/>
                         </form>
                     </div>
 
-                    <div class="small-pad">
-                        <form novalidate >
-                            <div class="form-title pad"><b>Assemblyline Username</b></div>
-                            <input type="text" class="form" ng-value="default_settings.al_username" ng-model="al_username"/>
+                    <div class="small-pad setting-indent">
+                        <form novalidate class="form-large">
+                            <div class="form-title pad"><b>New Password</b></div>
+                            <input type="password" class="form" ng-model="new_pw"/>
                         </form>
                     </div>
 
-                    <div class="small-pad">
-                        <form novalidate >
-                            <div class="form-title pad"><b>Assemblyline API Key</b></div>
-                            <input type="text" class="form" ng-value="default_settings.al_api_key" ng-model="al_api_key"/>
+                    <div class="small-pad setting-indent">
+                        <form novalidate class="form-large">
+                            <div class="form-title pad"><b>Confirm Password</b></div>
+                            <input type="password" class="form" ng-model="confirm_pw"/>
                         </form>
                     </div>
 
@@ -78,7 +44,134 @@
 
             </div>
 
-            <div class="pad"><br /></div>
+            <div id="assembleyline-server" class="setting-category">
+
+                <div class="main-title" ng-click="config_collapse=!config_collapse">
+                    <span>Assemblyline Server</span>
+                </div>
+
+                <div class="pad" uib-collapse="config_collapse">
+
+                    <div class="small-pad setting-indent">
+                        <form novalidate class="form-large">
+                            <div class="form-title pad"><b>Terminal Name</b></div>
+                            <input type="text" class="form" ng-value="default_settings.terminal" ng-model="terminal"/>
+                        </form>
+                    </div>
+
+                    <div id="assemblyline-connect" class="group-elements">
+
+                        <div class="small-pad">
+                            <form novalidate class="form-large">
+                                <div class="form-title pad"><b>Assemblyline Server IP Address</b></div>
+                                <input type="text" class="form" ng-value="default_settings.al_address" ng-model="al_address"/>
+                            </form>
+                        </div>
+
+                        <div class="small-pad">
+                            <form novalidate class="form-large">
+                                <div class="form-title pad"><b>Assemblyline Username</b></div>
+                                <input type="text" class="form" ng-value="default_settings.al_username" ng-model="al_username"/>
+                            </form>
+                        </div>
+
+                        <div class="small-pad">
+                            <form novalidate class="form-large">
+                                <div class="form-title pad"><b>Assemblyline API Key</b></div>
+                                <input type="text" class="form" ng-value="default_settings.al_api_key" ng-model="al_api_key"/>
+                            </form>
+                        </div>
+
+                        <div class="pad-button">
+                            <button type="button" class='btn btn-default btn-style-blue'
+                                    ng-disabled="al_address=='' || al_username=='' || al_api_key==''"
+                                    ng-click="btn_al_connect()">Test connection</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div id="alerts" class="setting-category">
+
+                <div class="main-title" ng-click="email_collapse=!email_collapse">
+                    <span>Alerts</span>
+                </div>
+
+                <div class="pad" uib-collapse="email_collapse">
+
+                    <div class="small-pad clickable">
+                        <toggle ng-model="toggle_email" on="On" off="Off" onstyle="btn-success"></toggle>
+                        <div class="toggle-email-txt" ng-click="toggle_email = !toggle_email">Email notifications</div>
+                    </div>
+
+                    <div id="email-settings" ng-class="{'disable': !toggle_email}">
+
+                        <div id="recipients" class="pad">
+                            <div class="small-pad setting-indent">
+                                <form novalidate class="form-medium" ng-submit="add_recipient(new_recipient)">
+                                    <div class="form-title pad"><b>Add Recipient</b></div>
+                                    <input type="text" class="form align-bottom" ng-model="new_recipient"/>
+                                </form>
+                                <button type="button" class='btn btn-default btn-style-blue align-bottom reduce-margin'
+                                            ng-disabled="new_recipient==''"
+                                            ng-click="add_recipient(new_recipient)">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <div class="recipient" style="display:inline">Add</div>
+                                </button>
+                            </div>
+
+                            <div class="small-pad setting-indent">
+                                <form novalidate class="form-large">
+                                    <div class="form-title pad"><b>Remove Recipient</b></div>
+                                    <div ng-if="no_recipients" class="small-pad setting-indent">No recipients added</div>
+                                    <div ng-repeat="address in recipients_show" class="small-pad setting-indent clickable" ng-click="remove_recipient(address)">
+                                        <i class="fas fa-minus-circle icon-red" style="display: inline"></i>
+                                        <div class="recipient" style="display:inline">//address//</div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div id="email-connect" class="group-elements">
+
+                            <div class="small-pad">
+                                <form novalidate class="form-medium">
+                                    <div class="form-title pad"><b>SMTP Server Address</b></div>
+                                    <input type="text" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_server" ng-model="smtp_server"/>
+                                </form>
+                                <form novalidate class="form-small">
+                                    <div class="form-title pad"><b>Port</b></div>
+                                    <input type="text" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_port" ng-model="smtp_port"/>
+                                </form>
+                            </div>
+
+                            <div class="small-pad">
+                                <form novalidate class="form-medium">
+                                    <div class="form-title pad"><b>Username</b></div>
+                                    <input type="text" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_username" ng-model="smtp_username"/>
+                                </form>
+                                <form novalidate class="form-small">
+                                    <div class="form-title pad"><b>Password</b></div>
+                                    <input type="password" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_password" ng-model="smtp_password"/>
+                                </form>
+                            </div>
+
+                            <div class="pad-button">
+                                <button type="button" class='btn btn-default btn-style-blue'
+                                        ng-disabled="smtp_server=='' || smtp_port=='' || smtp_username==''"
+                                        ng-click="btn_email_connect()">Test connection</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </section>
 

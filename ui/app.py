@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, json, jsonify, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -28,11 +27,6 @@ recipients = ['robearle11@gmail.com', 'robert.earle@165gc.onmicrosoft.com']
 server_addr = 'outlook.office365.com'
 server_pass = 'PASSWORD'
 
-new_socket_msg = False
-socket_msg = {'device_conn': {'active': False, 'url': '/static/images/scrape_no_conn.svg'},
-              'loading': {'active': False},
-              'done_loading': {'active': False}}
-
 # Database placeholders
 default_settings = {}
 
@@ -44,7 +38,6 @@ app.config['SECRET_KEY'] = 'changeme123'
 app.debug = True
 socketio = SocketIO(app)
 CORS(app)
-app.config.from_pyfile('config.py')
 
 
 if __name__ == '__main__':
@@ -97,6 +90,11 @@ def settings_start():
     default_settings["al_address"] = 'https://134.190.171.253/'
     default_settings["al_username"] = 'admin'
     default_settings["al_api_key"] = '123456'
+    default_settings["smtp_server"] = server_addr
+    default_settings["smtp_port"] = '587'
+    default_settings["smtp_username"] = 'rb504035@dal.ca'
+    default_settings["smtp_password"] = 'PASSWORD'
+    default_settings["recipients"] = recipients
     settings_json = json.dumps(default_settings)
     socketio.emit('populate_settings', settings_json)
 
@@ -172,10 +170,6 @@ def vm_control(args):
 # type of device event
 @socketio.on('device_event')
 def device_event(args):
-    global socket_msg
-    global new_socket_msg
-    global begin_scrape
-
     print args
     socketio.emit('dev_event', args)
 
@@ -184,10 +178,7 @@ def device_event(args):
 
 # Always running background thread that handles real time output to webapp from scrape_drive.py
 def background_thread():
-
     global output
-    global new_socket_msg
-    global socket_msg
     global last_output
 
     while True:

@@ -1,9 +1,13 @@
 /* ------- Elements ------- */
 
+.setting-category {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 .main-title {
     font-size: 150%;
     border-bottom: 1px solid #EEE;
-    padding-top: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -17,23 +21,70 @@
 }
 
 .form {
-    /*display: block;*/
     width: 100%;
     height: 34px;
-    padding: 12px 14px;
+    padding: 12px 12px;
     font-size: 12px;
     line-height: 1.428571429;
-    /*letter-spacing: 2px;*/
     color: #555;
     background-color: #fff;
     background-image: none;
     border: 1px solid #ccc;
     border-radius: 4px;
+    vertical-align: middle;
 }
 
-._body-inset_ {
+.form-small {
+    display: inline-block;
+    width: 30%;
+}
 
+.form-medium {
+    display: inline-block;
+    width: 43%;
+    padding-right: 5px;
+}
+
+.form-large {
+    display: inline-block;
+    width: 100%;
+}
+
+.toggle-email-txt {
+    padding-left: 10px;
+    font-size: 16px;
+    vertical-align: middle;
+    display:inline;
+}
+
+.icon-green {
+    color: #00881B;
+}
+
+.icon-red {
+    color: #b76361;
+}
+
+.recipient {
+    padding-left: 5px;
 }
 
 
 /* ------- Modifiers ------- */
+
+.group-elements {
+    margin-top: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    background-color: #f0f0f0 !important;
+}
+
+.setting-indent {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.align-bottom {
+    vertical-align: bottom;
+}

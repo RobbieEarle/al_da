@@ -1,5 +1,5 @@
 // Module Initialization
-var app = angular.module('al_da', ['ngAnimate', 'ui.bootstrap']);
+var app = angular.module('al_da', ['ngAnimate', 'ui.bootstrap', 'ui.toggle']);
 
 // Socket Initialization
 var socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -1332,12 +1332,16 @@ app.controller('PopupController',
 
 );
 
-// SETTINGS: Controls main kiosk output console and output icon
+// SETTINGS: Controls the admin settings page
 app.controller('SettingsController', ['$scope',
 
     function SettingsController($scope) {
 
         $scope.default_settings = [];
+        $scope.toggle_email = true;
+        $scope.new_recipient = '';
+        $scope.recipients_show = [];
+        $scope.no_recipients = true;
 
         socket.on('connect', function() {
             socket.emit('settings_start');
@@ -1351,12 +1355,65 @@ app.controller('SettingsController', ['$scope',
                         $scope.$apply(function () {
                             console.log(JSON.parse(default_settings));
                             $scope.default_settings = JSON.parse(default_settings);
+                            $scope.recipients_show = $scope.default_settings.recipients;
+                            if ($scope.recipients_show.length > 0) {
+                                $scope.no_recipients = false;
+                            }
                         });
                     });
 
                 });
             });
         });
+
+        $scope.btn_al_connect = function() {
+
+            _.defer(function() {
+                $scope.$apply(function () {
+                    console.log("AL Connect")
+                });
+            });
+
+        };
+
+        $scope.btn_email_connect = function() {
+
+            _.defer(function() {
+                $scope.$apply(function () {
+                    console.log("Email Connect")
+                });
+            });
+
+        };
+
+         $scope.add_recipient = function(address) {
+
+            _.defer(function() {
+                $scope.$apply(function () {
+                    if ($scope.recipients_show.indexOf(address) === -1) {
+                        $scope.recipients_show.push(address);
+                        $scope.no_recipients = false;
+                    }
+                    else {
+                        console.log("Repeat")
+                    }
+                });
+            });
+
+        };
+
+         $scope.remove_recipient = function(address) {
+
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.recipients_show.splice($scope.recipients_show.indexOf(address), 1);
+                    if ($scope.recipients_show.length === 0) {
+                        $scope.no_recipients = true;
+                    }
+                });
+            });
+
+        };
 
     }
 ]);

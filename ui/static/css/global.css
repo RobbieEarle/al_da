@@ -74,6 +74,20 @@ html, body{
     opacity: 0.8;
 }
 
+.clickable {
+    opacity: 0.9;
+    cursor: pointer;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.clickable:hover {
+    opacity: 1;
+}
+
 
 @media (min-width: 768px){
 	section.container{
@@ -183,4 +197,33 @@ section.container{
     vertical-align: middle;
     white-space: pre-line;
     width: 70%;
+}
+
+.btn-large {
+    width: 100%;
+}
+
+.btn-small {
+    font-size: 10px;
+    vertical-align: middle;
+    height: 90%;
+}
+
+.btn-style-blue, .btn-style-blue:focus {
+    background-color: #2c5180;
+    border-color: #2c5180;
+    color: #ffffff;
+}
+
+.btn-style-blue:hover {
+    background-color: #29406c;
+    border-color: #29406c;
+    color: #ffffff;
+}
+
+.btn-style-blue:disabled {
+    background-color: #29406c;
+    border-color: #29406c;
+    color: #ffffff;
+    opacity: 0.5;
 }
