@@ -5,10 +5,14 @@ import subprocess
 import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
+import sqlite3
 
 from helper.views import create_menu
 import eventlet
 import arrow
+import re
+
+import sqlite3
 
 eventlet.monkey_patch()
 
@@ -81,24 +85,34 @@ def scan_start():
         my_thread = socketio.start_background_task(target=background_thread)
 
 
+# Called by web app when the settings page is opened. Returns default values from database
 @socketio.on('settings_start')
 def settings_start():
     global default_settings
 
-    default_settings["user_id"] = 'admin'
-    default_settings["terminal"] = 'DEV_TERMINAL'
-    default_settings["al_address"] = 'https://134.190.171.253/'
-    default_settings["al_username"] = 'admin'
-    default_settings["al_api_key"] = '123456'
-    default_settings["smtp_server"] = server_addr
-    default_settings["smtp_port"] = '587'
-    default_settings["smtp_username"] = 'rb504035@dal.ca'
-    default_settings["smtp_password"] = 'PASSWORD'
-    default_settings["recipients"] = recipients
+    db = sqlite3.connect('../settings_db')
+    cursor = db.cursor()
+
+    cursor.execute("""SELECT * from setting""")
+    data_settings = cursor.fetchall()
+
+    cursor.execute("""SELECT * from recipient""")
+    data_recipient = cursor.fetchall()
+
+    cursor.execute("""SELECT * from credential""")
+    data_credential = cursor.fetchall()
+
+    cursor.execute("""SELECT * from result""")
+    data_result = cursor.fetchall()
+
+    db.close()
+
     settings_json = json.dumps(default_settings)
     socketio.emit('populate_settings', settings_json)
 
 
+# Called by the sandbox VM perpetually until client credentials have been entered. Once valid credentials have been
+# entered, the sandbox begins looking for files to scrape
 @socketio.on('connect_request')
 def connect_request():
     global client_f_name, client_l_name, vm_connected
@@ -110,6 +124,7 @@ def connect_request():
     return client_f_name, client_l_name
 
 
+# Receives and records user credentials that are entered by user for the current session
 @socketio.on('session_credentials')
 def session_credentials(f_name, l_name):
     global client_f_name, client_l_name
@@ -124,6 +139,7 @@ def to_kiosk(args):
     output = args
 
 
+# Outputs that current number of files ingested and files queued for ingestion, to be received by our webapp
 @socketio.on('ingest_status')
 def new_file(args):
     socketio.emit('update_ingest', args)
@@ -148,6 +164,7 @@ def output_mal_files(mal_files, terminal_id):
     email_alert(mal_files, terminal_id)
 
 
+# Allows our web app to turn off or refresh our sandbox VM
 @socketio.on('vm_control')
 def vm_control(args):
     global client_f_name, client_l_name, vm_connected
@@ -172,6 +189,15 @@ def vm_control(args):
 def device_event(args):
     print args
     socketio.emit('dev_event', args)
+
+
+@socketio.on('validate_email')
+def validate_email(addr):
+
+    if re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', addr) is not None:
+        return True
+
+    return False
 
 
 # ============== Background Threads ==============

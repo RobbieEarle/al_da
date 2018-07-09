@@ -94,43 +94,56 @@
 
             </div>
 
-            <div id="alerts" class="setting-category">
+            <div id="notifications" class="setting-category">
 
                 <div class="main-title" ng-click="email_collapse=!email_collapse">
-                    <span>Alerts</span>
+                    <span>Notifications</span>
                 </div>
 
                 <div class="pad" uib-collapse="email_collapse">
 
                     <div class="small-pad clickable">
                         <toggle ng-model="toggle_email" on="On" off="Off" onstyle="btn-success"></toggle>
-                        <div class="toggle-email-txt" ng-click="toggle_email = !toggle_email">Email notifications</div>
+                        <div class="toggle-email-txt" ng-click="toggle_email = !toggle_email">Email alerts</div>
                     </div>
 
                     <div id="email-settings" ng-class="{'disable': !toggle_email}">
 
                         <div id="recipients" class="pad">
-                            <div class="small-pad setting-indent">
+                            <div class="small-pad pad-head setting-indent">
+
                                 <form novalidate class="form-medium" ng-submit="add_recipient(new_recipient)">
                                     <div class="form-title pad"><b>Add Recipient</b></div>
-                                    <input type="text" class="form align-bottom" ng-model="new_recipient"/>
+                                    <input type="text" class="form align-bottom" ng-model="new_recipient"
+                                           uib-tooltip="//alert_msg//" tooltip-is-open="show_alert"
+                                           tooltip-trigger="'none'" tooltip-placement="bottom-left"/>
                                 </form>
+
                                 <button type="button" class='btn btn-default btn-style-blue align-bottom reduce-margin'
                                             ng-disabled="new_recipient==''"
                                             ng-click="add_recipient(new_recipient)">
+
                                     <i class="fas fa-plus-circle"></i>
                                     <div class="recipient" style="display:inline">Add</div>
+
                                 </button>
+
                             </div>
 
-                            <div class="small-pad setting-indent">
+                            <div class="big-pad pad-head setting-indent">
                                 <form novalidate class="form-large">
+
                                     <div class="form-title pad"><b>Remove Recipient</b></div>
+
                                     <div ng-if="no_recipients" class="small-pad setting-indent">No recipients added</div>
+
                                     <div ng-repeat="address in recipients_show" class="small-pad setting-indent clickable" ng-click="remove_recipient(address)">
+
                                         <i class="fas fa-minus-circle icon-red" style="display: inline"></i>
-                                        <div class="recipient" style="display:inline">//address//</div>
+                                        <div class="small-indent" style="display:inline">//address//</div>
+
                                     </div>
+
                                 </form>
                             </div>
                         </div>
@@ -139,34 +152,177 @@
 
                             <div class="small-pad">
                                 <form novalidate class="form-medium">
+
                                     <div class="form-title pad"><b>SMTP Server Address</b></div>
+
                                     <input type="text" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_server" ng-model="smtp_server"/>
+
                                 </form>
                                 <form novalidate class="form-small">
+
                                     <div class="form-title pad"><b>Port</b></div>
+
                                     <input type="text" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_port" ng-model="smtp_port"/>
+
                                 </form>
                             </div>
 
                             <div class="small-pad">
                                 <form novalidate class="form-medium">
+
                                     <div class="form-title pad"><b>Username</b></div>
+
                                     <input type="text" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_username" ng-model="smtp_username"/>
+
                                 </form>
                                 <form novalidate class="form-small">
+
                                     <div class="form-title pad"><b>Password</b></div>
+
                                     <input type="password" class="form" ng-disabled="!toggle_email" ng-value="default_settings.smtp_password" ng-model="smtp_password"/>
+
                                 </form>
                             </div>
 
                             <div class="pad-button">
+
                                 <button type="button" class='btn btn-default btn-style-blue'
                                         ng-disabled="smtp_server=='' || smtp_port=='' || smtp_username==''"
                                         ng-click="btn_email_connect()">Test connection</button>
+
                             </div>
 
                         </div>
 
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div id="user-settings" class="setting-category">
+
+                <div class="main-title" ng-click="user_collapse=!user_collapse">
+                    <span>User Settings</span>
+                </div>
+
+                <div class="pad" uib-collapse="user_collapse">
+
+                    <div class="small-pad setting-indent">
+                        <form novalidate class="form-large">
+
+                            <div class="form-title small-pad"><b>Session Credentials</b></div>
+
+                            <div class="setting-indent">
+
+                                <div>
+                                    <label class="checkbox clickable">
+                                        <input type="checkbox" class="" ng-model="credential_settings.f_name.active">
+                                        <div class="small-indent" style="display:inline">First name</div>
+                                    </label>
+                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.f_name.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.f_name.mandatory" ng-disabled="!credential_settings.f_name.active">
+                                        <div class="small-indent" style="display:inline">Mandatory</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox clickable">
+                                        <input type="checkbox" ng-model="credential_settings.l_name.active">
+                                        <div class="small-indent" style="display:inline">Last name</div>
+                                    </label>
+                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.l_name.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.l_name.mandatory" ng-disabled="!credential_settings.l_name.active">
+                                        <div class="small-indent" style="display:inline">Mandatory</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox clickable">
+                                        <input type="checkbox" ng-model="credential_settings.id.active">
+                                        <div class="small-indent" style="display:inline">Employee ID</div>
+                                    </label>
+                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.id.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.id.mandatory" ng-disabled="!credential_settings.id.active">
+                                        <div class="small-indent" style="display:inline">Mandatory</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox clickable">
+                                        <input type="checkbox" ng-model="credential_settings.company.active">
+                                        <div class="small-indent" style="display:inline">Company name</div>
+                                    </label>
+                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.company.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.company.mandatory" ng-disabled="!credential_settings.company.active">
+                                        <div class="small-indent" style="display:inline">Mandatory</div>
+                                    </label>
+                                </div>
+
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <div class="small-pad setting-indent">
+                        <form novalidate class="form-large">
+
+                            <div class="form-title small-pad"><b>Scan Result Details</b></div>
+
+                            <div class="setting-indent">
+
+                                <div>
+                                    <label class="checkbox clickable">
+                                        <input type="checkbox" class="" ng-model="results_settings.mal_files">
+                                        <div class="small-indent" style="display:inline">Show malicious files</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.score" ng-disabled="!results_settings.mal_files">
+                                        <div class="small-indent" style="display:inline">Show score</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.sid" ng-disabled="!results_settings.mal_files">
+                                        <div class="small-indent" style="display:inline">Show SID</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.file_contents" ng-disabled="!results_settings.mal_files">
+                                        <div class="small-indent" style="display:inline">Show file contents</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.file_services" ng-disabled="!results_settings.mal_files">
+                                        <div class="small-indent" style="display:inline">Show flagged services</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.service_description" ng-disabled="!results_settings.mal_files">
+                                        <div class="small-indent" style="display:inline">Show service descriptions</div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="checkbox clickable">
+                                        <input type="checkbox" class="" ng-model="results_settings.safe_files">
+                                        <div class="small-indent" style="display:inline">Show safe files</div>
+                                    </label>
+                                </div>
+
+                            </div>
+
+                        </form>
                     </div>
 
                 </div>

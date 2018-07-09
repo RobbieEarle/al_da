@@ -1342,6 +1342,10 @@ app.controller('SettingsController', ['$scope',
         $scope.new_recipient = '';
         $scope.recipients_show = [];
         $scope.no_recipients = true;
+        $scope.show_alert = false;
+        $scope.alert_msg = '';
+        $scope.credential_settings = {};
+        $scope.results_settings = {};
 
         socket.on('connect', function() {
             socket.emit('settings_start');
@@ -1356,6 +1360,8 @@ app.controller('SettingsController', ['$scope',
                             console.log(JSON.parse(default_settings));
                             $scope.default_settings = JSON.parse(default_settings);
                             $scope.recipients_show = $scope.default_settings.recipients;
+                            $scope.credential_settings = $scope.default_settings.credential_settings;
+                            $scope.results_settings = $scope.default_settings.results_settings;
                             if ($scope.recipients_show.length > 0) {
                                 $scope.no_recipients = false;
                             }
@@ -1388,16 +1394,54 @@ app.controller('SettingsController', ['$scope',
 
          $scope.add_recipient = function(address) {
 
-            _.defer(function() {
-                $scope.$apply(function () {
+             socket.emit('validate_email', address, function(result){
+                if(result){
                     if ($scope.recipients_show.indexOf(address) === -1) {
-                        $scope.recipients_show.push(address);
-                        $scope.no_recipients = false;
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                $scope.recipients_show.push(address);
+                                $scope.no_recipients = false;
+                            });
+                        });
                     }
                     else {
-                        console.log("Repeat")
+                        _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.alert_msg = 'Recipient already added';
+                            if (!$scope.show_alert) {
+                                $scope.show_alert = true;
+                                setTimeout(function () {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            if ($scope.show_alert)
+                                                $scope.show_alert = false;
+                                        });
+                                    });
+                                }, 3000);
+                            }
+                        });
+                    });
                     }
-                });
+                }
+                else {
+                    console.log("Invalid email")
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.alert_msg = 'Invalid email address';
+                            if (!$scope.show_alert) {
+                                $scope.show_alert = true;
+                                setTimeout(function () {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            if ($scope.show_alert)
+                                                $scope.show_alert = false;
+                                        });
+                                    });
+                                }, 3000);
+                            }
+                        });
+                    });
+                }
             });
 
         };

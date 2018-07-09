@@ -65,8 +65,8 @@
     color: #b76361;
 }
 
-.recipient {
-    padding-left: 5px;
+.email-alert {
+    width: 35%;
 }
 
 
@@ -87,4 +87,22 @@
 
 .align-bottom {
     vertical-align: bottom;
+}
+
+.align-middle {
+    vertical-align: middle;
+    position: relative;
+}
+
+.small-indent {
+    padding-left: 5px;
+}
+
+.big-indent {
+    padding-left: 30px;
+}
+
+
+.checkbox-icon {
+    /*vertical-align: middle;*/
 }
