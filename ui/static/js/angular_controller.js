@@ -1338,7 +1338,6 @@ app.controller('SettingsController', ['$scope',
     function SettingsController($scope) {
 
         $scope.default_settings = [];
-        $scope.toggle_email = true;
         $scope.new_recipient = '';
         $scope.recipients_show = [];
         $scope.no_recipients = true;
@@ -1346,6 +1345,8 @@ app.controller('SettingsController', ['$scope',
         $scope.alert_msg = '';
         $scope.credential_settings = {};
         $scope.results_settings = {};
+        $scope.new_pw = '';
+        $scope.confirm_pw = '';
 
         socket.on('connect', function() {
             socket.emit('settings_start');
@@ -1355,7 +1356,6 @@ app.controller('SettingsController', ['$scope',
             _.defer(function() {
                 $scope.$apply(function () {
 
-                    console.log(JSON.parse(default_settings));
                     $scope.default_settings = JSON.parse(default_settings);
                     $scope.recipients_show = $scope.default_settings.recipients;
                     $scope.credential_settings = $scope.default_settings.credential_settings;
@@ -1375,6 +1375,44 @@ app.controller('SettingsController', ['$scope',
                     console.log("AL Connect")
                 });
             });
+
+        };
+
+        $scope.btn_save_settings = function() {
+
+            if ($scope.default_settings.user_id === ''){
+
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.user_id_alert = true;
+                    });
+                });
+
+                setTimeout(() => document.getElementById('account').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    }));
+
+            }
+
+            else {
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.clear_alerts()
+                        $scope.settings_saved = true;
+                        $scope.collapse_saved = true;
+                    });
+                });
+
+                setTimeout(() => document.getElementById('main').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        }));
+
+                if ($scope.new_pw !== '' && $scope.new_pw === $scope.confirm_pw)
+                    $scope.default_settings.user_pw = $scope.new_pw;
+                socket.emit('settings_save', $scope.default_settings);
+            }
 
         };
 
@@ -1454,6 +1492,29 @@ app.controller('SettingsController', ['$scope',
             });
 
         };
+
+         $scope.close_alert_success = function() {
+             _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.collapse_saved = false;
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.settings_saved = false;
+                            });
+                        });
+                    }, 3000);
+                });
+            });
+         };
+
+         $scope.clear_alerts = function() {
+             _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.user_id_alert = false;
+                });
+            });
+         };
 
     }
 ]);
