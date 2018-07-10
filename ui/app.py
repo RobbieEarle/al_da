@@ -26,11 +26,6 @@ client_f_name = ''
 client_l_name = ''
 vm_connected = False
 
-from_addr = "rb504035@dal.ca"
-recipients = ['robearle11@gmail.com', 'robert.earle@165gc.onmicrosoft.com']
-server_addr = 'outlook.office365.com'
-server_pass = 'PASSWORD'
-
 # Database placeholders
 default_settings = {}
 
@@ -90,20 +85,69 @@ def scan_start():
 def settings_start():
     global default_settings
 
-    db = sqlite3.connect('../settings_db')
+    db = sqlite3.connect('settings_db')
     cursor = db.cursor()
 
     cursor.execute("""SELECT * from setting""")
     data_settings = cursor.fetchall()
 
     cursor.execute("""SELECT * from recipient""")
-    data_recipient = cursor.fetchall()
+    data_recipients = cursor.fetchall()
 
     cursor.execute("""SELECT * from credential""")
-    data_credential = cursor.fetchall()
+    data_credentials = cursor.fetchall()
 
     cursor.execute("""SELECT * from result""")
-    data_result = cursor.fetchall()
+    data_results = cursor.fetchall()
+
+    # saved = len(data_settings)-1
+    saved = 0
+
+    default_settings["user_id"] = data_settings[saved][2]
+    default_settings["terminal"] = data_settings[saved][3]
+    default_settings["al_address"] = data_settings[saved][4]
+    default_settings["al_username"] = data_settings[saved][5]
+    default_settings["al_api_key"] = data_settings[saved][6]
+    default_settings["smtp_server"] = data_settings[saved][7]
+    default_settings["smtp_port"] = data_settings[saved][8]
+    default_settings["smtp_username"] = data_settings[saved][9]
+    default_settings["smtp_password"] = data_settings[saved][10]
+
+    recipients = []
+    for recipient in data_recipients:
+
+        recip_address = recipient[1]
+        recip_setting_id = recipient[2]
+
+        if recip_setting_id == saved+1:
+            recipients.append(recip_address)
+
+    default_settings["recipients"] = recipients
+
+    credentials = {}
+    for credential in data_credentials:
+
+        cred_type = credential[1]
+        cred_active = bool(credential[2])
+        cred_mandatory = bool(credential[3])
+        cred_setting_id = credential[4]
+
+        if cred_setting_id == saved+1:
+            credentials[cred_type] = {'active': cred_active, 'mandatory': cred_mandatory}
+
+    default_settings["credential_settings"] = credentials
+
+    results = {}
+    for result in data_results:
+
+        result_type = result[1]
+        result_active = bool(result[2])
+        result_setting_id = result[3]
+
+        if result_setting_id == saved+1:
+            results[result_type] = result_active
+
+    default_settings["results_settings"] = results
 
     db.close()
 
@@ -256,4 +300,3 @@ def email_alert(mal_files, terminal_id):
     # text = msg.as_string()
     # server.sendmail(from_addr, recipients, text)
     # server.quit()
-

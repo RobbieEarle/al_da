@@ -1355,18 +1355,14 @@ app.controller('SettingsController', ['$scope',
             _.defer(function() {
                 $scope.$apply(function () {
 
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            console.log(JSON.parse(default_settings));
-                            $scope.default_settings = JSON.parse(default_settings);
-                            $scope.recipients_show = $scope.default_settings.recipients;
-                            $scope.credential_settings = $scope.default_settings.credential_settings;
-                            $scope.results_settings = $scope.default_settings.results_settings;
-                            if ($scope.recipients_show.length > 0) {
-                                $scope.no_recipients = false;
-                            }
-                        });
-                    });
+                    console.log(JSON.parse(default_settings));
+                    $scope.default_settings = JSON.parse(default_settings);
+                    $scope.recipients_show = $scope.default_settings.recipients;
+                    $scope.credential_settings = $scope.default_settings.credential_settings;
+                    $scope.results_settings = $scope.default_settings.results_settings;
+                    if ($scope.recipients_show.length > 0) {
+                        $scope.no_recipients = false;
+                    }
 
                 });
             });
