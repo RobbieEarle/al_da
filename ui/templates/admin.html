@@ -88,7 +88,7 @@
                         </div>
                     </div>
 
-                    <div id="assemblyline-connect" class="group-elements">
+                    <div id="assemblyline-connect" class="group-elements bg-group">
 
                         <div class="small-pad">
                             <form novalidate class="form-large">
@@ -184,7 +184,10 @@
                             </div>
                         </div>
 
-                        <div id="email-connect" class="group-elements">
+                        <div id="email-connect" class="group-elements"
+                             ng-class="{'bg-success': test_connect_success,
+                             'bg-warning': test_connect_fail,
+                             'bg-group' : !test_connect_success && !test_connect_fail}">
 
                             <div class="small-pad">
                                 <form novalidate class="form-medium">
@@ -236,6 +239,9 @@
                                 <button type="button" class='btn btn-default btn-style-blue'
                                         ng-disabled="smtp_server=='' || smtp_port=='' || smtp_username==''"
                                         ng-click="btn_email_connect()">Test connection</button>
+                                <img ng-if="show_smtp_waiting" class="smtp-waiting-gif" src="/static/images/spinner.svg">
+                                <i class="fas fa-check smtp_result_icon icon-green" ng-if="test_connect_success"></i>
+                                <i class="fas fa-times smtp_result_icon icon-red" ng-if="test_connect_fail"></i>
 
                             </div>
 

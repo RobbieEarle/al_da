@@ -1484,10 +1484,39 @@ app.controller('SettingsController', ['$scope',
 
             _.defer(function() {
                 $scope.$apply(function () {
-                    console.log("Email Connect")
+                    $scope.test_connect_success = false;
+                    $scope.test_connect_fail = false;
+                    $scope.show_smtp_waiting = true;
                 });
             });
 
+            socket.emit('test_connection_smtp',
+
+                $scope.default_settings.smtp_server,
+                $scope.default_settings.smtp_port,
+                $scope.default_settings.smtp_username,
+                $scope.default_settings.smtp_password,
+                $scope.smtp_password_form.smtp_password_input.$pristine,
+                function(connected){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.show_smtp_waiting = false;
+                        if(connected)
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.test_connect_success = true;
+                                });
+                            });
+                        else
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.test_connect_fail = true;
+                                });
+                            });
+                    });
+                });
+
+            });
         };
 
         $scope.add_recipient = function(address) {

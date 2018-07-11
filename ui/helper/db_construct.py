@@ -22,35 +22,35 @@ CREATE TABLE setting(
 )
 ''')
 
-# cursor.execute('''
-# CREATE TABLE recipient(
-#   recipient_id INTEGER PRIMARY KEY AUTOINCREMENT,
-#   recipient_address TEXT,
-#   setting_id INTEGER,
-#   FOREIGN KEY(setting_id) REFERENCES settings(setting_id)
-# )
-# ''')
-#
-# cursor.execute('''
-# CREATE TABLE credential(
-#   credential_id INTEGER PRIMARY KEY AUTOINCREMENT,
-#   credential_type TEXT,
-#   active INTEGER,
-#   mandatory INTEGER,
-#   setting_id INTEGER,
-#   FOREIGN KEY(setting_id) REFERENCES settings(setting_id)
-# )
-# ''')
-#
-# cursor.execute('''
-# CREATE TABLE result(
-#   result_id INTEGER PRIMARY KEY AUTOINCREMENT,
-#   result_type TEXT,
-#   active INTEGER,
-#   setting_id INTEGER,
-#   FOREIGN KEY(setting_id) REFERENCES settings(setting_id)
-# )
-# ''')
+cursor.execute('''
+CREATE TABLE recipient(
+  recipient_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  recipient_address TEXT,
+  setting_id INTEGER,
+  FOREIGN KEY(setting_id) REFERENCES settings(setting_id)
+)
+''')
+
+cursor.execute('''
+CREATE TABLE credential(
+  credential_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  credential_type TEXT,
+  active INTEGER,
+  mandatory INTEGER,
+  setting_id INTEGER,
+  FOREIGN KEY(setting_id) REFERENCES settings(setting_id)
+)
+''')
+
+cursor.execute('''
+CREATE TABLE result(
+  result_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  result_type TEXT,
+  active INTEGER,
+  setting_id INTEGER,
+  FOREIGN KEY(setting_id) REFERENCES settings(setting_id)
+)
+''')
 
 db.commit()
 

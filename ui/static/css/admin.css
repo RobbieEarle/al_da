@@ -69,6 +69,26 @@
     width: 35%;
 }
 
+.smtp-waiting-gif {
+    padding-left: 10px;
+    width: 15%;
+    opacity: 0.8;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@media (min-width: 992px) {
+    .smtp-waiting-gif {
+		width: 3.5%;
+    }
+}
+
+.smtp_result_icon {
+    padding-left: 10px;
+    font-size: 200%;
+    vertical-align: middle;
+}
+
 /* ------- Modifiers ------- */
 
 .group-elements {
@@ -76,6 +96,9 @@
     padding-left: 15px;
     padding-right: 15px;
     padding-bottom: 10px;
+}
+
+.bg-group {
     background-color: #f0f0f0 !important;
 }
 

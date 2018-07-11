@@ -93,11 +93,11 @@ html, body{
 }
 
 .bg-warning {
-    background: #f2dede !important;
+    background-color: #f2dede !important;
 }
 
 .bg-success {
-    background: #dcf2d6 !important;
+    background-color: #dcf2d6 !important;
 }
 
 

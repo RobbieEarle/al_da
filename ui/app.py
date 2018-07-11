@@ -80,53 +80,6 @@ def scan_start():
         my_thread = socketio.start_background_task(target=background_thread)
 
 
-# Called by web app when the settings page is opened. Returns default values from database
-@socketio.on('settings_start')
-def settings_start():
-    global default_settings
-
-    default_settings = db_get_saved()
-    default_settings_output = default_settings.copy()
-    default_settings_output["user_pw"] = ''
-    default_settings_output["smtp_password"] = convert_dots(default_settings["smtp_password"])
-
-    print "\nDefault settings received by backend"
-    for i in default_settings:
-        print i, default_settings[i]
-    print
-
-    print "\nDefault settings sent to front end"
-    for i in default_settings_output:
-        print i, default_settings_output[i]
-    print
-
-    settings_json = json.dumps(default_settings_output)
-    socketio.emit('populate_settings', settings_json)
-
-
-@socketio.on('validate_settings')
-def validate_settings(settings):
-
-    alerts = []
-
-    if settings["user_id"] == '':
-        alerts.append('user_id')
-
-    if settings["user_pw"] == default_settings["user_pw"]:
-        alerts.append('repeat_pw')
-
-    if settings["terminal"] == '':
-        alerts.append('terminal_blank')
-
-    return alerts
-
-
-@socketio.on('settings_save')
-def settings_save(new_settings, default_smtp_pw_reuse):
-    db_clear_saved()
-    db_save(new_settings, default_smtp_pw_reuse)
-
-
 # Called by the sandbox VM perpetually until client credentials have been entered. Once valid credentials have been
 # entered, the sandbox begins looking for files to scrape
 @socketio.on('connect_request')
@@ -214,6 +167,74 @@ def validate_email(addr):
         return True
 
     return False
+
+
+# Called by web app when the settings page is opened. Returns default values from database
+@socketio.on('settings_start')
+def settings_start():
+    global default_settings
+
+    default_settings = db_get_saved()
+    default_settings_output = default_settings.copy()
+    default_settings_output["user_pw"] = ''
+    default_settings_output["smtp_password"] = convert_dots(default_settings["smtp_password"])
+
+    print "\nDefault settings received by backend"
+    for i in default_settings:
+        print i, default_settings[i]
+    print
+
+    print "\nDefault settings sent to front end"
+    for i in default_settings_output:
+        print i, default_settings_output[i]
+    print
+
+    settings_json = json.dumps(default_settings_output)
+    socketio.emit('populate_settings', settings_json)
+
+
+@socketio.on('validate_settings')
+def validate_settings(settings):
+
+    alerts = []
+
+    if settings["user_id"] == '':
+        alerts.append('user_id')
+
+    if settings["user_pw"] == default_settings["user_pw"]:
+        alerts.append('repeat_pw')
+
+    if settings["terminal"] == '':
+        alerts.append('terminal_blank')
+
+    return alerts
+
+
+@socketio.on('settings_save')
+def settings_save(new_settings, default_smtp_pw_reuse):
+    db_clear_saved()
+    db_save(new_settings, default_smtp_pw_reuse)
+
+
+@socketio.on('test_connection_smtp')
+def test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, reuse_pw):
+    global default_settings
+
+    if reuse_pw:
+        smtp_password = default_settings["smtp_password"]
+
+    print smtp_server, smtp_port, smtp_username, smtp_password
+
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.quit()
+    except smtplib.SMTPException as e:
+        print type(e)
+        return False
+
+    return True
 
 
 # ============== Background Threads ==============
