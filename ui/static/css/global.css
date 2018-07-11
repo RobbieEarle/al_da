@@ -92,6 +92,14 @@ html, body{
     opacity: 1;
 }
 
+.bg-warning {
+    background: #f2dede !important;
+}
+
+.bg-success {
+    background: #dcf2d6 !important;
+}
+
 
 @media (min-width: 768px){
 	section.container{

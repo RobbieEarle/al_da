@@ -11,10 +11,9 @@
 
         <section id="body" class="container container-with-overflow text-semi-muted">
 
-            <div uib-collapse="!collapse_saved" class="pad-head">
-                <div uib-alert ng-if="settings_saved" close="close_alert_success()"
-                     ng-class="'alert-success'" dismiss-on-timeout="3000">
-                    Settings successfully saved
+            <div class="pad-head" ng-if="settings_saved">
+                <div uib-alert ng-class="'alert-' + settings_saved_class" close="close_alert('success')">
+                    <b>//settings_saved_txt//</b>
                 </div>
             </div>
 
@@ -29,11 +28,12 @@
                     <div class="small-pad setting-indent">
                         <form novalidate class="form-large">
                             <div class="form-title pad"><b>User ID</b></div>
-                            <input type="text" class="form" ng-value="default_settings.user_id" ng-model="default_settings.user_id"/>
+                            <input type="text" class="form" ng-value="default_settings.user_id"
+                                   ng-click="close_alert('user_id')" ng-model="default_settings.user_id"/>
                         </form>
                         <div class="pad-head" ng-if="user_id_alert">
                             <div uib-alert ng-class="'alert-danger'">
-                                Error - Cannot leave User ID blank
+                                Cannot leave User ID blank
                             </div>
                         </div>
                     </div>
@@ -41,15 +41,26 @@
                     <div class="small-pad setting-indent">
                         <form novalidate class="form-large">
                             <div class="form-title pad"><b>New Password</b></div>
-                            <input type="password" class="form" ng-model="new_pw"/>
+                            <input type="password" ng-focus="focused = true" ng-blur="focused = false" class="form"
+                                   ng-class="{'bg-success': new_pw == confirm_pw && new_pw != ''}"
+                                   ng-click="close_alert('password_match')" ng-model="new_pw"/>
                         </form>
                     </div>
 
                     <div class="small-pad setting-indent">
                         <form novalidate class="form-large">
                             <div class="form-title pad"><b>Confirm Password</b></div>
-                            <input type="password" class="form" ng-model="confirm_pw"/>
+                            <input type="password" class="form" ng-disabled="new_pw==''"
+                                   ng-class="{'bg-warning': new_pw != confirm_pw && !focused && new_pw != '',
+                                   'bg-success': new_pw == confirm_pw && new_pw != '',
+                                   'disable': new_pw==''}" ng-click="close_alert('password_match')"
+                                   ng-model="confirm_pw"/>
                         </form>
+                        <div class="pad-head" ng-if="password_alert">
+                            <div uib-alert ng-class="'alert-danger'">
+                                //password_alert_txt//
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -67,8 +78,14 @@
                     <div class="small-pad setting-indent">
                         <form novalidate class="form-large">
                             <div class="form-title pad"><b>Terminal Name</b></div>
-                            <input type="text" class="form" ng-value="default_settings.terminal" ng-model="default_settings.terminal"/>
+                            <input type="text" class="form" ng-click="close_alert('terminal_blank')"
+                                   ng-value="default_settings.terminal" ng-model="default_settings.terminal"/>
                         </form>
+                        <div class="pad-head" ng-if="terminal_blank_alert">
+                            <div uib-alert ng-class="'alert-danger'">
+                                Terminal Name cannot be left blank
+                            </div>
+                        </div>
                     </div>
 
                     <div id="assemblyline-connect" class="group-elements">
@@ -76,21 +93,24 @@
                         <div class="small-pad">
                             <form novalidate class="form-large">
                                 <div class="form-title pad"><b>Assemblyline Server IP Address</b></div>
-                                <input type="text" class="form" ng-value="default_settings.al_address" ng-model="default_settings.al_address"/>
+                                <input type="text" class="form" ng-value="default_settings.al_address"
+                                       ng-model="default_settings.al_address"/>
                             </form>
                         </div>
 
                         <div class="small-pad">
                             <form novalidate class="form-large">
                                 <div class="form-title pad"><b>Assemblyline Username</b></div>
-                                <input type="text" class="form" ng-value="default_settings.al_username" ng-model="default_settings.al_username"/>
+                                <input type="text" class="form" ng-value="default_settings.al_username"
+                                       ng-model="default_settings.al_username"/>
                             </form>
                         </div>
 
                         <div class="small-pad">
                             <form novalidate class="form-large">
                                 <div class="form-title pad"><b>Assemblyline API Key</b></div>
-                                <input type="text" class="form" ng-value="default_settings.al_api_key" ng-model="default_settings.al_api_key"/>
+                                <input type="text" class="form" ng-value="default_settings.al_api_key"
+                                       ng-model="default_settings.al_api_key"/>
                             </form>
                         </div>
 
@@ -115,8 +135,12 @@
                 <div class="pad" uib-collapse="email_collapse">
 
                     <div class="small-pad clickable">
-                        <toggle ng-model="default_settings.email_alerts" on="On" off="Off" onstyle="btn-success"></toggle>
-                        <div class="toggle-email-txt" ng-click="default_settings.email_alerts = !default_settings.email_alerts">Email alerts</div>
+                        <toggle ng-model="default_settings.email_alerts" on="On" off="Off"
+                                onstyle="btn-success"></toggle>
+                        <div class="toggle-email-txt"
+                             ng-click="default_settings.email_alerts = !default_settings.email_alerts">
+                            Email alerts
+                        </div>
                     </div>
 
                     <div id="email-settings" ng-class="{'disable': !default_settings.email_alerts}">
@@ -128,7 +152,7 @@
                                     <div class="form-title pad"><b>Add Recipient</b></div>
                                     <input type="text" class="form align-bottom" ng-model="new_recipient"
                                            uib-tooltip="//alert_msg//" tooltip-is-open="show_alert"
-                                           tooltip-trigger="'none'" tooltip-placement="bottom-left"/>
+                                           tooltip-trigger="'none'" tooltip-placement="left"/>
                                 </form>
 
                                 <button type="button" class='btn btn-default btn-style-blue align-bottom reduce-margin'
@@ -167,14 +191,18 @@
 
                                     <div class="form-title pad"><b>SMTP Server Address</b></div>
 
-                                    <input type="text" class="form" ng-disabled="!default_settings.email_alerts" ng-value="default_settings.smtp_server" ng-model="default_settings.smtp_server"/>
+                                    <input type="text" class="form" ng-disabled="!default_settings.email_alerts"
+                                           ng-value="default_settings.smtp_server"
+                                           ng-model="default_settings.smtp_server"/>
 
                                 </form>
                                 <form novalidate class="form-small">
 
                                     <div class="form-title pad"><b>Port</b></div>
 
-                                    <input type="text" class="form" ng-disabled="!default_settings.email_alerts" ng-value="default_settings.smtp_port" ng-model="default_settings.smtp_port"/>
+                                    <input type="text" class="form" ng-disabled="!default_settings.email_alerts"
+                                           ng-value="default_settings.smtp_port"
+                                           ng-model="default_settings.smtp_port"/>
 
                                 </form>
                             </div>
@@ -184,14 +212,21 @@
 
                                     <div class="form-title pad"><b>Username</b></div>
 
-                                    <input type="text" class="form" ng-disabled="!default_settings.email_alerts" ng-value="default_settings.smtp_username" ng-model="default_settings.smtp_username"/>
+                                    <input type="text" class="form" ng-disabled="!default_settings.email_alerts"
+                                           ng-value="default_settings.smtp_username"
+                                           ng-model="default_settings.smtp_username"
+                                           ng-change="clear_pw()"/>
 
                                 </form>
-                                <form novalidate class="form-small">
+                                <form novalidate class="form-small" name="smtp_password_form">
 
                                     <div class="form-title pad"><b>Password</b></div>
 
-                                    <input type="password" class="form" ng-disabled="!default_settings.email_alerts" ng-value="default_settings.smtp_password" ng-model="default_settings.smtp_password"/>
+                                    <input type="password" class="form" name="smtp_password_input"
+                                           ng-disabled="!default_settings.email_alerts"
+                                           ng-value="default_settings.smtp_password"
+                                           ng-model="default_settings.smtp_password"
+                                           ng-click="clear_pw()"/>
 
                                 </form>
                             </div>
@@ -232,8 +267,10 @@
                                         <input type="checkbox" class="" ng-model="credential_settings.f_name.active">
                                         <div class="small-indent" style="display:inline">First name</div>
                                     </label>
-                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.f_name.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.f_name.mandatory" ng-disabled="!credential_settings.f_name.active">
+                                    <label class="checkbox big-indent disable"
+                                           ng-class="{'clickable': credential_settings.f_name.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.f_name.mandatory"
+                                               ng-disabled="!credential_settings.f_name.active">
                                         <div class="small-indent" style="display:inline">Mandatory</div>
                                     </label>
                                 </div>
@@ -243,8 +280,10 @@
                                         <input type="checkbox" ng-model="credential_settings.l_name.active">
                                         <div class="small-indent" style="display:inline">Last name</div>
                                     </label>
-                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.l_name.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.l_name.mandatory" ng-disabled="!credential_settings.l_name.active">
+                                    <label class="checkbox big-indent disable"
+                                           ng-class="{'clickable': credential_settings.l_name.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.l_name.mandatory"
+                                               ng-disabled="!credential_settings.l_name.active">
                                         <div class="small-indent" style="display:inline">Mandatory</div>
                                     </label>
                                 </div>
@@ -254,8 +293,10 @@
                                         <input type="checkbox" ng-model="credential_settings.id.active">
                                         <div class="small-indent" style="display:inline">Employee ID</div>
                                     </label>
-                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.id.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.id.mandatory" ng-disabled="!credential_settings.id.active">
+                                    <label class="checkbox big-indent disable"
+                                           ng-class="{'clickable': credential_settings.id.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.id.mandatory"
+                                               ng-disabled="!credential_settings.id.active">
                                         <div class="small-indent" style="display:inline">Mandatory</div>
                                     </label>
                                 </div>
@@ -265,8 +306,10 @@
                                         <input type="checkbox" ng-model="credential_settings.company.active">
                                         <div class="small-indent" style="display:inline">Company name</div>
                                     </label>
-                                    <label class="checkbox big-indent disable" ng-class="{'clickable': credential_settings.company.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.company.mandatory" ng-disabled="!credential_settings.company.active">
+                                    <label class="checkbox big-indent disable"
+                                           ng-class="{'clickable': credential_settings.company.active}">
+                                        <input type="checkbox" class="" ng-model="credential_settings.company.mandatory"
+                                               ng-disabled="!credential_settings.company.active">
                                         <div class="small-indent" style="display:inline">Mandatory</div>
                                     </label>
                                 </div>
@@ -291,36 +334,46 @@
                                 </div>
 
                                 <div>
-                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
-                                        <input type="checkbox" class="" ng-model="results_settings.score" ng-disabled="!results_settings.mal_files">
+                                    <label class="checkbox disable"
+                                           ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.score"
+                                               ng-disabled="!results_settings.mal_files">
                                         <div class="small-indent" style="display:inline">Show score</div>
                                     </label>
                                 </div>
 
                                 <div>
-                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
-                                        <input type="checkbox" class="" ng-model="results_settings.sid" ng-disabled="!results_settings.mal_files">
+                                    <label class="checkbox disable"
+                                           ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.sid"
+                                               ng-disabled="!results_settings.mal_files">
                                         <div class="small-indent" style="display:inline">Show SID</div>
                                     </label>
                                 </div>
 
                                 <div>
-                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
-                                        <input type="checkbox" class="" ng-model="results_settings.file_contents" ng-disabled="!results_settings.mal_files">
+                                    <label class="checkbox disable"
+                                           ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.file_contents"
+                                               ng-disabled="!results_settings.mal_files">
                                         <div class="small-indent" style="display:inline">Show file contents</div>
                                     </label>
                                 </div>
 
                                 <div>
-                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
-                                        <input type="checkbox" class="" ng-model="results_settings.file_services" ng-disabled="!results_settings.mal_files">
+                                    <label class="checkbox disable"
+                                           ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.file_services"
+                                               ng-disabled="!results_settings.mal_files">
                                         <div class="small-indent" style="display:inline">Show flagged services</div>
                                     </label>
                                 </div>
 
                                 <div>
-                                    <label class="checkbox disable" ng-class="{'clickable': results_settings.mal_files}">
-                                        <input type="checkbox" class="" ng-model="results_settings.service_description" ng-disabled="!results_settings.mal_files">
+                                    <label class="checkbox disable"
+                                           ng-class="{'clickable': results_settings.mal_files}">
+                                        <input type="checkbox" class="" ng-model="results_settings.service_description"
+                                               ng-disabled="!results_settings.mal_files">
                                         <div class="small-indent" style="display:inline">Show service descriptions</div>
                                     </label>
                                 </div>

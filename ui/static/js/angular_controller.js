@@ -1347,6 +1347,7 @@ app.controller('SettingsController', ['$scope',
         $scope.results_settings = {};
         $scope.new_pw = '';
         $scope.confirm_pw = '';
+        $scope.alerts = [];
 
         socket.on('connect', function() {
             socket.emit('settings_start');
@@ -1357,6 +1358,7 @@ app.controller('SettingsController', ['$scope',
                 $scope.$apply(function () {
 
                     $scope.default_settings = JSON.parse(default_settings);
+                    $scope.smtp_pw_placeholder = $scope.default_settings.smtp_password;
                     $scope.recipients_show = $scope.default_settings.recipients;
                     $scope.credential_settings = $scope.default_settings.credential_settings;
                     $scope.results_settings = $scope.default_settings.results_settings;
@@ -1380,39 +1382,101 @@ app.controller('SettingsController', ['$scope',
 
         $scope.btn_save_settings = function() {
 
-            if ($scope.default_settings.user_id === ''){
+            $scope.clear_alerts();
 
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.user_id_alert = true;
+            var match_pw = true;
+            if ($scope.new_pw === $scope.confirm_pw )
+                $scope.default_settings.user_pw = $scope.new_pw;
+            else
+                match_pw = false;
+
+            socket.emit('validate_settings', $scope.default_settings, function(alerts){
+
+                if (!match_pw)
+                    alerts.push('password_match');
+
+                $scope.new_pw = '';
+                $scope.confirm_pw = '';
+
+                if (alerts.length === 0) {
+
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.settings_saved_class = 'success';
+                            $scope.settings_saved_txt = 'Settings successfully saved';
+                            $scope.settings_saved = true;
+                        });
                     });
-                });
 
-                setTimeout(() => document.getElementById('account').scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    }));
+                    socket.emit('settings_save', $scope.default_settings,
+                        $scope.smtp_password_form.smtp_password_input.$pristine);
 
-            }
+                    $scope.smtp_password_form.smtp_password_input.$setPristine();
 
-            else {
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.clear_alerts()
-                        $scope.settings_saved = true;
-                        $scope.collapse_saved = true;
+                }
+
+                else {
+
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.settings_saved_class = 'danger';
+                            $scope.settings_saved_txt = 'Unable to save settings, please see below';
+                            $scope.settings_saved = true;
+                        });
                     });
-                });
+
+                    for (var i = 0; i<alerts.length; i++) {
+
+                        switch (alerts[i]) {
+
+                            case 'user_id':
+                                _.defer(function () {
+                                    $scope.$apply(function () {
+                                        $scope.user_id_alert = true;
+                                    });
+                                });
+                                break;
+
+                            case 'password_match':
+                                _.defer(function () {
+                                    $scope.$apply(function () {
+                                        $scope.password_alert_txt = 'New Password and Confirm Password do not match';
+                                        $scope.password_alert = true;
+                                    });
+                                });
+                                break;
+
+                            case 'repeat_pw':
+                                _.defer(function () {
+                                    $scope.$apply(function () {
+                                        $scope.password_alert_txt = 'New password given is the same as the old password';
+                                        $scope.password_alert = true;
+                                    });
+                                });
+                                break;
+
+                            case 'terminal_blank':
+                                _.defer(function () {
+                                    $scope.$apply(function () {
+                                        $scope.terminal_blank_alert = true;
+                                    });
+                                });
+                                break;
+
+
+
+                        }
+
+                    }
+
+                }
 
                 setTimeout(() => document.getElementById('main').scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        }));
+                                behavior: 'smooth',
+                                block: 'start'
+                            }));
 
-                if ($scope.new_pw !== '' && $scope.new_pw === $scope.confirm_pw)
-                    $scope.default_settings.user_pw = $scope.new_pw;
-                socket.emit('settings_save', $scope.default_settings);
-            }
+            });
 
         };
 
@@ -1426,9 +1490,9 @@ app.controller('SettingsController', ['$scope',
 
         };
 
-         $scope.add_recipient = function(address) {
+        $scope.add_recipient = function(address) {
 
-             socket.emit('validate_email', address, function(result){
+            socket.emit('validate_email', address, function(result){
                 if(result){
                     if ($scope.recipients_show.indexOf(address) === -1) {
                         _.defer(function() {
@@ -1480,7 +1544,7 @@ app.controller('SettingsController', ['$scope',
 
         };
 
-         $scope.remove_recipient = function(address) {
+        $scope.remove_recipient = function(address) {
 
             _.defer(function() {
                 $scope.$apply(function () {
@@ -1493,28 +1557,66 @@ app.controller('SettingsController', ['$scope',
 
         };
 
-         $scope.close_alert_success = function() {
-             _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.collapse_saved = false;
-                    setTimeout(function () {
-                        _.defer(function () {
-                            $scope.$apply(function () {
-                                $scope.settings_saved = false;
-                            });
-                        });
-                    }, 3000);
-                });
-            });
-         };
+        $scope.close_alert = function(alert_name) {
 
-         $scope.clear_alerts = function() {
+            switch (alert_name) {
+
+                case 'success':
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.settings_saved = false;
+                        });
+                    });
+                    break;
+
+                case 'user_id':
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.user_id_alert = false;
+                        });
+                    });
+                    break;
+
+                case 'password_match':
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.password_alert = false;
+                        });
+                    });
+                    break;
+
+                case 'terminal_blank':
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.terminal_blank_alert = false;
+                        });
+                    });
+                    break;
+
+             }
+
+        };
+
+        $scope.clear_alerts = function() {
              _.defer(function() {
                 $scope.$apply(function () {
+                    $scope.settings_saved = false;
                     $scope.user_id_alert = false;
+                    $scope.password_alert = false;
+                    $scope.terminal_blank_alert = false;
                 });
             });
-         };
+        };
+
+        $scope.clear_pw = function() {
+             if ($scope.smtp_password_form.smtp_password_input.$pristine)
+                 _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.default_settings.smtp_password = '';
+                        $scope.smtp_password_form.smtp_password_input.$setDirty();
+                    });
+                });
+        };
 
     }
 ]);
