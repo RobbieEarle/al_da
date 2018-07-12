@@ -1,11 +1,17 @@
 from flask import Flask, render_template, request, json, jsonify, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
+from flask_httpauth import HTTPBasicAuth
 import subprocess
 import smtplib
+
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
+
 import sqlite3
+from assemblyline_client import Client, ClientError
+import sys
+import traceback
 
 from helper.views import create_menu
 import eventlet
@@ -226,15 +232,37 @@ def test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, r
     print smtp_server, smtp_port, smtp_username, smtp_password
 
     try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP(smtp_server, int(smtp_port), timeout=8)
+    except Exception as e:
+        output_txt = "Server connection error: " + traceback.format_exception_only(type(e), e)[0]
+        return [False, output_txt]
+
+    try:
         server.starttls()
         server.login(smtp_username, smtp_password)
+    except Exception as e:
         server.quit()
-    except smtplib.SMTPException as e:
-        print type(e)
-        return False
+        output_txt = "Login error: " + traceback.format_exception_only(type(e), e)[0]
+        return [False, output_txt]
 
-    return True
+    server.quit()
+    return [True, 'Connection successful']
+
+
+@socketio.on('test_connection_al')
+def test_connection_al(al_ip_address, al_username, al_api_key):
+    print al_ip_address, al_username, al_api_key
+
+    try:
+        Client(al_ip_address, auth=(al_username, al_api_key), verify=False)
+    except Exception as e:
+        if type(e) is ClientError:
+            output_txt = json.loads(str(e))
+            return [False, "Login error: " + output_txt["api_error_message"]]
+        else:
+            return [False, traceback.format_exception_only(type(e), e)[0]]
+
+    return [True, 'Connection successful']
 
 
 # ============== Background Threads ==============

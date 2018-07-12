@@ -1374,10 +1374,81 @@ app.controller('SettingsController', ['$scope',
 
             _.defer(function() {
                 $scope.$apply(function () {
-                    console.log("AL Connect")
+                    $scope.test_al_connect_success = false;
+                    $scope.test_al_connect_fail = false;
+                    $scope.show_al_waiting = true;
                 });
             });
 
+            socket.emit('test_connection_al',
+
+                $scope.default_settings.al_address,
+                $scope.default_settings.al_username,
+                $scope.default_settings.al_api_key,
+                function(al_test_output){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.show_al_waiting = false;
+                        if(al_test_output[0])
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.test_al_connect_success = true;
+                                    $scope.al_test_txt = al_test_output[1]
+                                });
+                            });
+                        else
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.test_al_connect_fail = true;
+                                    $scope.al_test_txt = al_test_output[1]
+                                });
+                            });
+                    });
+                });
+
+            });
+
+        };
+
+        $scope.btn_email_connect = function() {
+
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.test_smtp_connect_success = false;
+                    $scope.test_smtp_connect_fail = false;
+                    $scope.show_smtp_waiting = true;
+                });
+            });
+
+            socket.emit('test_connection_smtp',
+
+                $scope.default_settings.smtp_server,
+                $scope.default_settings.smtp_port,
+                $scope.default_settings.smtp_username,
+                $scope.default_settings.smtp_password,
+                $scope.smtp_password_form.smtp_password_input.$pristine,
+                function(smtp_test_output){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.show_smtp_waiting = false;
+                        if(smtp_test_output[0])
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.test_smtp_connect_success = true;
+                                    $scope.smtp_test_txt = smtp_test_output[1]
+                                });
+                            });
+                        else
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.test_smtp_connect_fail = true;
+                                    $scope.smtp_test_txt = smtp_test_output[1]
+                                });
+                            });
+                    });
+                });
+
+            });
         };
 
         $scope.btn_save_settings = function() {
@@ -1411,6 +1482,8 @@ app.controller('SettingsController', ['$scope',
                     socket.emit('settings_save', $scope.default_settings,
                         $scope.smtp_password_form.smtp_password_input.$pristine);
 
+                    $scope.test_al_connect_success = false;
+                    $scope.test_al_connect_fail = false;
                     $scope.smtp_password_form.smtp_password_input.$setPristine();
 
                 }
@@ -1478,45 +1551,6 @@ app.controller('SettingsController', ['$scope',
 
             });
 
-        };
-
-        $scope.btn_email_connect = function() {
-
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.test_connect_success = false;
-                    $scope.test_connect_fail = false;
-                    $scope.show_smtp_waiting = true;
-                });
-            });
-
-            socket.emit('test_connection_smtp',
-
-                $scope.default_settings.smtp_server,
-                $scope.default_settings.smtp_port,
-                $scope.default_settings.smtp_username,
-                $scope.default_settings.smtp_password,
-                $scope.smtp_password_form.smtp_password_input.$pristine,
-                function(connected){
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.show_smtp_waiting = false;
-                        if(connected)
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.test_connect_success = true;
-                                });
-                            });
-                        else
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.test_connect_fail = true;
-                                });
-                            });
-                    });
-                });
-
-            });
         };
 
         $scope.add_recipient = function(address) {

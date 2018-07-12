@@ -149,7 +149,7 @@
 }
 
 .fade-anim.img-hide-add,
-.fade-anim.img-hide-remove.img-hide-remove-active{
+.fade-anim.img-hide-remove.img-hide-remove-active {
   -webkit-transition: all ease-in-out 0.2s;
   -moz-transition: all ease-in-out 0.2s;
   -ms-transition: all ease-in-out 0.2s;
