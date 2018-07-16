@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, json, jsonify, make_response
+from flask import Flask, render_template, request, json, redirect, request, session, abort, flash
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
@@ -12,6 +12,7 @@ import sqlite3
 from assemblyline_client import Client, ClientError
 import sys
 import traceback
+import os
 
 from helper.views import create_menu
 import eventlet
@@ -32,39 +33,133 @@ client_f_name = ''
 client_l_name = ''
 vm_connected = False
 
-# Database placeholders
-default_settings = {}
-
 
 # ============== Flask & Socketio Setup ==============
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = 'changeme123'
 app.debug = True
 socketio = SocketIO(app)
 CORS(app)
 
 
-if __name__ == '__main__':
-    socketio.run(app, threaded=True)
-    # app.run()
+# ============== Retrieving Settings From DB ==============
+
+def db_get_saved():
+    settings_dict = {}
+
+    db = sqlite3.connect('settings_db')
+    cursor = db.cursor()
+
+    cursor.execute("""SELECT * from setting""")
+    data_settings = cursor.fetchall()
+
+    cursor.execute("""SELECT * from recipient""")
+    data_recipients = cursor.fetchall()
+
+    cursor.execute("""SELECT * from credential""")
+    data_credentials = cursor.fetchall()
+
+    cursor.execute("""SELECT * from result""")
+    data_results = cursor.fetchall()
+
+    saved = len(data_settings) - 1
+
+    settings_dict["user_id"] = data_settings[saved][2]
+    settings_dict["user_pw"] = data_settings[saved][3]
+    settings_dict["terminal"] = data_settings[saved][4]
+    settings_dict["al_address"] = data_settings[saved][5]
+    settings_dict["al_username"] = data_settings[saved][6]
+    settings_dict["al_api_key"] = data_settings[saved][7]
+    settings_dict["email_alerts"] = bool(data_settings[saved][8])
+    settings_dict["smtp_server"] = data_settings[saved][9]
+    settings_dict["smtp_port"] = data_settings[saved][10]
+    settings_dict["smtp_username"] = data_settings[saved][11]
+    settings_dict["smtp_password"] = data_settings[saved][12]
+
+    recipients = []
+    for recipient in data_recipients:
+
+        recip_address = recipient[1]
+        recip_setting_id = recipient[2]
+
+        if recip_setting_id == saved + 1:
+            recipients.append(recip_address)
+
+    settings_dict["recipients"] = recipients
+
+    credentials = {}
+    for credential in data_credentials:
+
+        cred_type = credential[1]
+        cred_active = bool(credential[2])
+        cred_mandatory = bool(credential[3])
+        cred_setting_id = credential[4]
+
+        if cred_setting_id == saved + 1:
+            credentials[cred_type] = {'active': cred_active, 'mandatory': cred_mandatory}
+
+    settings_dict["credential_settings"] = credentials
+
+    results = {}
+    for result in data_results:
+
+        result_type = result[1]
+        result_active = bool(result[2])
+        result_setting_id = result[3]
+
+        if result_setting_id == saved + 1:
+            results[result_type] = result_active
+
+    settings_dict["results_settings"] = results
+
+    db.close()
+
+    return settings_dict
+
+
+default_settings = db_get_saved()
 
 
 # ============== Page Rendering ==============
 
+@auth.get_password
+def get_pw(username):
+    global default_settings
+    default_settings = db_get_saved()
+    if username == default_settings["user_id"]:
+        return default_settings["user_pw"]
+    return None
+
+
 @app.route('/')
 def index():
+    session['logged_in'] = False
     return render("scan.html", request.path)
 
 
 @app.route('/scan')
 def scan():
-    return render("scan.html", request.path)
+    session['logged_in'] = False
+    return redirect('/', code=301)
 
 
 @app.route('/admin')
 def admin():
-    return render("admin.html", request.path)
+    if not session.get('logged_in'):
+        return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path))
+    else:
+        return render("admin.html", request.path)
+
+
+@app.route('/login', methods=['POST'])
+def do_admin_login():
+    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings['user_id']:
+        session['logged_in'] = True
+    else:
+        flash('wrong password!')
+    return redirect('/admin', code=301)
 
 
 # ============== Socketio Listeners ==============
@@ -76,6 +171,9 @@ def scan_start():
     global my_thread
     global output
     global last_output
+    global default_settings
+
+    default_settings = db_get_saved()
 
     output = ''
     last_output = ''
@@ -233,6 +331,8 @@ def test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, r
 
     try:
         server = smtplib.SMTP(smtp_server, int(smtp_port), timeout=8)
+        server.quit()
+        server = smtplib.SMTP(smtp_server, int(smtp_port))
     except Exception as e:
         output_txt = "Server connection error: " + traceback.format_exception_only(type(e), e)[0]
         return [False, output_txt]
@@ -254,7 +354,7 @@ def test_connection_al(al_ip_address, al_username, al_api_key):
     print al_ip_address, al_username, al_api_key
 
     try:
-        Client(al_ip_address, auth=(al_username, al_api_key), verify=False)
+        Client(al_ip_address, apikey=(al_username, al_api_key), verify=False)
     except Exception as e:
         if type(e) is ClientError:
             output_txt = json.loads(str(e))
@@ -323,85 +423,12 @@ def email_alert(mal_files, terminal_id):
             body = body + '\r\n'
         msg.attach(MIMEText(body, 'plain'))
 
-        # server = smtplib.SMTP(default_settings["smtp_server"], 587)
-        # server.starttls()
-        # server.login(default_settings["smtp_username"], default_settings["smtp_password"])
-        # text = msg.as_string()
-        # server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
-        # server.quit()
-
-
-def db_get_saved():
-    settings_dict = {}
-
-    db = sqlite3.connect('settings_db')
-    cursor = db.cursor()
-
-    cursor.execute("""SELECT * from setting""")
-    data_settings = cursor.fetchall()
-
-    cursor.execute("""SELECT * from recipient""")
-    data_recipients = cursor.fetchall()
-
-    cursor.execute("""SELECT * from credential""")
-    data_credentials = cursor.fetchall()
-
-    cursor.execute("""SELECT * from result""")
-    data_results = cursor.fetchall()
-
-    saved = len(data_settings) - 1
-
-    settings_dict["user_id"] = data_settings[saved][2]
-    settings_dict["user_pw"] = data_settings[saved][3]
-    settings_dict["terminal"] = data_settings[saved][4]
-    settings_dict["al_address"] = data_settings[saved][5]
-    settings_dict["al_username"] = data_settings[saved][6]
-    settings_dict["al_api_key"] = data_settings[saved][7]
-    settings_dict["email_alerts"] = bool(data_settings[saved][8])
-    settings_dict["smtp_server"] = data_settings[saved][9]
-    settings_dict["smtp_port"] = data_settings[saved][10]
-    settings_dict["smtp_username"] = data_settings[saved][11]
-    settings_dict["smtp_password"] = data_settings[saved][12]
-
-    recipients = []
-    for recipient in data_recipients:
-
-        recip_address = recipient[1]
-        recip_setting_id = recipient[2]
-
-        if recip_setting_id == saved + 1:
-            recipients.append(recip_address)
-
-    settings_dict["recipients"] = recipients
-
-    credentials = {}
-    for credential in data_credentials:
-
-        cred_type = credential[1]
-        cred_active = bool(credential[2])
-        cred_mandatory = bool(credential[3])
-        cred_setting_id = credential[4]
-
-        if cred_setting_id == saved + 1:
-            credentials[cred_type] = {'active': cred_active, 'mandatory': cred_mandatory}
-
-    settings_dict["credential_settings"] = credentials
-
-    results = {}
-    for result in data_results:
-
-        result_type = result[1]
-        result_active = bool(result[2])
-        result_setting_id = result[3]
-
-        if result_setting_id == saved + 1:
-            results[result_type] = result_active
-
-    settings_dict["results_settings"] = results
-
-    db.close()
-
-    return settings_dict
+        server = smtplib.SMTP(default_settings["smtp_server"], 587)
+        server.starttls()
+        server.login(default_settings["smtp_username"], default_settings["smtp_password"])
+        text = msg.as_string()
+        server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
+        server.quit()
 
 
 def db_clear_saved():
@@ -440,60 +467,60 @@ def db_save(new_settings, default_smtp_pw_reuse):
     if default_smtp_pw_reuse or not new_settings["email_alerts"]:
         new_settings["smtp_password"] = default_settings["smtp_password"]
 
-    # cursor.execute("""
-    # INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
-    #   email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
-    #   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-    # """, (2, 'SAVED', new_settings['user_id'], new_settings["user_pw"], new_settings['terminal'],
-    #       new_settings['al_address'], new_settings['al_username'], new_settings['al_api_key'],
-    #       new_settings['email_alerts'], new_settings['smtp_server'], new_settings['smtp_port'],
-    #       new_settings['smtp_username'], new_settings["smtp_password"]))
-    #
-    # recipients = []
-    # i = 1
-    # for recipient in new_settings["recipients"]:
-    #     recipients.append((i, recipient, 2))
-    #     i += 1
-    #
-    # cursor.executemany("""
-    # INSERT INTO recipient(recipient_id, recipient_address, setting_id)
-    #   VALUES(?,?,?)
-    # """, recipients)
-    #
-    # credentials = []
-    # i = 5
-    # for credential in new_settings["credential_settings"]:
-    #     cred_type = credential
-    #     cred_active = False
-    #     cred_mandatory = False
-    #     for cred in new_settings["credential_settings"][credential]:
-    #         if cred == 'active':
-    #             cred_active = new_settings["credential_settings"][credential][cred]
-    #         elif cred == 'mandatory':
-    #             cred_mandatory = new_settings["credential_settings"][credential][cred]
-    #     credentials.append((i, cred_type, cred_active, cred_mandatory, 2))
-    #     i += 1
-    #
-    # cursor.executemany("""
-    # INSERT INTO credential(credential_id, credential_type, active, mandatory, setting_id)
-    #   VALUES(?,?,?,?,?)
-    # """, credentials)
-    #
-    # results = []
-    # i = 8
-    # for result in new_settings["results_settings"]:
-    #     result_type = result
-    #     result_active = new_settings["results_settings"][result]
-    #     results.append((i, result_type, result_active, 2))
-    #     i += 1
-    #
-    # cursor.executemany("""
-    # INSERT INTO result(result_id, result_type, active, setting_id)
-    #   VALUES(?,?,?,?)
-    # """, results)
-    #
-    # db.commit()
-    # db.close()
+    cursor.execute("""
+    INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
+      email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (2, 'SAVED', new_settings['user_id'], new_settings["user_pw"], new_settings['terminal'],
+          new_settings['al_address'], new_settings['al_username'], new_settings['al_api_key'],
+          new_settings['email_alerts'], new_settings['smtp_server'], new_settings['smtp_port'],
+          new_settings['smtp_username'], new_settings["smtp_password"]))
+
+    recipients = []
+    i = 1
+    for recipient in new_settings["recipients"]:
+        recipients.append((i, recipient, 2))
+        i += 1
+
+    cursor.executemany("""
+    INSERT INTO recipient(recipient_id, recipient_address, setting_id)
+      VALUES(?,?,?)
+    """, recipients)
+
+    credentials = []
+    i = 5
+    for credential in new_settings["credential_settings"]:
+        cred_type = credential
+        cred_active = False
+        cred_mandatory = False
+        for cred in new_settings["credential_settings"][credential]:
+            if cred == 'active':
+                cred_active = new_settings["credential_settings"][credential][cred]
+            elif cred == 'mandatory':
+                cred_mandatory = new_settings["credential_settings"][credential][cred]
+        credentials.append((i, cred_type, cred_active, cred_mandatory, 2))
+        i += 1
+
+    cursor.executemany("""
+    INSERT INTO credential(credential_id, credential_type, active, mandatory, setting_id)
+      VALUES(?,?,?,?,?)
+    """, credentials)
+
+    results = []
+    i = 8
+    for result in new_settings["results_settings"]:
+        result_type = result
+        result_active = new_settings["results_settings"][result]
+        results.append((i, result_type, result_active, 2))
+        i += 1
+
+    cursor.executemany("""
+    INSERT INTO result(result_id, result_type, active, setting_id)
+      VALUES(?,?,?,?)
+    """, results)
+
+    db.commit()
+    db.close()
 
     default_settings = new_settings
 
@@ -502,3 +529,7 @@ def db_save(new_settings, default_smtp_pw_reuse):
         print i, default_settings[i]
     print
 
+
+if __name__ == '__main__':
+    socketio.run(app, threaded=True)
+    # app.run()

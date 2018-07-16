@@ -4,7 +4,7 @@
 
         <section id="header" class="container container-with-overflow container-header">
             <div>
-                <b>Assembyline Device Auditor</b>
+                <b>Assemblyline Device Audit</b>
             </div>
         </section>
 
@@ -65,11 +65,16 @@
                     </div>
                 </div>
             </div>
+            <div class="big-pad">
+                <div class="pad-button">
+                    <button type="button" class='btn btn-default btn-style-blue btn-large'
+                            ng-disabled="(curr_screen==1 && (!f_name || !l_name)) || (curr_screen==0 && vm_restart)"
+                            ng-click="btn_handle_nav()">//btn_text//</button>
+                </div>
+            </div>
 
-            <div class="pad-button">
-                <button type="button" class='btn btn-default btn-style-blue btn-large'
-                        ng-disabled="(curr_screen==1 && (!f_name || !l_name)) || (curr_screen==0 && vm_restart)"
-                        ng-click="btn_handle_nav()">//btn_text//</button>
+            <div id="footer">
+                <div class="text-center"><a class="text-large" href="https://bitbucket.org/cse-assemblyline/assemblyline">Powered by <img style="vertical-align: bottom" height="32px" src="/static/images/banner.svg"></a></div>
             </div>
 
             <div class="pad font-arial fine-print">

@@ -14,7 +14,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
 
         // ----------------------- Default Property Values
-        $scope.kiosk_footer = '*To submit files for analysis please enter valid credentials, plug a ' +
+        $scope.kiosk_footer = 'To submit files for analysis please enter valid credentials, plug a ' +
             'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
             'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
@@ -1482,8 +1482,6 @@ app.controller('SettingsController', ['$scope',
                     socket.emit('settings_save', $scope.default_settings,
                         $scope.smtp_password_form.smtp_password_input.$pristine);
 
-                    $scope.test_al_connect_success = false;
-                    $scope.test_al_connect_fail = false;
                     $scope.smtp_password_form.smtp_password_input.$setPristine();
 
                 }
@@ -1562,6 +1560,7 @@ app.controller('SettingsController', ['$scope',
                             $scope.$apply(function () {
                                 $scope.recipients_show.push(address);
                                 $scope.no_recipients = false;
+                                $scope.new_recipient = '';
                             });
                         });
                     }
@@ -1663,6 +1662,10 @@ app.controller('SettingsController', ['$scope',
         $scope.clear_alerts = function() {
              _.defer(function() {
                 $scope.$apply(function () {
+                    $scope.test_smtp_connect_fail = false;
+                    $scope.test_smtp_connect_success = false;
+                    $scope.test_al_connect_success = false;
+                    $scope.test_al_connect_fail = false;
                     $scope.settings_saved = false;
                     $scope.user_id_alert = false;
                     $scope.password_alert = false;

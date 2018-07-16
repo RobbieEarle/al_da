@@ -1,5 +1,9 @@
 /* ------- Elements ------- */
 
+.banner-img {
+    width: 25%;
+}
+
 .connect-icon {
     width: 60%;
 	animation-fill-mode: forwards;
@@ -60,7 +64,7 @@
 
 .fine-print {
     font-size: 65%;
-    text-align: left;
+    text-align: center;
     color: #a5a5a5;
     padding-top: 10px;
 	padding-bottom: 10px;
@@ -68,6 +72,11 @@
 
 
 /* ------- Modifiers ------- */
+
+.center-img {
+    width: 100%;
+    text-align: center;
+}
 
 .split {
     width: 49%;
@@ -81,7 +90,7 @@
 }
 
 .pad-refresh {
-    padding-top: 25px;
+    padding-top: 45px;
     padding-bottom: 10px;
 }
 

@@ -6,7 +6,7 @@ def create_menu(path):
              "title": "Scan",
              "has_submenu": False},
             {"class": "",
-             "active": path == "/admin",
+             "active": path == "/admin" or path == "/login",
              "link": "/admin",
              "title": "Settings",
              "has_submenu": False}]
