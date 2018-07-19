@@ -14,6 +14,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
 
         // ----------------------- Default Property Values
+
         $scope.kiosk_footer = 'To submit files for analysis please enter valid credentials, plug a ' +
             'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
@@ -24,13 +25,13 @@ app.controller('ScanController', ['$scope', '$rootScope',
         $scope.kiosk_img_sub = 'Please attach block device';
         $scope.device_event = '';
         $scope.kiosk_output = '';
-        $scope.hide_output = false;
+        $scope.hide_output = true;
         $scope.f_name = '';
         $scope.l_name = '';
         $scope.credentials_given = false;
         $scope.scan_finished = false;
         $scope.curr_screen = 0;
-        $scope.btn_text = "Start new session";
+        $scope.btn_text = "Start scan";
         $scope.vm_restart = false;
         $scope.show_refresh = false;
 
@@ -45,8 +46,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
         $scope.sent_type = 'sent';
 
         $scope.credentials = {};
-
-        // ----------
+        $scope.connected = false;
 
 
         // ----------------------- Socket Event Listeners
@@ -74,7 +74,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                                 $scope.hide_output = true;
                             })
                         })
-                    }, 1000);
+                    }, 500);
 
                     setTimeout(function(){
                         _.defer(function() {
@@ -82,7 +82,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                                 $rootScope.$emit("scroll_results", {});
                             })
                         })
-                    }, 1000);
+                    }, 1500);
 
                 });
 
@@ -99,66 +99,68 @@ app.controller('ScanController', ['$scope', '$rootScope',
                         $scope.received_type = 'received';
                         $scope.sent_type = 'sent';
                         $scope.kiosk_output = '';
-                        $scope.hide_output = false;
                     });
                 });
             }
 
             else if (event === 'disconnected') {
 
-                if ($scope.scan_finished) {
+                // socket.emit('vm_control', 'restart');
+                // $scope.vm_restart = true;
 
-                    // socket.emit('vm_control', 'restart');
-                    // $scope.vm_restart = true;
+                _.defer(function () {
+                    $scope.$apply(function () {
 
-                    _.defer(function () {
-                        $scope.$apply(function () {
-
-                            const intersectionObserver = new IntersectionObserver((entries) => {
-                                let [entry] = entries;
-                                if (entry.isIntersecting) {
-                                    setTimeout(() => document.getElementById('main').scrollIntoView({
-                                        behavior: 'smooth',
-                                        block: 'start'
-                                    }))
-                                }
-                            });
-                            intersectionObserver.observe(results);
-
+                        const intersectionObserver = new IntersectionObserver((entries) => {
+                            let [entry] = entries;
+                            if (entry.isIntersecting) {
+                                setTimeout(() => document.getElementById('main-scan').scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                }))
+                            }
                         });
+                        intersectionObserver.observe(results);
 
                     });
 
-                    // setTimeout(function(){
-                    //     _.defer(function() {
-                    //         $scope.$apply(function () {
-                    //             if ($scope.vm_restart)
-                    //                 $scope.show_refresh = true;
-                    //         });
-                    //     });
-                    // }, 2000);
+                });
 
-                }
+                setTimeout(function(){
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.hide_output = true;
+                        })
+                    })
+                }, 1000);
 
-                else {
+                if ($scope.scan_finished){
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                $scope.curr_screen = 3;
+                                $scope.btn_text = "Finish session";
+                            });
+                        });
+                    }, 1000);
 
                     setTimeout(function(){
                         _.defer(function() {
                             $scope.$apply(function () {
-                                $scope.hide_output = true;
-                            })
-                        })
-                    }, 1000);
-
+                                $scope.hide_output = false;
+                            });
+                        });
+                    }, 1500);
                 }
 
             }
 
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.device_event = event;
+            if (!$scope.scan_finished)
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.device_event = event;
+                    });
                 });
-            });
 
         });
 
@@ -187,6 +189,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
             });
         });
 
+        // Updates the ingest progress bar to reflect current progress of our scan
         socket.on('update_ingest', function(args){
             _.defer(function() {
                 $scope.$apply(function () {
@@ -235,8 +238,6 @@ app.controller('ScanController', ['$scope', '$rootScope',
             });
         });
 
-        // ----------
-
 
         // ----------------------- Animation Event Handlers
 
@@ -254,17 +255,22 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     $scope.$apply(function () {
 
                         if (device_event === 'connected') {
+                            $scope.kiosk_img = '/static/images/spinner.svg';
+                            $scope.kiosk_img_sub = 'Connecting to Assemblyline server';
+                        }
+                        if (device_event === 'al_server_success') {
                             $scope.kiosk_img = '/static/images/scrape_conn.svg';
-                            $scope.kiosk_img_sub = 'Device connected';
+                            $scope.kiosk_img_sub = 'Connection successful';
                         }
                         else if (device_event === 'disconnected') {
                             $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
                             $scope.kiosk_img_sub = 'Please attach block device';
                         }
 
-                        $scope.device_event = 'show';
+                        if (device_event !== 'hide')
+                            $scope.device_event = 'show';
 
-                        if (device_event === 'connected') {
+                        if (device_event === 'al_server_success') {
                             $scope.enter_credentials();
                         }
 
@@ -274,86 +280,147 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         };
 
-        // ----------
-
 
         // ----------------------- Button Event Handlers
 
         $scope.btn_handle_nav = function() {
-            if ($scope.curr_screen === 0)
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.btn_text = "Confirm credentials"
-                        $scope.curr_screen++;
-                    });
-                });
             if ($scope.curr_screen === 1)
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.btn_text = "End session"
-                        $scope.curr_screen++;
-                        socket.emit('fe_set_credentials', $scope.f_name, $scope.l_name);
+
+                        $scope.hide_output = true;
+
+                        setTimeout(function(){
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.curr_screen = 2
+                                });
+                            });
+                        }, 1500);
+
+                        setTimeout(function(){
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.hide_output = false;
+                                });
+                            });
+                        }, 1700);
+
+                        setTimeout(function(){
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    let credentials = [];
+
+                                    for (var i=0; i<$scope.credentials.length; i++){
+                                        if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
+                                            credentials.push({
+                                                'name': $scope.credentials[i].name,
+                                                'value': $scope.credentials[i].session_val
+                                            })
+                                        }
+                                    }
+                                    socket.emit('fe_set_session_credentials', credentials);
+                                });
+                            });
+                        }, 2000);
+
                     });
                 });
-            if ($scope.curr_screen === 2) {
 
-                if (!$scope.scan_finished){
-                    socket.emit('vm_control', 'restart');
-                    $scope.vm_restart = true;
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                if ($scope.vm_restart)
-                                    $scope.show_refresh = true;
-                            });
-                        });
-                    }, 3000);
-                }
-
-                $scope.new_session();
-
-            }
+            // else if ($scope.curr_screen === 2) {
+            //
+            //     if (!$scope.scan_finished){
+            //         socket.emit('vm_control', 'restart');
+            //         $scope.vm_restart = true;
+            //         setTimeout(function(){
+            //             _.defer(function() {
+            //                 $scope.$apply(function () {
+            //                     if ($scope.vm_restart)
+            //                         $scope.show_refresh = true;
+            //                 });
+            //             });
+            //         }, 3000);
+            //     }
+            //
+            //     $scope.new_session();
+            //
+            // }
         };
-
-        // ----------
 
 
         // ----------------------- Helper Functions
 
         $scope.enter_credentials = function() {
-            setTimeout(function(){
+
+            socket.emit('fe_get_credentials',
+                function(credentials){
+
                 _.defer(function() {
                     $scope.$apply(function () {
-
-                        socket.emit('fe_get_credentials',
-                            function(credentials){
-
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.credentials = credentials;
-                                });
-                            });
-
-                        });
-
-                        setTimeout(function(){
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.btn_text = "Start scan";
-                                    $scope.curr_screen = 1;
-                                    setTimeout(function(){
-                                        setTimeout(() => document.getElementById('credentials').scrollIntoView({
-                                            behavior: 'smooth',
-                                            block: 'start'
-                                        }));
-                                    }, 500);
-                                });
-                            });
-                        }, 500);
+                        $scope.credentials = credentials;
 
                     });
                 });
-            }, 1500);
+
+            });
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.device_event = 'hide';
+                    });
+                });
+            }, 1000);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.curr_screen = 1;
+                        $scope.btn_text = "Start scan";
+                    });
+                });
+            }, 1200);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.connected = true;
+                    });
+                });
+            }, 2200);
+
+            // setTimeout(function(){
+            //     _.defer(function() {
+            //         $scope.$apply(function () {
+            //
+            //             $scope.curr_screen = 1;
+            //             $scope.btn_text = "Start scan";
+            //
+            //         });
+            //     });
+            // }, 200);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.hide_output = false;
+                    });
+                });
+            }, 2500);
+
+            // setTimeout(function(){
+            //     _.defer(function() {
+            //         $scope.$apply(function () {
+            //
+            //             setTimeout(() => document.getElementById('credentials').scrollIntoView({
+            //                 behavior: 'smooth',
+            //                 block: 'start'
+            //             }));
+            //
+            //         });
+            //     });
+            // }, 2200);
+
         };
 
         $scope.credential_check = function() {
@@ -1746,7 +1813,10 @@ app.directive('animOutputHeader', function($animate) {
                     $animate.removeClass(elem, 'hidden');
                     $animate.removeClass(elem, 'img-hide').then(scope.after_show_img);
                 }
-                if (scope.device_event === 'connected' || scope.device_event === 'disconnected') {
+                if (scope.device_event === 'connected'
+                    || scope.device_event === 'al_server_success'
+                    || scope.device_event === 'disconnected'
+                    || scope.device_event === 'hide') {
                     $animate.addClass(elem, 'hidden');
                     $animate.addClass(elem, 'img-hide').then(scope.after_hide_img(scope.device_event));
                 }

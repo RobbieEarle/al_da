@@ -29,8 +29,7 @@ eventlet.monkey_patch()
 my_thread = None
 output = ''
 last_output = ''
-client_f_name = ''
-client_l_name = ''
+session_credentials = []
 vm_connected = False
 
 
@@ -121,9 +120,6 @@ def db_get_saved():
     return settings_dict
 
 
-default_settings = db_get_saved()
-
-
 # ============== Page Rendering ==============
 
 @auth.get_password
@@ -138,6 +134,8 @@ def get_pw(username):
 
 @app.route('/')
 def index():
+    global default_settings
+    default_settings = db_get_saved()
     session['logged_in'] = False
     return render("scan.html", request.path)
 
@@ -150,6 +148,9 @@ def scan():
 
 @app.route('/admin')
 def admin():
+    global default_settings
+    default_settings = db_get_saved()
+
     if not session.get('logged_in'):
         return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path))
     else:
@@ -158,6 +159,9 @@ def admin():
 
 @app.route('/login', methods=['POST'])
 def do_admin_login():
+    global default_settings
+    default_settings = db_get_saved()
+
     if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings['user_id']:
         session['logged_in'] = True
     else:
@@ -188,17 +192,18 @@ def fe_scan_start():
 
 
 @socketio.on('fe_get_credentials')
-def fe_get_settings():
+def fe_get_credentials():
     global default_settings
     return default_settings["credential_settings"]
 
 
 # Receives and records user credentials that are entered by user for the current session
-@socketio.on('fe_set_credentials')
-def fe_session_credentials(f_name, l_name):
-    global client_f_name, client_l_name
-    client_f_name = f_name
-    client_l_name = l_name
+@socketio.on('fe_set_session_credentials')
+def fe_set_session_credentials(credentials):
+    global session_credentials
+
+    session_credentials = credentials
+    socketio.emit('start_scan')
 
 
 @socketio.on('fe_validate_email')
@@ -335,21 +340,6 @@ def be_retrieve_settings():
     }
 
     return al_settings
-
-
-# Called by the sandbox VM perpetually until client credentials have been entered. Once valid credentials have been
-# entered, the sandbox begins looking for files to scrape
-@socketio.on('be_connect_request')
-def be_connect_request():
-    global client_f_name, client_l_name, vm_connected, socketio
-
-    # if not vm_connected:
-    #     vm_connected = True
-    #     socketio.emit('vm_on')
-
-    print client_f_name, client_l_name
-
-    return client_f_name, client_l_name, default_settings
 
 
 # Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies

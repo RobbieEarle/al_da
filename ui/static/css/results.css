@@ -3,6 +3,8 @@
 #results {
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
+    padding-top: 15px;
+    padding-bottom: 45px;
 }
 
 #results_scroll_to {
