@@ -7,7 +7,7 @@ cursor = db.cursor()
 cursor.execute('''
 CREATE TABLE setting(
   setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  setting_name TEXT, 
+  setting_name TEXT,
   user_id TEXT,
   user_pw TEXT,
   terminal TEXT,
@@ -34,7 +34,7 @@ CREATE TABLE recipient(
 cursor.execute('''
 CREATE TABLE credential(
   credential_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  credential_type TEXT,
+  credential_name TEXT,
   active INTEGER,
   mandatory INTEGER,
   setting_id INTEGER,

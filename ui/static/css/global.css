@@ -27,6 +27,14 @@ html, body{
 
 /* ------- Modifiers ------- */
 
+.z0 {
+    z-index: 0;
+}
+
+.z1 {
+    z-index: 1;
+}
+
 .text-semi-muted {
     color: #757575;
 }
@@ -41,17 +49,43 @@ html, body{
     padding-bottom: 5px;
 }
 
+.medium-pad {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 .big-pad {
     padding-top: 30px;
     padding-bottom: 30px;
 }
 
+.very-big-pad {
+    padding-top: 45px;
+    padding-bottom: 45px;
+}
+
+.pad-head-small {
+    padding-top: 5px;
+}
+
 .pad-head {
-    padding-top: 20px;
+    padding-top: 30px;
+}
+
+.pad-head-big {
+    padding-top: 40px;
+}
+
+.pad-foot {
+    padding-bottom: 30px;
 }
 
 .pad-bottom {
     padding-bottom: 10px;
+}
+
+.pad-bottom-big {
+    padding-bottom: 15px;
 }
 
 .collapse-pad {
@@ -109,7 +143,14 @@ html, body{
 @media (min-width: 768px){
 	section.container{
 		background: #FFF;
-		box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 6px 0px;
+		box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 6px 1px;
+	}
+}
+
+@media (min-width: 768px){
+	section.container-shadow{
+        position: relative;
+		box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 6px 0px;
 	}
 }
 
@@ -149,8 +190,8 @@ html, body{
 }
 
 section.container{
-	padding-top: 5px;
-	padding-bottom: 5px;
+	padding-top: 15px;
+	padding-bottom: 15px;
 }
 
 .container-header {
@@ -160,6 +201,10 @@ section.container{
     background-color: #0f1c2e !important;
     vertical-align: middle;
     color: #ffffff;
+}
+
+.bg-group {
+    background-color: #f0f0f0 !important;
 }
 
 .navbar-dev{
@@ -218,6 +263,12 @@ section.container{
 
 .btn-large {
     width: 100%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.btn-medium {
+    width: 93%;
     padding-top: 10px;
     padding-bottom: 10px;
 }

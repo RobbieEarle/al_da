@@ -291,54 +291,15 @@
 
                             <div class="setting-indent">
 
-                                <div>
+                                <div ng-repeat="credential in credential_settings">
                                     <label class="checkbox clickable">
-                                        <input type="checkbox" class="" ng-model="credential_settings.f_name.active">
-                                        <div class="small-indent" style="display:inline">First name</div>
+                                        <input type="checkbox" class="" ng-model="credential.active">
+                                        <div class="small-indent" style="display:inline">//credential.name//</div>
                                     </label>
                                     <label class="checkbox big-indent disable"
-                                           ng-class="{'clickable': credential_settings.f_name.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.f_name.mandatory"
-                                               ng-disabled="!credential_settings.f_name.active">
-                                        <div class="small-indent" style="display:inline">Mandatory</div>
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <label class="checkbox clickable">
-                                        <input type="checkbox" ng-model="credential_settings.l_name.active">
-                                        <div class="small-indent" style="display:inline">Last name</div>
-                                    </label>
-                                    <label class="checkbox big-indent disable"
-                                           ng-class="{'clickable': credential_settings.l_name.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.l_name.mandatory"
-                                               ng-disabled="!credential_settings.l_name.active">
-                                        <div class="small-indent" style="display:inline">Mandatory</div>
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <label class="checkbox clickable">
-                                        <input type="checkbox" ng-model="credential_settings.id.active">
-                                        <div class="small-indent" style="display:inline">Employee ID</div>
-                                    </label>
-                                    <label class="checkbox big-indent disable"
-                                           ng-class="{'clickable': credential_settings.id.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.id.mandatory"
-                                               ng-disabled="!credential_settings.id.active">
-                                        <div class="small-indent" style="display:inline">Mandatory</div>
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <label class="checkbox clickable">
-                                        <input type="checkbox" ng-model="credential_settings.company.active">
-                                        <div class="small-indent" style="display:inline">Company name</div>
-                                    </label>
-                                    <label class="checkbox big-indent disable"
-                                           ng-class="{'clickable': credential_settings.company.active}">
-                                        <input type="checkbox" class="" ng-model="credential_settings.company.mandatory"
-                                               ng-disabled="!credential_settings.company.active">
+                                           ng-class="{'clickable': credential.active}">
+                                        <input type="checkbox" class="" ng-model="credential.mandatory"
+                                               ng-disabled="!credential.active">
                                         <div class="small-indent" style="display:inline">Mandatory</div>
                                     </label>
                                 </div>

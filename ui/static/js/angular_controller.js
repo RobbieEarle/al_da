@@ -1,8 +1,8 @@
 // Module Initialization
-var app = angular.module('al_da', ['ngAnimate', 'ui.bootstrap', 'ui.toggle']);
+let app = angular.module('al_da', ['ngAnimate', 'ui.bootstrap', 'ui.toggle']);
 
 // Socket Initialization
-var socket = io.connect('http://' + document.domain + ':' + location.port);
+let socket = io.connect('http://' + document.domain + ':' + location.port);
 
 
 /* ============== Controllers ==============*/
@@ -21,9 +21,8 @@ app.controller('ScanController', ['$scope', '$rootScope',
             'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
             'the device owner.';
         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
-        $scope.kiosk_img_sub = 'Please attach device';
+        $scope.kiosk_img_sub = 'Please attach block device';
         $scope.device_event = '';
-        $scope.device_connected = false;
         $scope.kiosk_output = '';
         $scope.hide_output = false;
         $scope.f_name = '';
@@ -45,6 +44,8 @@ app.controller('ScanController', ['$scope', '$rootScope',
         $scope.received_type = 'received';
         $scope.sent_type = 'sent';
 
+        $scope.credentials = {};
+
         // ----------
 
 
@@ -53,71 +54,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
         // Listens for initial connect message from the socketio server. Starts background thread to process input from
         // al_scrape
         socket.on('connect', function() {
-            socket.emit('scan_start');
-            console.log('Scan');
-        });
-
-        // Listens for output from al_scrape. If the command is clear, then the output console is cleared
-        socket.on('clear', function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.kiosk_output = '';
-                });
-            });
-        });
-
-        // Listens for console output messages from al_scrape
-        socket.on('output', function(output_txt){
-            _.defer(function() {
-                $scope.$apply(function () {
-
-                    // Outputs text to console
-                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
-
-                    // Makes sure UI console keeps scrolling down automatically when UI console overflows
-                    var textarea = document.getElementById('kiosk_output_txt');
-                    textarea.scrollTop = textarea.scrollHeight;
-
-                });
-            });
-        });
-
-        socket.on('update_ingest', function(args){
-            _.defer(function() {
-                $scope.$apply(function () {
-
-                    if (args === 'submit_file') {
-                        $scope.files_submitted++;
-                    }
-                    else if (args === 'receive_file') {
-                        $scope.files_received++;
-                        $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
-                    }
-
-                    $scope.percentage_sent = 100 - $scope.percentage_received;
-                    $scope.files_waiting = $scope.files_submitted - $scope.files_received;
-
-                    if ($scope.files_waiting !== 0) {
-                        $scope.received_type = 'received';
-                        $scope.sent_type = 'sent';
-                        $scope.received_output = "Scanned: " + $scope.files_received;
-                        $scope.submit_output = "Queue: " + $scope.files_waiting;
-                    }
-                    else if (!$scope.scan_finished){
-                        setTimeout(function(){
-                            if ($scope.files_waiting === 0 && !$scope.scan_finished) {
-                                _.defer(function() {
-                                    $scope.$apply(function () {
-                                        $scope.received_type = 'scanning';
-                                        $scope.received_output = "Searching for more files";
-                                    });
-                                });
-                            }
-                        }, 1000);
-                    }
-
-                });
-            });
+            socket.emit('fe_scan_start');
         });
 
         // Listens for when a device is connected
@@ -171,8 +108,8 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
                 if ($scope.scan_finished) {
 
-                    socket.emit('vm_control', 'restart');
-                    $scope.vm_restart = true;
+                    // socket.emit('vm_control', 'restart');
+                    // $scope.vm_restart = true;
 
                     _.defer(function () {
                         $scope.$apply(function () {
@@ -192,28 +129,18 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
                     });
 
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                if ($scope.vm_restart)
-                                    $scope.show_refresh = true;
-                            });
-                        });
-                    }, 2000);
+                    // setTimeout(function(){
+                    //     _.defer(function() {
+                    //         $scope.$apply(function () {
+                    //             if ($scope.vm_restart)
+                    //                 $scope.show_refresh = true;
+                    //         });
+                    //     });
+                    // }, 2000);
 
                 }
 
                 else {
-
-                    $scope.files_submitted = 0;
-                    $scope.files_received = 0;
-                    $scope.files_waiting = 0;
-                    $scope.percentage_received = 0;
-                    $scope.percentage_sent = 0;
-                    $scope.received_outout = '';
-                    $scope.submit_outout = '';
-                    $scope.received_type = 'received';
-                    $scope.sent_type = 'sent';
 
                     setTimeout(function(){
                         _.defer(function() {
@@ -233,6 +160,69 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 });
             });
 
+        });
+
+        // Listens for output from al_scrape. If the command is clear, then the output console is cleared
+        socket.on('clear', function(){
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.kiosk_output = '';
+                });
+            });
+        });
+
+        // Listens for console output messages from al_scrape
+        socket.on('output', function(output_txt){
+            _.defer(function() {
+                $scope.$apply(function () {
+
+                    // Outputs text to console
+                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
+
+                    // Makes sure UI console keeps scrolling down automatically when UI console overflows
+                    let textarea = document.getElementById('kiosk_output_txt');
+                    textarea.scrollTop = textarea.scrollHeight;
+
+                });
+            });
+        });
+
+        socket.on('update_ingest', function(args){
+            _.defer(function() {
+                $scope.$apply(function () {
+
+                    if (args === 'submit_file') {
+                        $scope.files_submitted++;
+                    }
+                    else if (args === 'receive_file') {
+                        $scope.files_received++;
+                        $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
+                    }
+
+                    $scope.percentage_sent = 100 - $scope.percentage_received;
+                    $scope.files_waiting = $scope.files_submitted - $scope.files_received;
+
+                    if ($scope.files_waiting !== 0) {
+                        $scope.received_type = 'received';
+                        $scope.sent_type = 'sent';
+                        $scope.received_output = "Scanned: " + $scope.files_received;
+                        $scope.submit_output = "Queue: " + $scope.files_waiting;
+                    }
+                    else if (!$scope.scan_finished){
+                        setTimeout(function(){
+                            if ($scope.files_waiting === 0 && !$scope.scan_finished) {
+                                _.defer(function() {
+                                    $scope.$apply(function () {
+                                        $scope.received_type = 'scanning';
+                                        $scope.received_output = "Searching for more files";
+                                    });
+                                });
+                            }
+                        }, 1000);
+                    }
+
+                });
+            });
         });
 
         // Called when our VM has finished resetting and is ready to receive more files
@@ -257,24 +247,31 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
         // makes it automatically reappear
-        $scope.after_hide_img = function() {
-            _.defer(function(){
-                $scope.$apply(function(){
+        $scope.after_hide_img = function(device_event) {
 
-                    $scope.device_connected = !$scope.device_connected;
-                    if ($scope.device_connected){
-                        $scope.kiosk_img = '/static/images/scrape_conn.svg';
-                        $scope.kiosk_img_sub = 'Device connected';
-                    }
-                    else if (!$scope.device_connected && !$scope.scan_finished){
-                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
-                        $scope.kiosk_img_sub = 'Please attach device';
-                    }
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
 
-                    $scope.device_event = 'done';
+                        if (device_event === 'connected') {
+                            $scope.kiosk_img = '/static/images/scrape_conn.svg';
+                            $scope.kiosk_img_sub = 'Device connected';
+                        }
+                        else if (device_event === 'disconnected') {
+                            $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+                            $scope.kiosk_img_sub = 'Please attach block device';
+                        }
 
+                        $scope.device_event = 'show';
+
+                        if (device_event === 'connected') {
+                            $scope.enter_credentials();
+                        }
+
+                    });
                 });
-            });
+            }, 200);
+
         };
 
         // ----------
@@ -295,7 +292,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     $scope.$apply(function () {
                         $scope.btn_text = "End session"
                         $scope.curr_screen++;
-                        socket.emit('session_credentials', $scope.f_name, $scope.l_name);
+                        socket.emit('fe_set_credentials', $scope.f_name, $scope.l_name);
                     });
                 });
             if ($scope.curr_screen === 2) {
@@ -323,6 +320,56 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         // ----------------------- Helper Functions
 
+        $scope.enter_credentials = function() {
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+
+                        socket.emit('fe_get_credentials',
+                            function(credentials){
+
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.credentials = credentials;
+                                });
+                            });
+
+                        });
+
+                        setTimeout(function(){
+                            _.defer(function() {
+                                $scope.$apply(function () {
+                                    $scope.btn_text = "Start scan";
+                                    $scope.curr_screen = 1;
+                                    setTimeout(function(){
+                                        setTimeout(() => document.getElementById('credentials').scrollIntoView({
+                                            behavior: 'smooth',
+                                            block: 'start'
+                                        }));
+                                    }, 500);
+                                });
+                            });
+                        }, 500);
+
+                    });
+                });
+            }, 1500);
+        };
+
+        $scope.credential_check = function() {
+
+            let form_incomplete = false;
+
+            for (var i=0; i<$scope.credentials.length; i++){
+                if ($scope.credentials[i].active && $scope.credentials[i].mandatory &&
+                    $scope.credentials[i].session_val === '')
+                    form_incomplete = true;
+            }
+
+            return form_incomplete;
+
+        };
+
         $scope.new_session = function() {
 
             $rootScope.$emit("clear_results", {});
@@ -343,7 +390,6 @@ app.controller('ScanController', ['$scope', '$rootScope',
                         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
                         $scope.kiosk_img_sub = 'Please attach device';
                         $scope.device_event = '';
-                        $scope.device_connected = false;
                         $scope.kiosk_output = '';
                         $scope.hide_output = false;
                         $scope.f_name = '';
@@ -1301,7 +1347,7 @@ app.controller('ServiceController', ['$scope', '$uibModal',
 
             }
 
-            var uibModalInstance = $uibModal.open({
+            let uibModalInstance = $uibModal.open({
                 templateUrl: '/static/ng-template/popup.html',
                 controller: 'PopupController',
                 size: 'lg',
@@ -1350,7 +1396,7 @@ app.controller('SettingsController', ['$scope',
         $scope.alerts = [];
 
         socket.on('connect', function() {
-            socket.emit('settings_start');
+            socket.emit('fe_get_settings');
         });
 
         socket.on('populate_settings', function(default_settings){
@@ -1358,6 +1404,7 @@ app.controller('SettingsController', ['$scope',
                 $scope.$apply(function () {
 
                     $scope.default_settings = JSON.parse(default_settings);
+                    console.log($scope.default_settings)
                     $scope.smtp_pw_placeholder = $scope.default_settings.smtp_password;
                     $scope.recipients_show = $scope.default_settings.recipients;
                     $scope.credential_settings = $scope.default_settings.credential_settings;
@@ -1380,8 +1427,7 @@ app.controller('SettingsController', ['$scope',
                 });
             });
 
-            socket.emit('test_connection_al',
-
+            socket.emit('fe_test_connection_al',
                 $scope.default_settings.al_address,
                 $scope.default_settings.al_username,
                 $scope.default_settings.al_api_key,
@@ -1420,7 +1466,7 @@ app.controller('SettingsController', ['$scope',
                 });
             });
 
-            socket.emit('test_connection_smtp',
+            socket.emit('fe_test_connection_smtp',
 
                 $scope.default_settings.smtp_server,
                 $scope.default_settings.smtp_port,
@@ -1455,13 +1501,13 @@ app.controller('SettingsController', ['$scope',
 
             $scope.clear_alerts();
 
-            var match_pw = true;
+            let match_pw = true;
             if ($scope.new_pw === $scope.confirm_pw )
                 $scope.default_settings.user_pw = $scope.new_pw;
             else
                 match_pw = false;
 
-            socket.emit('validate_settings', $scope.default_settings, function(alerts){
+            socket.emit('fe_validate_settings', $scope.default_settings, function(alerts){
 
                 if (!match_pw)
                     alerts.push('password_match');
@@ -1479,7 +1525,7 @@ app.controller('SettingsController', ['$scope',
                         });
                     });
 
-                    socket.emit('settings_save', $scope.default_settings,
+                    socket.emit('fe_settings_save', $scope.default_settings,
                         $scope.smtp_password_form.smtp_password_input.$pristine);
 
                     $scope.smtp_password_form.smtp_password_input.$setPristine();
@@ -1553,7 +1599,7 @@ app.controller('SettingsController', ['$scope',
 
         $scope.add_recipient = function(address) {
 
-            socket.emit('validate_email', address, function(result){
+            socket.emit('fe_validate_email', address, function(result){
                 if(result){
                     if ($scope.recipients_show.indexOf(address) === -1) {
                         _.defer(function() {
@@ -1696,14 +1742,13 @@ app.directive('animOutputHeader', function($animate) {
     return {
         link: function (scope, elem, attr) {
             scope.$watch(attr.animOutputHeader, function () {
-                if (scope.device_event === 'done') {
+                if (scope.device_event === 'show') {
                     $animate.removeClass(elem, 'hidden');
                     $animate.removeClass(elem, 'img-hide').then(scope.after_show_img);
                 }
-                if (scope.device_event === 'connected' && scope.device_connected === false ||
-                scope.device_event === 'disconnected' && scope.device_connected === true) {
+                if (scope.device_event === 'connected' || scope.device_event === 'disconnected') {
                     $animate.addClass(elem, 'hidden');
-                    $animate.addClass(elem, 'img-hide').then(scope.after_hide_img);
+                    $animate.addClass(elem, 'img-hide').then(scope.after_hide_img(scope.device_event));
                 }
             });
         }

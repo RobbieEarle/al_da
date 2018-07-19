@@ -89,16 +89,18 @@ def db_get_saved():
 
     settings_dict["recipients"] = recipients
 
-    credentials = {}
+    credentials = []
+
     for credential in data_credentials:
 
-        cred_type = credential[1]
+        cred_id = credential[0]
+        cred_name = credential[1]
         cred_active = bool(credential[2])
         cred_mandatory = bool(credential[3])
         cred_setting_id = credential[4]
 
         if cred_setting_id == saved + 1:
-            credentials[cred_type] = {'active': cred_active, 'mandatory': cred_mandatory}
+            credentials.append({'name': cred_name, 'active': cred_active, 'mandatory': cred_mandatory, 'session_val': ''})
 
     settings_dict["credential_settings"] = credentials
 
@@ -128,6 +130,7 @@ default_settings = db_get_saved()
 def get_pw(username):
     global default_settings
     default_settings = db_get_saved()
+
     if username == default_settings["user_id"]:
         return default_settings["user_pw"]
     return None
@@ -162,12 +165,12 @@ def do_admin_login():
     return redirect('/admin', code=301)
 
 
-# ============== Socketio Listeners ==============
+# ============== Front End Socketio Listeners ==============
 
 # Called by angular_controller.js when application is first opened. Establishes connection between our webapp
 # controller and this module
-@socketio.on('scan_start')
-def scan_start():
+@socketio.on('fe_scan_start')
+def fe_scan_start():
     global my_thread
     global output
     global last_output
@@ -184,88 +187,22 @@ def scan_start():
         my_thread = socketio.start_background_task(target=background_thread)
 
 
-# Called by the sandbox VM perpetually until client credentials have been entered. Once valid credentials have been
-# entered, the sandbox begins looking for files to scrape
-@socketio.on('connect_request')
-def connect_request():
-    global client_f_name, client_l_name, vm_connected
-
-    if not vm_connected:
-        vm_connected = True
-        socketio.emit('vm_on')
-
-    return client_f_name, client_l_name
+@socketio.on('fe_get_credentials')
+def fe_get_settings():
+    global default_settings
+    return default_settings["credential_settings"]
 
 
 # Receives and records user credentials that are entered by user for the current session
-@socketio.on('session_credentials')
-def session_credentials(f_name, l_name):
+@socketio.on('fe_set_credentials')
+def fe_session_credentials(f_name, l_name):
     global client_f_name, client_l_name
     client_f_name = f_name
     client_l_name = l_name
 
 
-# Called by scrape_drive.py whenever it wants to output information to the console
-@socketio.on('to_kiosk')
-def to_kiosk(args):
-    global output
-    output = args
-
-
-# Outputs that current number of files ingested and files queued for ingestion, to be received by our webapp
-@socketio.on('ingest_status')
-def new_file(args):
-    socketio.emit('update_ingest', args)
-
-
-# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
-# files that passed the scan. List is JSONified and sent to angular_controller.js
-@socketio.on('pass_files')
-def output_pass_files(pass_files):
-    # print json.dumps(pass_files)
-    pass_files_json = json.dumps(pass_files)
-    socketio.emit('pass_files_json', pass_files_json)
-
-
-# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
-# files that did not pass the scan. List is JSONified and sent to angular_controller.js
-@socketio.on('mal_files')
-def output_mal_files(mal_files, terminal_id):
-    # print json.dumps(mal_files)
-    mal_files_json = json.dumps(mal_files)
-    socketio.emit('mal_files_json', mal_files_json)
-    email_alert(mal_files, terminal_id)
-
-
-# Allows our web app to turn off or refresh our sandbox VM
-@socketio.on('vm_control')
-def vm_control(args):
-    global client_f_name, client_l_name, vm_connected
-
-    client_f_name = ''
-    client_l_name = ''
-    vm_connected = False
-
-    print "VM Control: " + args
-
-    if args == 'off' or 'restart':
-        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
-        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test')
-    if args == 'restart' or 'on':
-        subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
-                        '--type headless')
-
-
-# Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
-# type of device event
-@socketio.on('device_event')
-def device_event(args):
-    print args
-    socketio.emit('dev_event', args)
-
-
-@socketio.on('validate_email')
-def validate_email(addr):
+@socketio.on('fe_validate_email')
+def fe_validate_email(addr):
 
     if re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', addr) is not None:
         return True
@@ -274,8 +211,8 @@ def validate_email(addr):
 
 
 # Called by web app when the settings page is opened. Returns default values from database
-@socketio.on('settings_start')
-def settings_start():
+@socketio.on('fe_get_settings')
+def fe_get_settings():
     global default_settings
 
     default_settings = db_get_saved()
@@ -297,8 +234,8 @@ def settings_start():
     socketio.emit('populate_settings', settings_json)
 
 
-@socketio.on('validate_settings')
-def validate_settings(settings):
+@socketio.on('fe_validate_settings')
+def fe_validate_settings(settings):
 
     alerts = []
 
@@ -314,14 +251,14 @@ def validate_settings(settings):
     return alerts
 
 
-@socketio.on('settings_save')
-def settings_save(new_settings, default_smtp_pw_reuse):
+@socketio.on('fe_settings_save')
+def fe_settings_save(new_settings, default_smtp_pw_reuse):
     db_clear_saved()
     db_save(new_settings, default_smtp_pw_reuse)
 
 
-@socketio.on('test_connection_smtp')
-def test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, reuse_pw):
+@socketio.on('fe_test_connection_smtp')
+def fe_test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, reuse_pw):
     global default_settings
 
     if reuse_pw:
@@ -349,8 +286,8 @@ def test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, r
     return [True, 'Connection successful']
 
 
-@socketio.on('test_connection_al')
-def test_connection_al(al_ip_address, al_username, al_api_key):
+@socketio.on('fe_test_connection_al')
+def fe_test_connection_al(al_ip_address, al_username, al_api_key):
     print al_ip_address, al_username, al_api_key
 
     try:
@@ -363,6 +300,96 @@ def test_connection_al(al_ip_address, al_username, al_api_key):
             return [False, traceback.format_exception_only(type(e), e)[0]]
 
     return [True, 'Connection successful']
+
+
+# Allows our web app to turn off or refresh our sandbox VM
+@socketio.on('vm_control')
+def vm_control(args):
+    global client_f_name, client_l_name, vm_connected
+
+    # client_f_name = ''
+    # client_l_name = ''
+    # vm_connected = False
+    #
+    # print "VM Control: " + args
+
+    # if args == 'off' or 'restart':
+    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
+    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test')
+    # if args == 'restart' or 'on':
+    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
+    #                     '--type headless')
+
+
+# ============== Back End Socketio Listeners ==============
+
+@socketio.on('be_retrieve_settings')
+def be_retrieve_settings():
+    global default_settings
+
+    al_settings = {
+        "address": default_settings["al_address"],
+        "username": default_settings["al_username"],
+        "api_key": default_settings["al_api_key"],
+        "id": default_settings["terminal"]
+    }
+
+    return al_settings
+
+
+# Called by the sandbox VM perpetually until client credentials have been entered. Once valid credentials have been
+# entered, the sandbox begins looking for files to scrape
+@socketio.on('be_connect_request')
+def be_connect_request():
+    global client_f_name, client_l_name, vm_connected, socketio
+
+    # if not vm_connected:
+    #     vm_connected = True
+    #     socketio.emit('vm_on')
+
+    print client_f_name, client_l_name
+
+    return client_f_name, client_l_name, default_settings
+
+
+# Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
+# type of device event
+@socketio.on('be_device_event')
+def be_device_event(args):
+    print args
+    socketio.emit('dev_event', args)
+
+
+# Called by scrape_drive.py whenever it wants to output information to the console
+@socketio.on('be_to_kiosk')
+def be_to_kiosk(args):
+    global output
+    output = args
+
+
+# Outputs that current number of files ingested and files queued for ingestion, to be received by our webapp
+@socketio.on('be_ingest_status')
+def be_ingest_status(args):
+    socketio.emit('update_ingest', args)
+
+
+# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
+# files that passed the scan. List is JSONified and sent to angular_controller.js
+@socketio.on('be_pass_files')
+def be_pass_files(pass_files):
+    # print json.dumps(pass_files)
+    pass_files_json = json.dumps(pass_files)
+    socketio.emit('pass_files_json', pass_files_json)
+
+
+# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
+# files that did not pass the scan. List is JSONified and sent to angular_controller.js
+@socketio.on('be_mal_files')
+def be_mal_files(mal_files, terminal_id):
+    # print json.dumps(mal_files)
+    mal_files_json = json.dumps(mal_files)
+    socketio.emit('mal_files_json', mal_files_json)
+    email_alert(mal_files, terminal_id)
 
 
 # ============== Background Threads ==============
@@ -423,12 +450,12 @@ def email_alert(mal_files, terminal_id):
             body = body + '\r\n'
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP(default_settings["smtp_server"], 587)
-        server.starttls()
-        server.login(default_settings["smtp_username"], default_settings["smtp_password"])
-        text = msg.as_string()
-        server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
-        server.quit()
+        # server = smtplib.SMTP(default_settings["smtp_server"], 587)
+        # server.starttls()
+        # server.login(default_settings["smtp_username"], default_settings["smtp_password"])
+        # text = msg.as_string()
+        # server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
+        # server.quit()
 
 
 def db_clear_saved():
@@ -490,19 +517,14 @@ def db_save(new_settings, default_smtp_pw_reuse):
     credentials = []
     i = 5
     for credential in new_settings["credential_settings"]:
-        cred_type = credential
-        cred_active = False
-        cred_mandatory = False
-        for cred in new_settings["credential_settings"][credential]:
-            if cred == 'active':
-                cred_active = new_settings["credential_settings"][credential][cred]
-            elif cred == 'mandatory':
-                cred_mandatory = new_settings["credential_settings"][credential][cred]
-        credentials.append((i, cred_type, cred_active, cred_mandatory, 2))
+        cred_name = credential["name"]
+        cred_active = credential["active"]
+        cred_mandatory = credential["mandatory"]
+        credentials.append((i, cred_name, cred_active, cred_mandatory, 2))
         i += 1
 
     cursor.executemany("""
-    INSERT INTO credential(credential_id, credential_type, active, mandatory, setting_id)
+    INSERT INTO credential(credential_id, credential_name, active, mandatory, setting_id)
       VALUES(?,?,?,?,?)
     """, credentials)
 

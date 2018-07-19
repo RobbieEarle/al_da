@@ -16,9 +16,9 @@ INSERT INTO recipient(recipient_id, recipient_address, setting_id)
   VALUES(?,?,?)
 """, (1, 'robearle11@gmail.com', 2))
 
-credentials = [(1, 'f_name', 1, 1, 1), (2, 'l_name', 1, 1, 1), (3, 'id', 0, 0, 1), (4, 'company', 0, 0, 1)]
+credentials = [(1, 'First Name', 1, 1, 1), (2, 'Last Name', 1, 1, 1), (3, 'Employee ID', 0, 0, 1), (4, 'Company Name', 0, 0, 1)]
 cursor.executemany("""
-INSERT INTO credential(credential_id, credential_type, active, mandatory, setting_id)
+INSERT INTO credential(credential_id, credential_name, active, mandatory, setting_id)
   VALUES(?,?,?,?,?)
 """, credentials)
 
