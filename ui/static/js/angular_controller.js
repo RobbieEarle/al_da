@@ -46,49 +46,35 @@ app.controller('ScanController', ['$scope', '$rootScope',
         $scope.sent_type = 'sent';
 
         $scope.credentials = {};
-        $scope.connected = false;
+        $scope.mini_kiosk = false;
+        $scope.mini_kiosk_sub = 'No device connected';
+        $scope.device_connected = false;
+        $scope.output_active = false;
 
 
         // ----------------------- Socket Event Listeners
 
-        // Listens for initial connect message from the socketio server. Starts background thread to process input from
-        // al_scrape
         socket.on('connect', function() {
+            /*
+            Listens for initial connect message from the socketio server. Starts background thread to process input from
+            al_scrape
+            */
+
             socket.emit('fe_scan_start');
+
         });
 
-        // Listens for when a device is connected
         socket.on('dev_event', function(event){
+            /*
+            Handles device events outputted by our back end script
+            */
 
-            if (event === 'done_loading')
-                _.defer(function() {
-                    $scope.$apply(function () {$scope.scan_finished = true;});
-                    $scope.received_type = 'done';
-                    $scope.received_output = "All files successfully scanned";
-                    $scope.kiosk_img = '/static/images/scrape_pass.svg';
-                    $scope.kiosk_img_sub = "Session complete";
+            // Called when a device is first connected
+            if (event === 'connected') {
 
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                $scope.hide_output = true;
-                            })
-                        })
-                    }, 500);
-
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                $rootScope.$emit("scroll_results", {});
-                            })
-                        })
-                    }, 1500);
-
-                });
-
-            else if (event === 'connected') {
                 _.defer(function () {
                     $scope.$apply(function () {
+
                         $scope.files_submitted = 0;
                         $scope.files_received = 0;
                         $scope.files_waiting = 0;
@@ -101,15 +87,48 @@ app.controller('ScanController', ['$scope', '$rootScope',
                         $scope.kiosk_output = '';
                     });
                 });
+
             }
 
+            // Called when all our files have been successfully scanned
+            else if (event === 'done_loading')
+                _.defer(function() {
+                    $scope.$apply(function () {$scope.scan_finished = true;});
+                    $scope.received_type = 'done';
+                    $scope.received_output = "All files successfully scanned";
+                    $scope.kiosk_img = '/static/images/scrape_pass.svg';
+                    $scope.kiosk_img_sub = "Session complete";
+
+                    // setTimeout(function(){
+                    //     _.defer(function() {
+                    //         $scope.$apply(function () {
+                    //             $scope.hide_output = true;
+                    //         })
+                    //     })
+                    // }, 500);
+
+                    setTimeout(function(){
+                        _.defer(function() {
+                            $scope.$apply(function () {
+                                $rootScope.$emit("scroll_results", {});
+                            })
+                        })
+                    }, 1500);
+
+                });
+
+            // Called when a device is disconnected
             else if (event === 'disconnected') {
 
                 // socket.emit('vm_control', 'restart');
                 // $scope.vm_restart = true;
 
+                // Scrolls to top of screen
                 _.defer(function () {
                     $scope.$apply(function () {
+
+                        $scope.device_connected = false;
+                        $scope.mini_kiosk_sub = 'Device Disconnected';
 
                         const intersectionObserver = new IntersectionObserver((entries) => {
                             let [entry] = entries;
@@ -126,6 +145,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
                 });
 
+                // Hides our output screen
                 setTimeout(function(){
                     _.defer(function() {
                         $scope.$apply(function () {
@@ -134,7 +154,10 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     })
                 }, 1000);
 
+                // If our scan was finished (ie. results were shown), shows a button to start a new session (this way
+                // the user can unplug their device and they can still read through the results)
                 if ($scope.scan_finished){
+
                     setTimeout(function(){
                         _.defer(function() {
                             $scope.$apply(function () {
@@ -142,7 +165,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                                 $scope.btn_text = "Finish session";
                             });
                         });
-                    }, 1000);
+                    }, 2000);
 
                     setTimeout(function(){
                         _.defer(function() {
@@ -150,12 +173,14 @@ app.controller('ScanController', ['$scope', '$rootScope',
                                 $scope.hide_output = false;
                             });
                         });
-                    }, 1500);
+                    }, 2300);
                 }
 
             }
 
-            if (!$scope.scan_finished)
+            // If our scan isn't finished, changes the device_event variable, which will trigger an animation in our
+            // kiosk_img
+            if ($scope.curr_screen === 0)
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.device_event = event;
@@ -164,17 +189,24 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         });
 
-        // Listens for output from al_scrape. If the command is clear, then the output console is cleared
         socket.on('clear', function(){
+            /*
+            Called by our back end script when it wants to clear the text output box
+             */
+
             _.defer(function() {
                 $scope.$apply(function () {
                     $scope.kiosk_output = '';
                 });
             });
+
         });
 
-        // Listens for console output messages from al_scrape
         socket.on('output', function(output_txt){
+            /*
+            Called by back end script when there is a new message to output to the user
+             */
+
             _.defer(function() {
                 $scope.$apply(function () {
 
@@ -187,30 +219,44 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
                 });
             });
+
         });
 
-        // Updates the ingest progress bar to reflect current progress of our scan
         socket.on('update_ingest', function(args){
+            /*
+            Called by back end script whenever a file is submitted or received. This function controls the status of
+            the scan progress bar.
+             */
+
             _.defer(function() {
                 $scope.$apply(function () {
 
+                    // Handles when files are submitted to server for analysis
                     if (args === 'submit_file') {
                         $scope.files_submitted++;
                     }
+
+                    // Handles when files are received back from server
                     else if (args === 'receive_file') {
                         $scope.files_received++;
                         $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
                     }
 
+                    // Calculates the percentage sent from the percentage received
                     $scope.percentage_sent = 100 - $scope.percentage_received;
                     $scope.files_waiting = $scope.files_submitted - $scope.files_received;
 
+                    // If there are still files left to submit or receive, formats progress bar to show how many
                     if ($scope.files_waiting !== 0) {
                         $scope.received_type = 'received';
                         $scope.sent_type = 'sent';
                         $scope.received_output = "Scanned: " + $scope.files_received;
                         $scope.submit_output = "Queue: " + $scope.files_waiting;
                     }
+
+                    // If there are no files left to receive but the scan has not finished (ie. has not been told by
+                    // by the back end that all partitions are done loading and scanning) then the progress bar
+                    // indicates that it is waiting for more files
                     else if (!$scope.scan_finished){
                         setTimeout(function(){
                             if ($scope.files_waiting === 0 && !$scope.scan_finished) {
@@ -228,27 +274,40 @@ app.controller('ScanController', ['$scope', '$rootScope',
             });
         });
 
-        // Called when our VM has finished resetting and is ready to receive more files
         socket.on('vm_on', function(){
+            /*
+            Called when our VM has finished resetting and is ready to receive more files
+             */
+
             _.defer(function(){
                 $scope.$apply(function(){
                     $scope.vm_restart = false;
                     $scope.show_refresh = false;
                 });
             });
+
         });
 
 
         // ----------------------- Animation Event Handlers
 
-        // Called after show animation has completed on user_output_img
         $scope.after_show_img = function() {
+            /*
+            Called after show animation has completed on user_output_img
+             */
+
             $scope.device_event = '';
+
         };
 
-        // Called after hide animation has completed on user_output_img. Switches the image src being shown and then
-        // makes it automatically reappear
         $scope.after_hide_img = function(device_event) {
+            /*
+            Called after the kiosk_img and kiosk_img_sub have finished hiding (fading to opacity 0). Then changes
+            values depending on the device event that triggered the hide animation and changes the device event to
+            'show' (unless the device event was simply to 'hide'), which will cause the images to reappear. If the
+            device event was 'al_server_success', then we know that we have successfully connected to our Assemblyline
+            server, and thus we show our enter credentials page
+             */
 
             setTimeout(function(){
                 _.defer(function() {
@@ -258,9 +317,12 @@ app.controller('ScanController', ['$scope', '$rootScope',
                             $scope.kiosk_img = '/static/images/spinner.svg';
                             $scope.kiosk_img_sub = 'Connecting to Assemblyline server';
                         }
-                        if (device_event === 'al_server_success') {
+                        else if (device_event === 'al_server_success') {
                             $scope.kiosk_img = '/static/images/scrape_conn.svg';
                             $scope.kiosk_img_sub = 'Connection successful';
+                            $scope.device_connected = true;
+                            $scope.mini_kiosk_sub = 'Device Connected';
+
                         }
                         else if (device_event === 'disconnected') {
                             $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
@@ -284,6 +346,10 @@ app.controller('ScanController', ['$scope', '$rootScope',
         // ----------------------- Button Event Handlers
 
         $scope.btn_handle_nav = function() {
+            /*
+            Called by our main button. Action taken depends on the current screen
+             */
+
             if ($scope.curr_screen === 1)
                 _.defer(function() {
                     $scope.$apply(function () {
@@ -304,66 +370,68 @@ app.controller('ScanController', ['$scope', '$rootScope',
                                     $scope.hide_output = false;
                                 });
                             });
-                        }, 1700);
+                        }, 1800);
 
                         setTimeout(function(){
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    let credentials = [];
 
-                                    for (var i=0; i<$scope.credentials.length; i++){
-                                        if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
-                                            credentials.push({
-                                                'name': $scope.credentials[i].name,
-                                                'value': $scope.credentials[i].session_val
-                                            })
-                                        }
-                                    }
-                                    socket.emit('fe_set_session_credentials', credentials);
-                                });
-                            });
+                            let credentials = [];
+
+                            for (var i=0; i<$scope.credentials.length; i++){
+                                if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
+                                    credentials.push({
+                                        'name': $scope.credentials[i].name,
+                                        'value': $scope.credentials[i].session_val
+                                    })
+                                }
+                            }
+                            socket.emit('fe_set_session_credentials', credentials);
+
                         }, 2000);
 
                     });
                 });
 
-            // else if ($scope.curr_screen === 2) {
-            //
-            //     if (!$scope.scan_finished){
-            //         socket.emit('vm_control', 'restart');
-            //         $scope.vm_restart = true;
-            //         setTimeout(function(){
-            //             _.defer(function() {
-            //                 $scope.$apply(function () {
-            //                     if ($scope.vm_restart)
-            //                         $scope.show_refresh = true;
-            //                 });
-            //             });
-            //         }, 3000);
-            //     }
-            //
-            //     $scope.new_session();
-            //
-            // }
+            else if ($scope.curr_screen === 3) {
+
+                // if (!$scope.scan_finished){
+                //     // socket.emit('vm_control', 'restart');
+                //     // $scope.vm_restart = true;
+                //     setTimeout(function(){
+                //         _.defer(function() {
+                //             $scope.$apply(function () {
+                //                 if ($scope.vm_restart)
+                //                     $scope.show_refresh = true;
+                //             });
+                //         });
+                //     }, 3000);
+                // }
+
+                $scope.new_session();
+
+            }
         };
 
 
         // ----------------------- Helper Functions
 
         $scope.enter_credentials = function() {
+            /*
+            Called by our after_hide_img function once our Assembyline server has been connected
+             */
 
+            // Requests necessary credentials from our Flask app in order to populate our credentials page
             socket.emit('fe_get_credentials',
                 function(credentials){
 
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.credentials = credentials;
-
                     });
                 });
 
             });
 
+            // Hides our main kiosk_img and kiosk_img_sub images
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
@@ -372,6 +440,8 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 });
             }, 1000);
 
+            // Changes the current screen to 1 and sets the text to be displayed by our main button. Is basically
+            // prepping our output screen for when hide_output is set to false and this screen is shown
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
@@ -381,13 +451,14 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 });
             }, 1200);
 
+            // Causes our thin green bar along the top to show, indicating our device is connected
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.connected = true;
+                        $scope.mini_kiosk = true;
                     });
                 });
-            }, 2200);
+            }, 1800);
 
             // setTimeout(function(){
             //     _.defer(function() {
@@ -399,6 +470,14 @@ app.controller('ScanController', ['$scope', '$rootScope',
             //         });
             //     });
             // }, 200);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.output_active = true;
+                    });
+                });
+            }, 2400);
 
             setTimeout(function(){
                 _.defer(function() {
@@ -444,19 +523,27 @@ app.controller('ScanController', ['$scope', '$rootScope',
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.curr_screen = 0;
-                        $scope.btn_text = "Start new session";
+                        $scope.hide_output = true;
+                        $scope.mini_kiosk = false;
                     })
-                })
-            }, 500);
+                });
+            }, 1000);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.curr_screen = 0;
+                        $scope.btn_text = "Start scan";
+                    })
+                });
+            }, 2500);
 
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
 
                         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
-                        $scope.kiosk_img_sub = 'Please attach device';
-                        $scope.device_event = '';
+                        $scope.kiosk_img_sub = 'Please attach block device';
                         $scope.kiosk_output = '';
                         $scope.hide_output = false;
                         $scope.f_name = '';
@@ -474,9 +561,21 @@ app.controller('ScanController', ['$scope', '$rootScope',
                         $scope.received_type = 'received';
                         $scope.sent_type = 'sent';
 
+                        $scope.credentials = {};
+                        $scope.mini_kiosk_sub = 'No device connected';
+                        $scope.output_active = false;
+
                     });
                 });
-            }, 1500);
+            }, 2800);
+
+            setTimeout(function(){
+                _.defer(function() {
+                    $scope.$apply(function () {
+                        $scope.device_event = "show";
+                    })
+                });
+            }, 3400);
 
         };
 
@@ -1002,8 +1101,6 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         //         "submitter": "admin", "ttl": 1}, "times": {"completed": "2018-06-14T12:34:51.716648Z",
         //         "submitted": "2018-06-14T12:34:47.327619Z"}}];
 
-        // ----------
-
 
         // ----------------------- Socket Event Listeners
 
@@ -1051,15 +1148,21 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
         });
 
-        // ----------
 
+        // ----------------------- Root Scope Event Listeners
 
-        // ----------------------- Helper Functions
+        $rootScope.$on("scroll_results", function() {
+           $scope.scroll_results();
+        });
 
         // Clears and resets the results section
         $rootScope.$on("clear_results", function() {
            $scope.clear_results();
         });
+
+
+        // ----------------------- Helper Functions
+
         $scope.clear_results = function() {
 
             $scope.results_cleared = true;
@@ -1089,10 +1192,6 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
         };
 
-
-        $rootScope.$on("scroll_results", function() {
-           $scope.scroll_results();
-        });
         $scope.scroll_results = function() {
             _.defer(function() {
 
@@ -1800,7 +1899,7 @@ app.controller('SettingsController', ['$scope',
     }
 ]);
 
-/* ============== Directives ==============*/
+/* ============== Animation Directives ==============*/
 
 // Handles show / hide events being applied to user_output_img. The myShow variable is linked to the show variable of
 // the controller; when its value is changed, an event is called accordingly to animate it fading in / out. Once the

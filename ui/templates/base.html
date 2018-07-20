@@ -62,19 +62,11 @@
                 </nav>
 			{% endif %}
 
-            <div class="outer">
-                <div class="middle">
-                    <div class="inner">
+            {% block main %}
+            {% endblock %}
 
-                        {% block main %}
-                        {% endblock %}
-
-                        {% block results %}
-                        {% endblock %}
-
-                    </div>
-                </div>
-            </div>
+            {% block results %}
+            {% endblock %}
 
             <div id="push"></div>
         </div>
