@@ -1,21 +1,27 @@
 {% extends "base.html" %}
 {% block main %}
-<section id="main">
+<div class="outer">
+    <div class="middle">
+        <div class="inner">
+            <section id="main">
 
-    <section id="header" class="card card-container container-header">
-            <b>Change Settings</b>
-    </section>
-    <div class="container container-fluid card card-container">
-        {% if session['logged_in'] %}
-        <p>You're logged in already!</p>
-        {% else %}
-        <form action="/login" method="POST" class="form-signin">
-            <input type="username" name="username" placeholder="Username">
-            <input type="password" name="password" placeholder="Password">
-            <input type="submit" class="btn btn-style-blue btn-large" value="Confirm">
-        </form>
-        {% endif %}
+                <section id="header" class="card card-container container-header">
+                        <b>Change Settings</b>
+                </section>
+                <div class="container container-fluid card card-container">
+                    {% if session['logged_in'] %}
+                    <p>You're logged in already!</p>
+                    {% else %}
+                    <form action="/login" method="POST" class="form-signin">
+                        <input type="username" name="username" placeholder="Username">
+                        <input type="password" name="password" placeholder="Password">
+                        <input type="submit" class="btn btn-style-blue btn-large" value="Confirm">
+                    </form>
+                    {% endif %}
+                </div>
+
+            </section>
+        </div>
     </div>
-
-</section>
+</div>
 {% endblock %}

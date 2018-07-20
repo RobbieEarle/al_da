@@ -10,7 +10,7 @@
 
         <section id="body" ng-controller="ScanController">
 
-            <div id="img_prompt" class="container container-with-overflow container-img anim z0"
+            <div id="img_prompt" class="container container-with-overflow container-img z0"
                      ng-class="{'bg-light-green': mini_kiosk && device_connected,
                      'bg-light-red': mini_kiosk && !device_connected}">
                 <div>
@@ -28,87 +28,91 @@
                 </div>
             </div>
 
-            <section id="output" uib-collapse="hide_output" ng-if="output_active" class="container container-with-overflow z0">
+            <div uib-collapse="hide_output">
 
-                <section id="credentials" ng-if="curr_screen==1">
+                <section id="output" ng-if="output_active" class="container container-with-overflow z0">
 
-                     <div class="credential-header">
-                        <div class="pad-head text-semi-muted text-center">
-                            <b>Please fill in session credentials</b>
+                    <section id="credentials" ng-if="curr_screen==1">
+
+                         <div class="credential-header">
+                            <div class="pad-head text-semi-muted text-center">
+                                <b>Please fill in session credentials</b>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="pad-head-small credential-footer">
-                        <div class="text-semi-muted text-center">
-                            <div class="credential-title" style="display: inline;"><b>* </b></div>Mandatory field
+                        <div class="pad-head-small credential-footer">
+                            <div class="text-semi-muted text-center">
+                                <div class="credential-title" style="display: inline;"><b>* </b></div>Mandatory field
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-style-8 text-center">
+                        <div class="form-style-8 text-center">
 
-                        <form novalidate class="text-semi-muted" ng-class="{'disable': curr_screen!=1}">
-                            <div ng-repeat="credential in credentials" ng-if="credential.active" class="credential-box split pad-head">
-                                <div>
-                                    <div ng-if="credential.mandatory" class="credential-title" style="display: inline;"><b>* </b></div><b>//credential.name//</b>
+                            <form novalidate class="text-semi-muted">
+                                <div ng-repeat="credential in credentials" ng-if="credential.active" class="credential-box split pad-head">
+                                    <div>
+                                        <div ng-if="credential.mandatory" class="credential-title" style="display: inline;"><b>* </b></div><b>//credential.name//</b>
+                                    </div>
+                                    <div class="pad">
+                                        <input type="text" class="text-center" ng-model="credential.session_val"/>
+                                    </div>
                                 </div>
-                                <div class="pad">
-                                    <input type="text" class="text-center" ng-model="credential.session_val" ng-disabled="curr_screen!=1"/>
+                            </form>
+
+                        </div>
+
+                    </section>
+
+                    <section ng-if="curr_screen==2">
+                        <div class="pad-button">
+                            <div uib-progress ng-class="{'progress-striped active': received_type=='scanning'}">
+                                <div uib-bar value="percentage_received" type=//received_type//>
+                                    <span ng-hide="percentage_received < 5">//received_output//</span>
+                                </div>
+                                <div uib-bar value="percentage_sent" type=//sent_type//>
+                                    <span ng-hide="percentage_sent < 5">//submit_output//</span>
                                 </div>
                             </div>
-                        </form>
+                        </div>
 
+                        <div class="pad-output-box">
+                            <textarea class="scrollabletextbox font-arial text-muted" id="kiosk_output_txt" readonly>
+                                //kiosk_output//
+                            </textarea>
+                        </div>
+                    </section>
+
+                    <!--<div uib-collapse="curr_screen!=0 || !show_refresh">-->
+                        <!--<div class="pad-refresh center-text">-->
+                            <!--<img class="refresh-gif" src="/static/images/bars.svg">-->
+                            <!--<div class="refresh-gif-sub text-semi-muted">-->
+                                <!--Refreshing virtual machine-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+
+                    <!--<div uib-collapse="curr_screen>1">-->
+                        <!--<div class="big-pad">-->
+                            <!--<div class="pad-button">-->
+                                <!--<button type="button" class='btn btn-default btn-style-blue btn-large'-->
+                                        <!--ng-disabled="(curr_screen==1 && (!f_name || !l_name)) || (curr_screen==0 && vm_restart)"-->
+                                        <!--ng-click="btn_handle_nav()">//btn_text//</button>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+
+                    <div ng-if="curr_screen == 1 || curr_screen == 3" class="text-center"
+                         ng-class="{'pad-head': curr_screen == 3}">
+                        <div class="big-pad">
+                            <button type="button" class='btn btn-default btn-style-blue btn-medium'
+                                    ng-disabled="credential_check()"
+                                    ng-click="btn_handle_nav()">//btn_text//</button>
+                        </div>
                     </div>
 
                 </section>
 
-                <section ng-if="curr_screen==2">
-                    <div class="pad-button">
-                        <div uib-progress ng-class="{'progress-striped active': received_type=='scanning'}">
-                            <div uib-bar value="percentage_received" type=//received_type//>
-                                <span ng-hide="percentage_received < 5">//received_output//</span>
-                            </div>
-                            <div uib-bar value="percentage_sent" type=//sent_type//>
-                                <span ng-hide="percentage_sent < 5">//submit_output//</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pad-output-box">
-                        <textarea class="scrollabletextbox font-arial text-muted" id="kiosk_output_txt" readonly>
-                            //kiosk_output//
-                        </textarea>
-                    </div>
-                </section>
-
-                <!--<div uib-collapse="curr_screen!=0 || !show_refresh">-->
-                    <!--<div class="pad-refresh center-text">-->
-                        <!--<img class="refresh-gif" src="/static/images/bars.svg">-->
-                        <!--<div class="refresh-gif-sub text-semi-muted">-->
-                            <!--Refreshing virtual machine-->
-                        <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-
-                <!--<div uib-collapse="curr_screen>1">-->
-                    <!--<div class="big-pad">-->
-                        <!--<div class="pad-button">-->
-                            <!--<button type="button" class='btn btn-default btn-style-blue btn-large'-->
-                                    <!--ng-disabled="(curr_screen==1 && (!f_name || !l_name)) || (curr_screen==0 && vm_restart)"-->
-                                    <!--ng-click="btn_handle_nav()">//btn_text//</button>-->
-                        <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-
-                <div ng-if="curr_screen == 1 || curr_screen == 3" class="text-center"
-                     ng-class="{'pad-head': curr_screen == 3}">
-                    <div class="big-pad">
-                        <button type="button" class='btn btn-default btn-style-blue btn-medium'
-                                ng-disabled="credential_check()"
-                                ng-click="btn_handle_nav()">//btn_text//</button>
-                    </div>
-                </div>
-
-            </section>
+            </div>
 
             <!--<section uib-collapse="curr_screen!=2" id="output" class="container container-with-overflow bg-group z0">-->
                 <!--<div class="big-pad"></div>-->

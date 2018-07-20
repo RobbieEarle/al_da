@@ -147,14 +147,6 @@ html, body{
 }
 
 @media (min-width: 768px){
-	section.container-shadow{
-        position: relative;
-		box-shadow: rgba(0, 0, 0, 0.15) -5px 0px 5px -5px;
-        z-index: 0;
-	}
-}
-
-@media (min-width: 768px){
 	.container-with-overflow{
         padding-left: 60px;
         padding-right: 60px;
@@ -192,6 +184,16 @@ html, body{
 section.container{
 	padding-top: 15px;
 	padding-bottom: 15px;
+    -webkit-transition: all linear 0.2s;
+    -moz-transition: all linear 0.2s;
+    -ms-transition: all linear 0.2s;
+    -o-transition: all linear 0.2s;
+    transition: all linear 0.2s;
+}
+
+section.container-with-overflow{
+    padding-left: 30px;
+    padding-right: 30px;
 }
 
 .container-header {

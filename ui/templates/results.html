@@ -47,69 +47,89 @@
         <section class="container container-with-overflow">
 
             <div class="pad-head">
-                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success" uib-collapse="results_clear">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success && results_settings.mal_files" uib-collapse="results_clear">
                     <p><b>Potentially malicious files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
 
                         <div uib-accordion-heading>
                             <div class="row opacity8">
                                 <div class="result-detail-header">//file.submission.metadata.filename//</div>
-                                <div class="result-detail-header text-right">//file.submission.max_score//</div>
+                                <div ng-if="results_settings.score" class="result-detail-header text-right">//file.submission.max_score//</div>
                             </div>
                         </div>
 
                         <div class="pad">
                             <p><b>Path:</b> //file.submission.metadata.path//</p>
-                            <!--<p><b>SID:</b> //file.submission.sid//</p>-->
+                            <p ng-if="results_settings.sid"><b>SID:</b> //file.submission.sid//</p>
                         </div>
 
-                        <div class="pad"><b>File Contents:</b></div>
+                        <div ng-if="results_settings.file_contents">
 
-                        <script type="text/ng-template" id="file_tree">
-                            <div ng-if="file_child.score>=500">
-                                <div ng-click="is_collapsed = !is_collapsed" class="result-detail-title">
-                                    <span ng-if="is_collapsed" class="result-detail-glyph fas fa-chevron-circle-right" style="display:inline"></span>
-                                    <span ng-if="!is_collapsed" class="result-detail-glyph fas fa-chevron-circle-down" style="display:inline"></span>
-                                    <p style="display:inline" ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}"><b>//file_child.score//</b></p>
-                                    <p style="display:inline">  ::  //name_strip(file_child.name)//</p>
-                                </div>
+                            <div class="pad"><b>File Contents:</b></div>
 
-                                <div class="collapse-pad">
-                                    <div uib-collapse="is_collapsed" ng-init="is_collapsed=true">
-                                        <div ng-repeat="result in file.results">
-                                            <div class="result-detail-service" ng-if="key==result.srl && result.result.score>0">
-                                                <div class="result-detail-title" ng-click="service_info(result.response.service_name)" ng-controller="ServiceController">
-                                                    <p style="display:inline" ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}"><b>//result.result.score//</b></p>
-                                                    <p style="display:inline"><b>  ::  //result.response.service_name//</b></p>
-                                                </div>
-                                                <div ng-repeat="detail in result.result.sections" class="result-detail-service-adv">
-                                                    <p style="display:inline" ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}"><b>//detail.score//</b></p>
-                                                    <p style="display:inline">  ::  //detail.title_text//</p>
+                            <script type="text/ng-template" id="file_tree">
+                                <div ng-if="file_child.score>=500" ng-controller="ServicePopulateController">
+                                    <div ng-click="service_click(results_settings)" ng-class="{'result-detail-title': results_settings.file_services}">
+                                        <span ng-if="is_collapsed && results_settings.file_services"
+                                              class="result-detail-glyph fas fa-chevron-circle-right"
+                                              style="display:inline"></span>
+                                        <span ng-if="!is_collapsed && results_settings.file_services"
+                                              class="result-detail-glyph fas fa-chevron-circle-down"
+                                              style="display:inline"></span>
+                                        <p style="display:inline" ng-if="results_settings.score"
+                                           ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}">
+                                            <b>//file_child.score// :: </b></p>
+                                        <p style="display:inline">//name_strip(file_child.name)//</p>
+                                    </div>
+
+                                    <div class="collapse-pad">
+                                        <div uib-collapse="is_collapsed" ng-init="is_collapsed=true">
+                                            <div ng-repeat="result in file.results">
+                                                <div class="result-detail-service"
+                                                     ng-if="key==result.srl && result.result.score>0">
+                                                    <div ng-class="{'result-detail-title': results_settings.service_description}"
+                                                         ng-click="service_info(results_settings, result.response.service_name)"
+                                                         ng-controller="ServiceController">
+                                                        <p style="display:inline" ng-if="results_settings.score"
+                                                           ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}">
+                                                            <b>//result.result.score// :: </b></p>
+                                                        <p style="display:inline"><b>//result.response.service_name//</b></p>
+                                                    </div>
+                                                    <div ng-repeat="detail in result.result.sections"
+                                                         class="result-detail-service-adv">
+                                                        <p style="display:inline" ng-if="results_settings.score"
+                                                           ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}">
+                                                            <b>//detail.score// :: </b></p>
+                                                        <p style="display:inline">//detail.title_text//</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div ng-if="file_child.children">
-                                <div ng-repeat="(key, file_child) in file_child.children" ng-include="'file_tree'"></div>
-                            </div>
+                                <div ng-if="file_child.children">
+                                    <div ng-repeat="(key, file_child) in file_child.children"
+                                         ng-include="'file_tree'"></div>
+                                </div>
 
-                        </script>
-                        <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
+                            </script>
+
+                            <div ng-repeat="(key, file_child) in file.file_tree" ng-include="'file_tree'"></div>
+
+                        </div>
 
                     </div>
                 </div>
 
-                <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted" uib-collapse="results_clear">
+                <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted" uib-collapse="results_clear" ng-if="results_settings.safe_files">
                     <p ng-if="show_pass_header"><b>Safe files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'" class="panel-default">
 
                         <div uib-accordion-heading>
                             <div class="row text-semi-muted">
                                 <div class="result-detail-header">//file.metadata.filename//</div>
-                                <div class="result-detail-header text-right">//file.metadata.al_score//</div>
+                                <div ng-if="results_settings.score" class="result-detail-header text-right">//file.metadata.al_score//</div>
                             </div>
                         </div>
 
