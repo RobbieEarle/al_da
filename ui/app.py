@@ -20,6 +20,7 @@ import arrow
 import re
 
 import sqlite3
+from cryptography.fernet import Fernet
 
 eventlet.monkey_patch()
 
@@ -29,6 +30,8 @@ eventlet.monkey_patch()
 default_settings = {}
 session_credentials = []
 vm_connected = False
+key = b'peja3W-4eEM9uuJJ95yOJU4r2iL9H6LfLBN4llb4xEs='
+cipher_suite = Fernet(key)
 
 
 # ============== Flask & Socketio Setup ==============
@@ -63,22 +66,22 @@ def db_get_saved():
 
     saved = len(data_settings) - 1
 
-    settings_dict["user_id"] = data_settings[saved][2]
-    settings_dict["user_pw"] = data_settings[saved][3]
-    settings_dict["terminal"] = data_settings[saved][4]
-    settings_dict["al_address"] = data_settings[saved][5]
-    settings_dict["al_username"] = data_settings[saved][6]
-    settings_dict["al_api_key"] = data_settings[saved][7]
-    settings_dict["email_alerts"] = bool(data_settings[saved][8])
-    settings_dict["smtp_server"] = data_settings[saved][9]
-    settings_dict["smtp_port"] = data_settings[saved][10]
-    settings_dict["smtp_username"] = data_settings[saved][11]
-    settings_dict["smtp_password"] = data_settings[saved][12]
+    settings_dict["user_id"] = cipher_suite.decrypt(bytes(data_settings[saved][2]))
+    settings_dict["user_pw"] = cipher_suite.decrypt(bytes(data_settings[saved][3]))
+    settings_dict["terminal"] = cipher_suite.decrypt(bytes(data_settings[saved][4]))
+    settings_dict["al_address"] = cipher_suite.decrypt(bytes(data_settings[saved][5]))
+    settings_dict["al_username"] = cipher_suite.decrypt(bytes(data_settings[saved][6]))
+    settings_dict["al_api_key"] = cipher_suite.decrypt(bytes(data_settings[saved][7]))
+    settings_dict["email_alerts"] = bool(cipher_suite.decrypt(bytes(data_settings[saved][8])))
+    settings_dict["smtp_server"] = cipher_suite.decrypt(bytes(data_settings[saved][9]))
+    settings_dict["smtp_port"] = cipher_suite.decrypt(bytes(data_settings[saved][10]))
+    settings_dict["smtp_username"] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
+    settings_dict["smtp_password"] = cipher_suite.decrypt(bytes(data_settings[saved][12]))
 
     recipients = []
     for recipient in data_recipients:
 
-        recip_address = recipient[1]
+        recip_address = cipher_suite.decrypt(bytes(recipient[1]))
         recip_setting_id = recipient[2]
 
         if recip_setting_id == saved + 1:
@@ -89,26 +92,28 @@ def db_get_saved():
     credentials = []
     for credential in data_credentials:
 
-        cred_id = credential[0]
-        cred_name = credential[1]
-        cred_active = bool(credential[2])
-        cred_mandatory = bool(credential[3])
+        cred_name = cipher_suite.decrypt(bytes(credential[1]))
+        cred_active = cipher_suite.decrypt(bytes(credential[2]))
+        cred_mandatory = cipher_suite.decrypt(bytes(credential[3]))
         cred_setting_id = credential[4]
 
         if cred_setting_id == saved + 1:
-            credentials.append({'name': cred_name, 'active': cred_active, 'mandatory': cred_mandatory, 'session_val': ''})
+            credentials.append({'name': cred_name,
+                                'active': bool(int(cred_active)),
+                                'mandatory': bool(int(cred_mandatory)),
+                                'session_val': ''})
 
     settings_dict["credential_settings"] = credentials
 
     results = {}
     for result in data_results:
 
-        result_type = result[1]
-        result_active = bool(result[2])
+        result_type = cipher_suite.decrypt(bytes(result[1]))
+        result_active = cipher_suite.decrypt(bytes(result[2]))
         result_setting_id = result[3]
 
         if result_setting_id == saved + 1:
-            results[result_type] = result_active
+            results[result_type] = bool(int(result_active))
 
     settings_dict["results_settings"] = results
 
@@ -172,11 +177,7 @@ def do_admin_login():
 # controller and this module
 @socketio.on('fe_scan_start')
 def fe_scan_start():
-    global default_settings
-
-    default_settings = db_get_saved()
-
-    # vm_control('restart')
+    vm_control('restart')
 
 
 @socketio.on('fe_get_credentials')
@@ -218,16 +219,6 @@ def fe_get_settings():
     default_settings_output = default_settings.copy()
     default_settings_output["user_pw"] = ''
     default_settings_output["smtp_password"] = convert_dots(default_settings["smtp_password"])
-
-    print "\nDefault settings received by backend"
-    for i in default_settings:
-        print i, default_settings[i]
-    print
-
-    print "\nDefault settings sent to front end"
-    for i in default_settings_output:
-        print i, default_settings_output[i]
-    print
 
     settings_json = json.dumps(default_settings_output)
     socketio.emit('populate_settings', settings_json)
@@ -415,12 +406,15 @@ def email_alert(mal_files, terminal_id):
             body = body + '\r\n'
         msg.attach(MIMEText(body, 'plain'))
 
-        # server = smtplib.SMTP(default_settings["smtp_server"], 587)
-        # server.starttls()
-        # server.login(default_settings["smtp_username"], default_settings["smtp_password"])
-        # text = msg.as_string()
-        # server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
-        # server.quit()
+        # try:
+        #     server = smtplib.SMTP(default_settings["smtp_server"], 587)
+        #     server.starttls()
+        #     server.login(default_settings["smtp_username"], default_settings["smtp_password"])
+        #     text = msg.as_string()
+        #     server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
+        #     server.quit()
+        # except:
+        #     print "Error sending email"
 
 
 def db_clear_saved():
@@ -463,17 +457,25 @@ def db_save(new_settings, default_smtp_pw_reuse):
     INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
       email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (2, 'SAVED', new_settings['user_id'], new_settings["user_pw"], new_settings['terminal'],
-          new_settings['al_address'], new_settings['al_username'], new_settings['al_api_key'],
-          new_settings['email_alerts'], new_settings['smtp_server'], new_settings['smtp_port'],
-          new_settings['smtp_username'], new_settings["smtp_password"]))
+    """, (2,
+          cipher_suite.encrypt(b'SAVED'),
+          cipher_suite.encrypt(bytes(new_settings['user_id'])),
+          cipher_suite.encrypt(bytes(new_settings["user_pw"])),
+          cipher_suite.encrypt(bytes(new_settings['terminal'])),
+          cipher_suite.encrypt(bytes(new_settings['al_address'])),
+          cipher_suite.encrypt(bytes(new_settings['al_username'])),
+          cipher_suite.encrypt(bytes(new_settings['al_api_key'])),
+          cipher_suite.encrypt(bytes(new_settings['email_alerts'])),
+          cipher_suite.encrypt(bytes(new_settings['smtp_server'])),
+          cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
+          cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
+          cipher_suite.encrypt(bytes(new_settings["smtp_password"]))))
 
     recipients = []
     i = 1
     for recipient in new_settings["recipients"]:
-        recipients.append((i, recipient, 2))
+        recipients.append((i, cipher_suite.encrypt(bytes(recipient)), 2))
         i += 1
-
     cursor.executemany("""
     INSERT INTO recipient(recipient_id, recipient_address, setting_id)
       VALUES(?,?,?)
@@ -485,9 +487,10 @@ def db_save(new_settings, default_smtp_pw_reuse):
         cred_name = credential["name"]
         cred_active = credential["active"]
         cred_mandatory = credential["mandatory"]
-        credentials.append((i, cred_name, cred_active, cred_mandatory, 2))
+        credentials.append((i, cipher_suite.encrypt(bytes(cred_name)),
+                            cipher_suite.encrypt(bytes(int(cred_active))),
+                            cipher_suite.encrypt(bytes(int(cred_mandatory))), 2))
         i += 1
-
     cursor.executemany("""
     INSERT INTO credential(credential_id, credential_name, active, mandatory, setting_id)
       VALUES(?,?,?,?,?)
@@ -496,11 +499,10 @@ def db_save(new_settings, default_smtp_pw_reuse):
     results = []
     i = 8
     for result in new_settings["results_settings"]:
-        result_type = result
-        result_active = new_settings["results_settings"][result]
+        result_type = cipher_suite.encrypt(bytes(result))
+        result_active = cipher_suite.encrypt(bytes(int(new_settings["results_settings"][result])))
         results.append((i, result_type, result_active, 2))
         i += 1
-
     cursor.executemany("""
     INSERT INTO result(result_id, result_type, active, setting_id)
       VALUES(?,?,?,?)
@@ -510,11 +512,6 @@ def db_save(new_settings, default_smtp_pw_reuse):
     db.close()
 
     default_settings = new_settings
-
-    print "\n-------------------- Settings saved in back end"
-    for i in default_settings:
-        print i, default_settings[i]
-    print
 
 
 if __name__ == '__main__':

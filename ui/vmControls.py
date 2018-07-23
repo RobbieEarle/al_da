@@ -1,19 +1,29 @@
 import subprocess
 import time
 
+# p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" showvminfo "sandbox"',
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE)
+# for line in p.stdout:
+#     print line
+
+
+
+# ----------------------------------------------
+
 # p = subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
 # p = subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Default')
 # # p = subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" discardstate sandbox')
 # p = subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless')
 
 
-p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-for line in p.stdout:
-    print line
-p.communicate()
-
+# p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff',
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE)
+# for line in p.stdout:
+#     print line
+# p.communicate()
+#
 p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
@@ -21,13 +31,15 @@ for line in p.stdout:
     print line
 p.communicate()
 
-# p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless',
-#                 stdout=subprocess.PIPE,
-#                 stderr=subprocess.PIPE)
-# for line in p.stdout:
-#     print line
-# p.communicate()
+p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+for line in p.stdout:
+    print line
+p.communicate()
 
+
+# ----------------------------------------------
 
 # p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" list vms',
 #                 stdout=subprocess.PIPE,

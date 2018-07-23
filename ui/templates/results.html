@@ -3,7 +3,7 @@
 
     <div id="results_scroll_to"></div>
 
-    <section id="results" uib-collapse="!show_results" ng-controller="ResultsController">
+    <section id="results" uib-collapse="!show_results" ng-controller="ResultsController" ng-class="{'pad-foot-big': !display_results}">
 
         <section class="container container-with-overflow container-header pad-head">
             <div>
@@ -11,7 +11,7 @@
             </div>
         </section>
 
-        <div ng-if="scan_success" class="container container-with-overflow pad bg-green">
+        <div ng-if="hide_mal_files" class="container container-with-overflow pad bg-green">
 
             <div class="result-split-left">
                 <div class="result-msg-title">
@@ -27,9 +27,10 @@
             </div>
 
         </div>
-        <div ng-if="!scan_success" class="container container-with-overflow pad bg-red">
 
-            <div class="result-split-left">
+        <div ng-if="!hide_mal_files" class="container container-with-overflow pad bg-red">
+
+            <div class="result-split-left big-pad">
                 <div class="result-msg-title">
                     <b>Warning: Malware has been detected on this device</b>
                 </div>
@@ -44,10 +45,18 @@
 
         </div>
 
-        <section class="container container-with-overflow">
+        <section ng-if="display_results && (!hide_mal_files || results_settings.safe_files)" class="container container-with-overflow">
 
-            <div class="pad-head">
-                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!scan_success && results_settings.mal_files" uib-collapse="results_clear">
+            <div class="text-center" uib-collapse="hide_btn">
+                <div class="pad-head pad">
+                    <button type="button" class='btn btn-default btn-style-blue btn-large' ng-click="btn_new_session()">
+                        Begin new session
+                    </button>
+                </div>
+            </div>
+
+            <div class="pad-head" uib-collapse="results_clear">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!hide_mal_files && results_settings.mal_files" uib-collapse="results_clear">
                     <p><b>Potentially malicious files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
 
@@ -122,8 +131,9 @@
                     </div>
                 </div>
 
-                <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted" uib-collapse="results_clear" ng-if="results_settings.safe_files">
-                    <p ng-if="show_pass_header"><b>Safe files</b></p>
+                <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted"
+                     ng-if="results_settings.safe_files && !hide_pass_files">
+                    <p><b>Safe files</b></p>
                     <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'" class="panel-default">
 
                         <div uib-accordion-heading>

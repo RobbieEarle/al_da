@@ -122,7 +122,8 @@
 
                         <div class="pad-button">
                             <button type="button" class='btn btn-default btn-style-blue'
-                                    ng-disabled="al_address=='' || al_username=='' || al_api_key==''"
+                                    ng-disabled="al_address=='' || al_username=='' || al_api_key==''
+                                    || testing_conneciton"
                                     ng-click="btn_al_connect()">Test connection</button>
                             <img ng-if="show_al_waiting" class="waiting-gif" src="/static/images/spinner.svg">
                             <i class="fas fa-check smtp_result_icon icon-green" ng-if="test_al_connect_success"></i>
@@ -184,9 +185,13 @@
 
                                     <div class="form-title pad"><b>Remove Recipient</b></div>
 
-                                    <div ng-if="no_recipients" class="small-pad setting-indent">No recipients added</div>
+                                    <div ng-if="no_recipients" class="small-pad setting-indent">
+                                        No recipients added
+                                    </div>
 
-                                    <div ng-repeat="address in recipients_show" class="small-pad setting-indent clickable" ng-click="remove_recipient(address)">
+                                    <div ng-repeat="address in recipients_show"
+                                         class="small-pad setting-indent clickable"
+                                         ng-click="remove_recipient(address)">
 
                                         <i class="fas fa-minus-circle icon-red" style="display: inline"></i>
                                         <div class="small-indent" style="display:inline">//address//</div>
@@ -210,7 +215,8 @@
                                     <input type="text" class="form" ng-disabled="!default_settings.email_alerts"
                                            ng-value="default_settings.smtp_server"
                                            ng-model="default_settings.smtp_server"
-                                           ng-change="test_smtp_connect_success = false; test_smtp_connect_fail = false"/>
+                                           ng-change="test_smtp_connect_success = false;
+                                           test_smtp_connect_fail = false"/>
 
                                 </form>
                                 <form novalidate class="form-small">
@@ -220,7 +226,8 @@
                                     <input type="text" class="form" ng-disabled="!default_settings.email_alerts"
                                            ng-value="default_settings.smtp_port"
                                            ng-model="default_settings.smtp_port"
-                                           ng-change="test_smtp_connect_success = false; test_smtp_connect_fail = false"/>
+                                           ng-change="test_smtp_connect_success = false;
+                                            test_smtp_connect_fail = false"/>
 
 
                                 </form>
@@ -234,7 +241,8 @@
                                     <input type="text" class="form" ng-disabled="!default_settings.email_alerts"
                                            ng-value="default_settings.smtp_username"
                                            ng-model="default_settings.smtp_username"
-                                           ng-change="clear_pw(); test_smtp_connect_success = false; test_smtp_connect_fail = false"/>
+                                           ng-change="clear_pw(); test_smtp_connect_success = false;
+                                           test_smtp_connect_fail = false"/>
 
                                 </form>
                                 <form novalidate class="form-small" name="smtp_password_form">
@@ -246,7 +254,8 @@
                                            ng-value="default_settings.smtp_password"
                                            ng-model="default_settings.smtp_password"
                                            ng-click="clear_pw()"
-                                           ng-change="test_smtp_connect_success = false; test_smtp_connect_fail = false"/>
+                                           ng-change="test_smtp_connect_success = false;
+                                           test_smtp_connect_fail = false"/>
 
                                 </form>
                             </div>
@@ -255,14 +264,17 @@
 
                                 <button type="button" class='btn btn-default btn-style-blue'
                                         ng-disabled="smtp_server=='' || smtp_port=='' || smtp_username==''
-                                        || !default_settings.email_alerts"
+                                        || !default_settings.email_alerts || testing_connection"
                                         ng-click="btn_email_connect()">
                                     Test connection
                                 </button>
                                 <img ng-if="show_smtp_waiting" class="waiting-gif" src="/static/images/spinner.svg">
-                                <i class="fas fa-check smtp_result_icon icon-green" ng-if="test_smtp_connect_success"></i>
-                                <i class="fas fa-times smtp_result_icon icon-red" ng-if="test_smtp_connect_fail"></i>
-                                <div class="pad-head indent" ng-if="test_smtp_connect_fail || test_smtp_connect_success">
+                                <i class="fas fa-check smtp_result_icon icon-green"
+                                   ng-if="test_smtp_connect_success"></i>
+                                <i class="fas fa-times smtp_result_icon icon-red"
+                                   ng-if="test_smtp_connect_fail"></i>
+                                <div class="pad-head indent"
+                                     ng-if="test_smtp_connect_fail || test_smtp_connect_success">
                                     //smtp_test_txt//
                                 </div>
 
@@ -386,7 +398,8 @@
 
             <div class="big-pad pad-button">
                 <button type="button" class='btn btn-default btn-style-blue btn-large pad'
-                        ng-click="btn_save_settings()" ng-disabled="show_smtp_waiting || show_al_waiting">
+                        ng-click="btn_save_settings()"
+                        ng-disabled="show_smtp_waiting || show_al_waiting || testing_connection">
                     Save admin settings
                 </button>
             </div>

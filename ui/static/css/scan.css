@@ -1,7 +1,8 @@
 /* ------- Elements ------- */
 
 #main-scan {
-    padding-top: 85px;
+    padding-top: 25px;
+    padding-bottom: 45px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
 }
@@ -13,7 +14,7 @@
 .connect-icon {
     width: 30%;
     /*opacity: 0.9;*/
-    padding-right: 15px;
+    padding-right: 20px;
 	animation-fill-mode: forwards;
     display: inline-block;
     vertical-align: center;
@@ -188,6 +189,14 @@
 
 
 /* ------- Animations ------- */
+
+.anim {
+    -webkit-transition: all linear 0.2s;
+    -moz-transition: all linear 0.2s;
+    -ms-transition: all linear 0.2s;
+    -o-transition: all linear 0.2s;
+    transition: all linear 0.2s;
+}
 
 .fade-anim{
   display:inline !important;

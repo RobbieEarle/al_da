@@ -10,7 +10,7 @@
 
         <section id="body" ng-controller="ScanController">
 
-            <div id="img_prompt" class="container container-with-overflow container-img z0"
+            <div id="img_prompt" class="container container-with-overflow container-img anim z0"
                      ng-class="{'bg-light-green': mini_kiosk && device_connected,
                      'bg-light-red': mini_kiosk && !device_connected}">
                 <div>
@@ -30,7 +30,7 @@
 
             <div uib-collapse="hide_output">
 
-                <section id="output" ng-if="output_active" class="container container-with-overflow z0">
+                <section id="output" class="container container-with-overflow z0">
 
                     <section id="credentials" ng-if="curr_screen==1">
 
@@ -59,6 +59,15 @@
                                 </div>
                             </form>
 
+                        </div>
+
+                        <div class="text-center">
+                            <div class="big-pad">
+                                <button type="button" class='btn btn-default btn-style-blue btn-medium'
+                                        ng-disabled="credential_check()"
+                                        ng-click="btn_start_scan()">Start scan
+                                </button>
+                            </div>
                         </div>
 
                     </section>
@@ -100,15 +109,6 @@
                             <!--</div>-->
                         <!--</div>-->
                     <!--</div>-->
-
-                    <div ng-if="curr_screen == 1 || curr_screen == 3" class="text-center"
-                         ng-class="{'pad-head': curr_screen == 3}">
-                        <div class="big-pad">
-                            <button type="button" class='btn btn-default btn-style-blue btn-medium'
-                                    ng-disabled="credential_check()"
-                                    ng-click="btn_handle_nav()">//btn_text//</button>
-                        </div>
-                    </div>
 
                 </section>
 

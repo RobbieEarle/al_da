@@ -13,43 +13,83 @@ app.controller('ScanController', ['$scope', '$rootScope',
     function ScanController($scope, $rootScope) {
 
 
-        // ----------------------- Default Property Values
+        // ----------------------- Default Values
 
+        // Footer / disclaimer message
         $scope.kiosk_footer = 'To submit files for analysis please enter valid credentials, plug a ' +
             'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
             'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
             'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
             'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
             'the device owner.';
+
+        // Large image prompt that shows before device is connected
         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+
+        // Text that accompanies kiosk_img
         $scope.kiosk_img_sub = 'Please attach block device';
+
+        // When a device is added / removed, this string records the type of event that occurred. Is used by our
+        // animOutputHeader animation directive; when any device event occurs, the current kiosk_img fades, and this
+        // variable tells it which image to change it to before reappearing
         $scope.device_event = '';
-        $scope.kiosk_output = '';
-        $scope.hide_output = true;
-        $scope.f_name = '';
-        $scope.l_name = '';
-        $scope.credentials_given = false;
-        $scope.scan_finished = false;
+
+        // Used to control what UI elements are shown in the output section of our scan container.
+        // Screen 0: No device attached; kiosk_img prompts user to plug in device
+        // Screen 1: Device detected and Assemblyline server connection successful; prompts user to enter credentials
+        // Screen 2: Credentials have been entered; scanning
         $scope.curr_screen = 0;
-        $scope.btn_text = "Start scan";
+
+        // Controls the text output that appears in our large textbox while scanning (screen 2)
+        $scope.kiosk_output = '';
+
+        // Controls whether or not the output part of our scanning container is shown. What this section displays
+        // depends on which screen is currently active
+        $scope.hide_output = true;
+
+
         $scope.vm_restart = false;
         $scope.show_refresh = false;
 
-        $scope.files_submitted = 0;
-        $scope.files_received = 0;
-        $scope.files_waiting = 0;
-        $scope.percentage_received = 0;
-        $scope.percentage_sent = 0;
-        $scope.received_outout = '';
-        $scope.submit_outout = '';
-        $scope.received_type = 'received';
-        $scope.sent_type = 'sent';
 
+        // Total number of files that have been submitted to the AL server
+        $scope.files_submitted = 0;
+
+        // Total number of files that have been received by the AL server and have sent back a confirmation message
+        $scope.files_received = 0;
+
+        // Total number of files waiting to be submitted to the AL server
+        $scope.files_waiting = 0;
+
+        // Percentage of files that have been received by the AL server from the total number of submitted files
+        $scope.percentage_received = 0;
+
+        // Percentage of files that have not been received by the AL service from the total number of submitted files
+        $scope.percentage_sent = 0;
+
+        // Controls the text that appears over the 'received' portion of the progress bar while scanning. Is variable
+        // because this value can be set to "Searching for more files" if all submitted files have been received but
+        // there are still files yet to be submitted
+        $scope.received_outout = '';
+
+        // Handles the 'type' parameter of the received bar. Depending on what's happening in our scan, can either be
+        // set to received, scanning, or done
+        $scope.received_type = 'received';
+
+
+        // Dict that is populated by our Flask back end based on the credentials chosen by the user in the admin page
         $scope.credentials = {};
+
+        // Controls whether or not 'Connected' / 'Disconnected' mini display shows that the top of our output container.
+        // This appears whenever our kiosk_img prompt is minimized (ie. on all screens except for 0)
         $scope.mini_kiosk = false;
+
+        // Text output that shows in our mini kiosk
         $scope.mini_kiosk_sub = 'No device connected';
+
+        // Simply reflects whether or not a device is currently connected - is used to control the background color of
+        // our mini kiosk (turns green / red if a devices is connected / disconnected)
         $scope.device_connected = false;
-        $scope.output_active = true;
 
 
         // ----------------------- Socket Event Handlers
@@ -69,21 +109,48 @@ app.controller('ScanController', ['$scope', '$rootScope',
             Handles device events outputted by our back end script
             */
 
-            // Called when a device is first connected
+            // Called when a device is first connected. Resets all variables related to our scan progress bar screen
+            // (these variables will have have been reset previously when the device was removed, but this occurs
+            // again just in case in the interim a straggling file was sent through by the back end app)
             if (event === 'connected') {
 
                 _.defer(function () {
                     $scope.$apply(function () {
-
                         $scope.files_submitted = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.files_received = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.files_waiting = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.percentage_received = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.percentage_sent = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.received_outout = '';
-                        $scope.submit_outout = '';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.received_type = 'received';
-                        $scope.sent_type = 'sent';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
                         $scope.kiosk_output = '';
                     });
                 });
@@ -91,31 +158,40 @@ app.controller('ScanController', ['$scope', '$rootScope',
             }
 
             // Called when all our files have been successfully scanned
-            else if (event === 'done_loading')
-                _.defer(function() {
-                    $scope.$apply(function () {$scope.scan_finished = true;});
-                    $scope.received_type = 'done';
-                    $scope.received_output = "All files successfully scanned";
-                    $scope.kiosk_img = '/static/images/scrape_pass.svg';
-                    $scope.kiosk_img_sub = "Session complete";
+            else if (event === 'done_loading') {
 
-                    // setTimeout(function(){
-                    //     _.defer(function() {
-                    //         $scope.$apply(function () {
-                    //             $scope.hide_output = true;
-                    //         })
-                    //     })
-                    // }, 500);
-
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                $rootScope.$emit("scroll_results", {});
-                            })
-                        })
-                    }, 1500);
-
+                // Changes progress bar background to dark green and caption to indicate session was completed
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_type = 'done';
+                    });
                 });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_output = "All files successfully scanned";
+                    });
+                });
+
+                // Hides our scan screen and makes the results page visible
+                setTimeout(function () {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+
+                            $scope.hide_output = true;
+
+                            setTimeout(function () {
+                                _.defer(function () {
+                                    $scope.$apply(function () {
+                                        $rootScope.$emit("scroll_results", {});
+                                    })
+                                });
+                            }, 1000);
+
+                        })
+                    })
+                }, 1500);
+
+            }
 
             // Called when a device is disconnected
             else if (event === 'disconnected') {
@@ -123,67 +199,33 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 // socket.emit('vm_control', 'restart');
                 // $scope.vm_restart = true;
 
-                // Scrolls to top of screen
-                _.defer(function () {
-                    $scope.$apply(function () {
-
-                        $scope.device_connected = false;
-                        $scope.mini_kiosk_sub = 'Device Disconnected';
-
-                        const intersectionObserver = new IntersectionObserver((entries) => {
-                            let [entry] = entries;
-                            if (entry.isIntersecting) {
-                                setTimeout(() => document.getElementById('main-scan').scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                }))
-                            }
-                        });
-                        intersectionObserver.observe(results);
-
-                    });
-
-                });
-
-                if (!$scope.scan_finished){
+                // If our scan never got a chance to finish, starts a new session
+                if ($scope.received_type !== 'done'){
                     $scope.new_session();
                 }
 
-                // If our scan was finished (ie. results were shown), shows a button to start a new session (this way
-                // the user can unplug their device and they can still read through the results)
-                else if ($scope.curr_screen !== 3){
-
-                    // Hides our output screen
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                $scope.hide_output = true;
-                            })
-                        })
-                    }, 1000);
-
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                $scope.curr_screen = 3;
-                                $scope.btn_text = "Finish session";
-                            });
-                        });
-                    }, 2300);
-
-                    setTimeout(function(){
-                        _.defer(function() {
-                            $scope.$apply(function () {
-                                $scope.hide_output = false;
-                            });
-                        });
-                    }, 2300);
+                // If our scan was finished (ie. results were shown), shows a button to start a new session without
+                // removing the results from the previous session (this way the user can unplug their device and they
+                // can still read through the results)
+                else {
+                    $rootScope.$emit("device_removed", {});
                 }
+
+                // Makes mini-kiosk change to red and display "Device disconnected"
+                setTimeout(function () {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.device_connected = false;
+                            $scope.mini_kiosk_sub = 'Device Disconnected';
+                        });
+                    });
+                }, 1500);
 
             }
 
-            // If our scan isn't finished, changes the device_event variable, which will trigger an animation in our
-            // kiosk_img
+            // If we are still in screen 0 (ie. our large kiosk_img is still visible), then we alter our device_event
+            // variable which is being watched by our animation directive. Will change the image being displayed
+            // depending on the device event
             if ($scope.curr_screen === 0)
                 _.defer(function() {
                     $scope.$apply(function () {
@@ -253,7 +295,6 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     // If there are still files left to submit or receive, formats progress bar to show how many
                     if ($scope.files_waiting !== 0) {
                         $scope.received_type = 'received';
-                        $scope.sent_type = 'sent';
                         $scope.received_output = "Scanned: " + $scope.files_received;
                         $scope.submit_output = "Queue: " + $scope.files_waiting;
                     }
@@ -261,9 +302,9 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     // If there are no files left to receive but the scan has not finished (ie. has not been told by
                     // by the back end that all partitions are done loading and scanning) then the progress bar
                     // indicates that it is waiting for more files
-                    else if (!$scope.scan_finished){
+                    else if ($scope.received_type !== 'done'){
                         setTimeout(function(){
-                            if ($scope.files_waiting === 0 && !$scope.scan_finished) {
+                            if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
                                 _.defer(function() {
                                     $scope.$apply(function () {
                                         $scope.received_type = 'scanning';
@@ -289,6 +330,18 @@ app.controller('ScanController', ['$scope', '$rootScope',
                     $scope.show_refresh = false;
                 });
             });
+
+        });
+
+
+        // ----------------------- Root Scope Event Handlers
+
+        $rootScope.$on("new_session", function () {
+            /*
+            Called by the results controller when the user clicks the 'Begin new session' button
+             */
+
+            $scope.new_session();
 
         });
 
@@ -349,57 +402,50 @@ app.controller('ScanController', ['$scope', '$rootScope',
 
         // ----------------------- Button Event Handlers
 
-        $scope.btn_handle_nav = function() {
+        $scope.btn_start_scan = function() {
             /*
-            Called by our main button. Action taken depends on the current screen
+            Called by the "Start scan" button in our credentials screen
              */
 
-            if ($scope.curr_screen === 1)
-                _.defer(function() {
+            // Changes the current screen from 1 (credentials) to 2 (scanning)
+            _.defer(function() {
+                $scope.$apply(function () {
+                    $scope.hide_output = true;
+                });
+            });
+            setTimeout(function () {
+                _.defer(function () {
                     $scope.$apply(function () {
-
-                        $scope.hide_output = true;
-
-                        setTimeout(function(){
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.curr_screen = 2
-                                });
-                            });
-                        }, 1500);
-
-                        setTimeout(function(){
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.hide_output = false;
-                                });
-                            });
-                        }, 1800);
-
-                        setTimeout(function(){
-
-                            let credentials = [];
-
-                            for (var i=0; i<$scope.credentials.length; i++){
-                                if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
-                                    credentials.push({
-                                        'name': $scope.credentials[i].name,
-                                        'value': $scope.credentials[i].session_val
-                                    })
-                                }
-                            }
-                            socket.emit('fe_set_session_credentials', credentials);
-
-                        }, 2000);
-
+                        $scope.curr_screen = 2;
                     });
                 });
+            }, 1000);
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.hide_output = false;
+                    });
+                });
+            }, 1200);
 
-            else if ($scope.curr_screen === 3) {
+            // Sends the given user credentials to the back end (if an alert is generated, these results will be sent
+            // in an email alert)
+            setTimeout(function () {
 
-                $scope.new_session();
+                let credentials = [];
 
-            }
+                for (var i = 0; i < $scope.credentials.length; i++) {
+                    if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
+                        credentials.push({
+                            'name': $scope.credentials[i].name,
+                            'value': $scope.credentials[i].session_val
+                        })
+                    }
+                }
+                socket.emit('fe_set_session_credentials', credentials);
+
+            }, 2000);
+
         };
 
 
@@ -437,7 +483,6 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.curr_screen = 1;
-                        $scope.btn_text = "Start scan";
                     });
                 });
             }, 1200);
@@ -451,49 +496,22 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 });
             }, 1800);
 
-            // setTimeout(function(){
-            //     _.defer(function() {
-            //         $scope.$apply(function () {
-            //
-            //             $scope.curr_screen = 1;
-            //             $scope.btn_text = "Start scan";
-            //
-            //         });
-            //     });
-            // }, 200);
-
-            setTimeout(function(){
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.output_active = true;
-                    });
-                });
-            }, 2300);
-
+            // Reveals our output screen
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.hide_output = false;
                     });
                 });
-            }, 2700);
-
-            // setTimeout(function(){
-            //     _.defer(function() {
-            //         $scope.$apply(function () {
-            //
-            //             setTimeout(() => document.getElementById('credentials').scrollIntoView({
-            //                 behavior: 'smooth',
-            //                 block: 'start'
-            //             }));
-            //
-            //         });
-            //     });
-            // }, 2200);
+            }, 2400);
 
         };
 
         $scope.credential_check = function() {
+            /*
+            Called when our main nav button is clicked in the credentials screen - returns whether or not all mandatory
+            fields have been filled out
+             */
 
             let form_incomplete = false;
 
@@ -508,23 +526,35 @@ app.controller('ScanController', ['$scope', '$rootScope',
         };
 
         $scope.new_session = function() {
+            /*
+            Called when a session is completed, either by completing a scan and clicking the main nav button, or by
+            unplugging the device before the scan has finished. Resets all variables used by this controller to their
+            default values
+             */
 
+            // Emits message to the results controller telling it to clear all results
             $rootScope.$emit("clear_results", {});
 
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.hide_output = true;
-                        $scope.mini_kiosk = false;
                     })
                 });
             }, 1000);
+
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.mini_kiosk = false;
+                    })
+                });
+            }, 1100);
 
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.curr_screen = 0;
-                        $scope.btn_text = "Start scan";
                     })
                 });
             }, 2200);
@@ -548,22 +578,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 });
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.f_name = '';
-                    });
-                });
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.l_name = '';
-                    });
-                });
-                _.defer(function() {
-                    $scope.$apply(function () {
                         $scope.credentials_given = false;
-                    });
-                });
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.scan_finished = false;
                     });
                 });
                 _.defer(function() {
@@ -593,17 +608,7 @@ app.controller('ScanController', ['$scope', '$rootScope',
                 });
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.submit_outout = '';
-                    });
-                });
-                _.defer(function() {
-                    $scope.$apply(function () {
                         $scope.received_type = 'received';
-                    });
-                });
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.sent_type = 'sent';
                     });
                 });
                 _.defer(function() {
@@ -616,12 +621,6 @@ app.controller('ScanController', ['$scope', '$rootScope',
                         $scope.mini_kiosk_sub = 'No device connected';
                     });
                 });
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.output_active = false;
-                    });
-                });
-
 
             }, 2500);
 
@@ -646,11 +645,14 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
         // ----------------------- Default Property Values
 
-        // By default the results panel is not shown
-        $scope.show_results = true; // Changed
-        $scope.show_pass_header = true;
-        $scope.scan_success = false;
-        $scope.no_files = false;
+        // Controls whether or not the results container is visible
+        $scope.show_results = false;
+
+        // I AM CURRENTLY RIGHT HERE. Just made it so these next two work. They are important (particularly
+        // hide_mal_files), so write detailed descriptions
+        $scope.hide_pass_files = false;
+        $scope.hide_mal_files = false;
+
         $scope.file_tree = [];
         $scope.results_cleared = false;
         $scope.tbl_pass_files = [];
@@ -659,513 +661,25 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         $scope.failure_message = "Use of this device on-site is strictly prohibited, without exception. " +
             "An alert for this session has been generated - for more information on why this device was flagged " +
             "and for repair advice, please contact network administration.";
+        $scope.display_results = true;
 
         $scope.result_settings = {};
+        $scope.hide_btn = true;
 
-        $scope.tbl_pass_files = [{"alert": {"sid": "ae638cb2-473b-42f7-9fdb-a6b343b0dff2"},
-            "entropy": 7.998910633683879, "md5": "9b7e276dbf10e878bbb1da3a3527298b", "metadata": {"al_score": 10,
-                "filename": "00013a259cca6af04a2f1e9b164f8764.cart", "path": "/00013a259cca6af04a2f1e9b164f8764.cart",
-                "ts": "2018-06-14T18:13:36.129035Z", "type": "TERMINAL"}, "overrides": {"classification": "U",
-                "deep_scan": false,
-                "description": "[TERMINAL] Inspection of file: 00013a259cca6af04a2f1e9b164f8764.cart",
-                "generate_alert": false, "groups": ["ADMIN", "INTERNAL", "USERS"], "ignore_cache": false,
-                "ignore_filtering": false, "max_extracted": 100, "max_supplementary": 100,
-                "notification_queue": "nq-ingest_queue", "notification_threshold": null, "params": {},
-                "priority": 150, "profile": true, "resubmit_to": [], "scan_key": "826e494f4f03a2647e46eca68581b7f8v0",
-                "selected": ["Extraction", "Static Analysis"], "submitter": "admin", "ttl": 1}, "priority": 150,
-            "sha1": "7906bf28db8b6fedf5118148e0f6215fb75a3301",
-            "sha256": "2b78499bccc9242a520fb829a75ad94631aa87fd1af7caa55f4f0f0e66623c75",
-            "size": 151955, "type": "TERMINAL"}];
-
-        $scope.tbl_mal_files = [{"__access_grp1__": [], "__access_grp2__": [], "__access_lvl__": 100,
-            "__access_req__": [], "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-            "error_count": 0, "errors": {}, "file_count": 1,
-            "file_infos": {"da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z",
-                    "ascii": "MZ......................@.......................................", "classification": "U",
-                    "entropy": 6.421611311772033,
-                    "hex": "4d5a90000300000004000000ffff0000b800000000000000400000000000000000000000000000000000000000" +
-                    "00000000000000000000000000000000010000",
-                    "magic": "PE32 executable (GUI) Intel 80386, for MS Windows",
-                    "md5": "928496e69c5d866be4fb0b1772c189be", "mime": "application/x-dosexec",
-                    "path": "/opt/al/var/storage/d/a/3/3/da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405",
-                    "seen_count": 5, "seen_first": "2018-06-11T11:56:30.093602Z",
-                    "seen_last": "2018-06-14T12:34:47.270150Z", "sha1": "0745fbe9efe30a198b6dbd77a9609675beac215d",
-                    "sha256": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405", "size": 206055,
-                    "ssdeep": "6144:OnqKQ2Oq3ScuA05A+O4PlDfZIkbaRF30zt:Uqhq3M5A+XfhaD3K",
-                    "tag": "executable/windows/pe32"}},
-            "file_tree": {"da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405": {"children": {},
-                    "name": ["encr_zipped.exe"], "score": 500, "truncated": false}}, "files": [["encr_zipped.exe",
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"]], "missing_error_keys": [],
-            "missing_result_keys": [], "original_classification": "U",
-            "results": {"da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.Characterize.v3_2_1_15b2546.c9af8dc23868c7a0b77ac7fa5462169d1": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-                    "created": "2018-06-11T11:57:25.715424Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 1528718245.714886, "service_started": 1528718244.266917},
-                        "service_debug_info": "serviced_on:134.190.171.253", "service_name": "Characterize",
-                        "service_version": "3.2.1.15b2546", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 0,
-                        "sections": [{"body": "{\"data\": {\"domain\": [0, 8], \"values\": [5.748253187785483, 6.542889298247493," +
-                            " 6.470144396531276, 6.430949722923447, 6.502342075108687, 6.436025915585477, 6.370626176565232," +
-                            " 6.2846292824920695, 6.451053061066855, 6.355398768716942, 6.3134009352519564, 6.304354851724692," +
-                            " 6.447798857740375, 6.330096324973816, 6.261475865415476, 6.292573596408905, 6.32795907470598," +
-                            " 6.262659900675129, 6.2553297835516135, 6.3458495993569635, 6.3097957118014305, 6.308424533870195," +
-                            " 6.423614390278547, 6.258038747413568, 6.477375835451488, 6.450139145389074, 6.374711116063272," +
-                            " 5.9614303142057326, 6.243520036118723, 6.360822161727341, 6.540045889325098, 6.319309800112523, " +
-                            "6.328305067779992, 6.309816990858867, 6.258406006115053, 6.423860750466091, 6.635611348674039, " +
-                            "6.029003709462403, 6.540626109569218, 5.642985643703778, 5.611032551953858, 5.196045251945204, " +
-                            "5.556476400790668, 2.854735759495643, 2.9292875784729477, 3.0322410642164295, 3.6348811293619185, " +
-                            "4.1105297730915975, 3.193565398237177, 3.3925105370569284]}, \"type\": \"colormap\"}",
-                            "body_format": "GRAPH_DATA", "classification": "U", "depth": 0,
-                            "finalized": true, "links": [], "score": 0, "subsections": [],
-                            "title_text": "Entropy.\tEntire File: 6.422", "truncated": false}], "tags": [],
-                        "tags_score": 0, "truncated": false},
-                    "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.Cleaver.v3_2_1_cb1c6fc.c9af8dc23868c7a0b77ac7fa5462169d1.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [], "__expiry_ts__": "2018-06-15T12:34:47.216939Z",
-                    "classification": "U", "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 0.0, "service_started": 0.0}, "service_name": "Cleaver",
-                        "service_version": "3.2.1.cb1c6fc", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 0, "sections": [], "tags": [], "tags_score": 0,
-                        "truncated": false}, "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.ConfigDecoder.v3_2_1_8555995.ce0272a2a4ccfd099cb4c1cf1e90660a5.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-                    "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 0.0, "service_started": 0.0},
-                        "service_name": "ConfigDecoder", "service_version": "3.2.1.8555995", "supplementary": []},
-                    "result": {"classification": "U", "context": null, "default_usage": null, "score": 0,
-                        "sections": [], "tags": [], "tags_score": 0, "truncated": false},
-                    "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.Extract.v3_2_1_046cb99.c5a81b9e89b2ace98914a5fa949af9c38": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-                    "created": "2018-06-11T11:56:38.340956Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 1528718198.339562, "service_started": 1528718191.739171},
-                        "service_debug_info": "serviced_on:134.190.171.253", "service_name": "Extract",
-                        "service_version": "3.2.1.046cb99", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 500, "sections": [{"body": "",
-                            "body_format": null, "classification": "U", "depth": 0, "finalized": true, "links": [],
-                            "score": 500, "subsections": [], "title_text": "Failed to extract password protected file.",
-                            "truncated": false}], "tags": [{"classification": "U", "context": null,
-                            "type": "FILE_SUMMARY", "usage": null, "value": "Archive Unknown Password",
-                            "weight": 10}], "tags_score": 10, "truncated": false},
-                    "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.FrankenStrings.v3_2_1_1b0e1a4.c9af8dc23868c7a0b77ac7fa5462169d1.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-                    "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 0.0, "service_started": 0.0},
-                        "service_name": "FrankenStrings", "service_version": "3.2.1.1b0e1a4", "supplementary": []},
-                    "result": {"classification": "U", "context": null, "default_usage": null, "score": 0,
-                        "sections": [], "tags": [], "tags_score": 0, "truncated": false},
-                    "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.MetaPeek.v3_2_1_61e0638.c9af8dc23868c7a0b77ac7fa5462169d1.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-                    "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 0.0, "service_started": 0.0}, "service_name": "MetaPeek",
-                        "service_version": "3.2.1.61e0638", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 0, "sections": [], "tags": [], "tags_score": 0,
-                        "truncated": false}, "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.PEFile.v3_2_1_fe93950.c9af8dc23868c7a0b77ac7fa5462169d1": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [],
-                    "__expiry_ts__": "2018-06-15T12:34:47.216939Z", "classification": "U",
-                    "created": "2018-06-11T11:56:44.039390Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 1528718204.01487, "service_started": 1528718199.698322},
-                        "service_debug_info": "serviced_on:134.190.171.253", "service_name": "PEFile",
-                        "service_version": "3.2.1.fe93950", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 0, "sections": [{"body": "",
-                            "body_format": null, "classification": "U", "depth": 0, "finalized": true, "links": [],
-                            "score": 0, "subsections": [{"body": "Entry point address: 0x0002769C\nLinker Version: " +
-                                "06.00\nOS Version: 04.00\nTime Date Stamp: Mon Apr 30 09:00:00 2018 (1525089600)\nMachine" +
-                                " Type: 0x14c (IMAGE_FILE_MACHINE_I386)", "body_format": null, "classification": "U",
-                                "depth": 1, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "[HEADER INFO]", "truncated": false},
-                                {"body": "VC++ tools used:\nTool Id:  11 Version:   8047 Times used:   3\nTool Id:" +
-                                    "  14 Version:   7299 Times used:   8\nTool Id:  10 Version:   8047 Times used:" +
-                                    "  11\nTool Id:   4 Version:   8047 Times used:   2\nTool Id:  95 Version:" +
-                                    "   2190 Times used:   2\nTool Id:   1 Version:      0 Times used: 160\nTool Id:" +
-                                    "  93 Version:   2179 Times used:  13\nTool Id:  11 Version:   9782 Times used:" +
-                                    "  88\nTool Id:  10 Version:   9782 Times used:   3\nTool Id: 170 Version:" +
-                                    "  40219 Times used:  15\nTool Id: 158 Version:  40219 Times used:   2\nTool Id:" +
-                                    "   6 Version:   1735 Times used:   1", "body_format": null, "classification": "U",
-                                    "depth": 1, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                    "title_text": "[RICH HEADER INFO]", "truncated": false}, {"body": "IMPORT - va:" +
-                                    " 0x00030924 - size: 0x0000008C\nRESOURCE - va: 0x00038000 - size: 0x00002090\nIAT" +
-                                    " - va: 0x0002B000 - size: 0x00000234", "body_format": null, "classification": "U",
-                                    "depth": 1, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                    "title_text": "[DATA DIRECTORY]", "truncated": false}, {"body": ".text - Virtual: " +
-                                    "0x00001000 (0x000292C5 bytes) - Physical: 0x00000400 (0x00029400 bytes) - " +
-                                    "hash:36d2237fabbf741c1f79c3aaaa296f9f - entropy:6.670633 (min:0.0," +
-                                    " Max=8.0)\n.rdata - Virtual: 0x0002B000 (0x000064B0 bytes) - Physical: 0x00029800" +
-                                    " (0x00006600 bytes) - hash:d9f1b3704890e0acf8a1cec6d0199d44 - entropy:4.413999" +
-                                    " (min:0.0, Max=8.0)\n.data - Virtual: 0x00032000 (0x0000453C bytes) - Physical:" +
-                                    " 0x0002FE00 (0x00000200 bytes) - hash:39c61b5f714a00c2675e278516c908aa -" +
-                                    " entropy:3.384035 (min:0.0, Max=8.0)\n.sxdata - Virtual: 0x00037000 " +
-                                    "(0x00000004 bytes) - Physical: 0x00030000 (0x00000200 bytes) - " +
-                                    "hash:35925cfdc1176bd9ffc634a58b40ec17 - entropy:0.020393 (min:0.0, Max=8.0)\n.rsrc" +
-                                    " - Virtual: 0x00038000 (0x00002090 bytes) - Physical: 0x00030200 (0x00002200 bytes)" +
-                                    " - hash:fb925c412418e5e2a37568c9db0d7171 - entropy:3.163801 (min:0.0, Max=8.0)",
-                                    "body_format": null, "classification": "U", "depth": 1, "finalized": true,
-                                    "links": [], "score": 0, "subsections": [], "title_text": "[SECTIONS]",
-                                    "truncated": false}], "title_text": "PE: HEADER", "truncated": false}, {"body": "",
-                            "body_format": null, "classification": "U", "depth": 0, "finalized": true, "links": [],
-                            "score": 0, "subsections": [{"body": "SysFreeString, SysAllocStringLen, SysAllocString, " +
-                                "VariantClear, SysStringLen", "body_format": null, "classification": "U", "depth": 1,
-                                "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "[OLEAUT32.dll]", "truncated": false}, {"body": "CoCreateInstance, " +
-                                "CoInitialize, CoUninitialize, OleInitialize", "body_format": null, "classification":
-                                    "U", "depth": 1, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "[ole32.dll]", "truncated": false}, {"body": "CheckDlgButton, " +
-                                "IsDlgButtonChecked, EndDialog, SetDlgItemTextW, GetFocus, SetFocus, GetKeyState, " +
-                                "InvalidateRect, SetWindowTextW, EnableWindow, PostMessageW, MessageBoxW, SetTimer, " +
-                                "DialogBoxParamW, SetWindowLongW, GetWindowLongW, ShowWindow, MoveWindow, " +
-                                "ScreenToClient, GetDlgItem, GetWindowRect, MapDialogRect, SystemParametersInfoW, " +
-                                "GetWindowTextLengthW, GetWindowTextW, SendMessageW, LoadStringW, CharUpperW, " +
-                                "LoadIconW, GetParent, SetCursor, LoadCursorW, KillTimer", "body_format": null,
-                                "classification": "U", "depth": 1, "finalized": true, "links": [], "score": 0,
-                                "subsections": [], "title_text": "[USER32.dll]", "truncated": false},
-                                {"body": "SHGetPathFromIDListW, SHBrowseForFolderW, SHGetFileInfoW, SHGetMalloc",
-                                    "body_format": null, "classification": "U", "depth": 1, "finalized": true,
-                                    "links": [], "score": 0, "subsections": [], "title_text": "[SHELL32.dll]",
-                                    "truncated": false}, {"body": "wcsstr, wcscmp, _beginthreadex, _except_handler3, " +
-                                    "??1type_info@@UAE@XZ, ?terminate@@YAXXZ, __dllonexit, _onexit, _exit, _" +
-                                    "XcptFilter, exit, _acmdln, __getmainargs, _initterm, __setusermatherr, " +
-                                    "_adjust_fdiv, __p__commode, __p__fmode, __set_app_type, _controlfp, " +
-                                    "_CxxThrowException, malloc, memcpy, memmove, memset, _purecall, memcmp, " +
-                                    "__CxxFrameHandler, free", "body_format": null, "classification": "U",
-                                    "depth": 1, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                    "title_text": "[MSVCRT.dll]", "truncated": false}, {"body": "GetStartupInfoA, " +
-                                    "InitializeCriticalSection, ResetEvent, SetEvent, CreateEventW, " +
-                                    "WaitForSingleObject, lstrlenW, lstrcatW, VirtualFree, VirtualAlloc, " +
-                                    "SetPriorityClass, DeleteCriticalSection, Sleep, EnterCriticalSection, " +
-                                    "LeaveCriticalSection, WaitForMultipleObjects, GetFileInformationByHandle, " +
-                                    "GetStdHandle, GlobalMemoryStatus, GetSystemInfo, GetCurrentProcess, " +
-                                    "GetProcessAffinityMask, FileTimeToLocalFileTime, FileTimeToSystemTime, " +
-                                    "CompareFileTime, SetEndOfFile, WriteFile, ReadFile, SetFilePointer, " +
-                                    "GetFileSize, GetLogicalDriveStringsW, GetFileAttributesW, GetModuleHandleA, " +
-                                    "FindNextFileW, FindFirstFileW, FindClose, GetTickCount, GetCurrentDirectoryW, " +
-                                    "SetLastError, DeleteFileW, CreateDirectoryW, GetModuleHandleW, MoveFileW, " +
-                                    "RemoveDirectoryW, SetFileAttributesW, CreateFileW, SetFileTime, CloseHandle, " +
-                                    "GetSystemDirectoryW, FormatMessageW, LocalFree, GetModuleFileNameW, " +
-                                    "MultiByteToWideChar, GetLastError, GetVersionExW, LoadLibraryW, GetProcAddress, " +
-                                    "FreeLibrary, GetCommandLineW, LoadLibraryExW", "body_format": null,
-                                    "classification": "U", "depth": 1, "finalized": true, "links": [],
-                                    "score": 0, "subsections": [], "title_text": "[KERNEL32.dll]",
-                                    "truncated": false}], "title_text": "PE: IMPORTS", "truncated": false},
-                            {"body": "RT_ICON 0x1 0x0409 (English-United States) Size: 0x2e8\nRT_ICON 0x2 0x0409 " +
-                                "(English-United States) Size: 0x128\nRT_DIALOG 0x61 0x0409 (English-United States) " +
-                                "Size: 0x440\nRT_DIALOG 0xd48 0x0409 (English-United States) Size: " +
-                                "0x12e\nRT_DIALOG 0xdac 0x0409 (English-United States) Size: 0x2f4\nRT_DIALOG " +
-                                "0xed8 0x0409 (English-United States) Size: 0x126\nRT_STRING 0x1a 0x0409 " +
-                                "(English-United States) Size: 0x3e\nRT_STRING 0x1c 0x0409 (English-United States) " +
-                                "Size: 0x42\nRT_STRING 0x1d 0x0409 (English-United States) Size: 0x60\nRT_STRING " +
-                                "0x40 0x0409 (English-United States) Size: 0x30\nRT_STRING 0xbc 0x0409 (" +
-                                "English-United States) Size: 0x20c\nRT_STRING 0xbd 0x0409 (English-United States) " +
-                                "Size: 0xe4\nRT_STRING 0xcf 0x0409 (English-United States) Size: 0x34\nRT_STRING " +
-                                "0xd0 0x0409 (English-United States) Size: 0x30\nRT_STRING 0xd5 0x0409 " +
-                                "(English-United States) Size: 0x6e\nRT_STRING 0xd6 0x0409 (English-United States) " +
-                                "Size: 0x11a\nRT_STRING 0xd7 0x0409 (English-United States) Size: 0x6a\nRT_STRING " +
-                                "0xdc 0x0409 (English-United States) Size: 0x32\nRT_STRING 0xe8 0x0409 " +
-                                "(English-United States) Size: 0x1ea\nRT_STRING 0xe9 0x0409 (English-United States) " +
-                                "Size: 0x156\nRT_STRING 0xea 0x0409 (English-United States) Size: 0x56\nRT_STRING " +
-                                "0xec 0x0409 (English-United States) Size: 0xb6\nRT_GROUP_ICON 0x1 0x0409 " +
-                                "(English-United States) Size: 0x22\nRT_VERSION 0x1 0x0409 (English-United States) " +
-                                "Size: 0x2b0", "body_format": null, "classification": "U", "depth": 0,
-                                "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
-                                    "PE: RESOURCES", "truncated": false}, {"body": "LangId: 040904b0 (" +
-                                "English-United States)\nLegalCopyright: Copyright (c) 1999-2018 Igor " +
-                                "Pavlov\nInternalName: 7z.sfx\nFileVersion: 18.05\nCompanyName: Igor " +
-                                "Pavlov\nProductName: 7-Zip\nProductVersion: 18.05\nFileDescription: " +
-                                "7z SFX\nOriginalFilename: 7z.sfx.exe", "body_format": null, "classification": "U",
-                                "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "PE: RESOURCES-VersionInfo", "truncated": false},
-                            {"body": "DIALOG_TITLE: Progress\nBUTTON: &Background\nBUTTON: &Pause\nBUTTON:" +
-                                " Cancel\nSTATIC: Elapsed time:\nSTATIC: Remaining time:\nSTATIC: Files:\nSTATIC:" +
-                                " Compression ratio:\nSTATIC: Errors:\nSTATIC: Total size:\nSTATIC: Speed:\nSTATIC:" +
-                                " Processed:\nSTATIC: Compressed size:\nmsctls_progress32: Progress1\nSysListView32:" +
-                                " List1", "body_format": null, "classification": "U", "depth": 0, "finalized": true,
-                                "links": [], "score": 0, "subsections": [], "title_text": "PE: STRINGS - RT_DIALOG" +
-                                " (id:0x61 - lang_id:0x0409 [English-United States])", "truncated": false},
-                            {"body": "DIALOG_TITLE: 7-Zip self-extracting archive\nSTATIC: E&xtract to:\nBUTTON:" +
-                                " ...\nBUTTON: Extract\nBUTTON: Cancel", "body_format": null, "classification": "U",
-                                "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "PE: STRINGS - RT_DIALOG (id:0xd48 - lang_id:0x0409 " +
-                                "[English-United States])", "truncated": false}, {"body": "DIALOG_TITLE:" +
-                                " Confirm File Replace\nSTATIC: Destination folder already contains processed" +
-                                " file.\nSTATIC: Would you like to replace the existing file\nSTATIC: with" +
-                                " this one?\nBUTTON: &Yes\nBUTTON: Yes to &All\nBUTTON: A&uto Rename\nBUTTON:" +
-                                " &No\nBUTTON: No to A&ll\nBUTTON: &Cancel", "body_format": null, "classification":
-                                    "U", "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "PE: STRINGS - RT_DIALOG (id:0xdac - lang_id:0x0409" +
-                                " [English-United States])", "truncated": false}, {"body": "DIALOG_TITLE: Enter" +
-                                " password\nSTATIC: &Enter password:\nBUTTON: &Show password\nBUTTON: OK\nBUTTON:" +
-                                " Cancel", "body_format": null, "classification": "U", "depth": 0, "finalized": true,
-                                "links": [], "score": 0, "subsections": [], "title_text": "PE: STRINGS" +
-                                " - RT_DIALOG (id:0xed8 - lang_id:0x0409 [English-United States])",
-                                "truncated": false}, {"body": "&Close\n&Continue", "body_format": null,
-                                "classification": "U", "depth": 0, "finalized": true, "links": [], "score": 0,
-                                "subsections": [], "title_text": "PE: STRINGS - RT_STRING (id:0x1a - lang_id:0x0409" +
-                                " [English-United States])", "truncated": false}, {"body": "&Foreground\nPaused",
-                                "body_format": null, "classification": "U", "depth": 0, "finalized": true, "links": [],
-                                "score": 0, "subsections": [], "title_text": "PE: STRINGS - RT_STRING (id:0x1c" +
-                                " - lang_id:0x0409 [English-United States])", "truncated": false},
-                            {"body": "Are you sure you want to cancel?", "body_format": null, "classification": "U",
-                                "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "PE: STRINGS - RT_STRING (id:0x1d - lang_id:0x0409 " +
-                                "[English-United States])", "truncated": false}, {"body": "Modified",
-                                "body_format": null, "classification": "U", "depth": 0, "finalized": true,
-                                "links": [], "score": 0, "subsections": [], "title_text": "PE: STRINGS - RT_STRING" +
-                                " (id:0x40 - lang_id:0x0409 [English-United States])", "truncated": false},
-                            {"body": "The system cannot allocate the required amount of memory\nCannot create folder " +
-                                "'{0}'\nUpdate operations are not supported for this archive.\nCan not open file '{0}'" +
-                                " as archive\nCan not open encrypted archive '{0}'. Wrong password?\nUnsupported" +
-                                " archive type", "body_format": null, "classification": "U", "depth": 0,
-                                "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
-                                    "PE: STRINGS - RT_STRING (id:0xbc - lang_id:0x0409 [English-United States])",
-                                "truncated": false}, {"body": "Can not open the file as {0} archive\nThe file is " +
-                                "open as {0} archive\nThe archive is open with offset", "body_format": null,
-                                "classification": "U", "depth": 0, "finalized": true, "links": [], "score": 0,
-                                "subsections": [], "title_text": "PE: STRINGS - RT_STRING (id:0xbd - lang_id:0x0409" +
-                                " [English-United States])", "truncated": false}, {"body": "Extracting",
-                                "body_format": null, "classification": "U", "depth": 0, "finalized": true,
-                                "links": [], "score": 0, "subsections": [], "title_text": "PE: STRINGS - " +
-                                "RT_STRING (id:0xcf - lang_id:0x0409 [English-United States])", "truncated": false},
-                            {"body": "Skipping", "body_format": null, "classification": "U", "depth": 0,
-                                "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
-                                    "PE: STRINGS - RT_STRING (id:0xd0 - lang_id:0x0409 [English-United States])",
-                                "truncated": false}, {"body": "Specify a location for extracted files.",
-                                "body_format": null, "classification": "U", "depth": 0, "finalized": true,
-                                "links": [], "score": 0, "subsections": [], "title_text": "PE: STRINGS - RT_STRING (" +
-                                "id:0xd5 - lang_id:0x0409 [English-United States])", "truncated": false},
-                            {"body": "Full pathnames\nNo pathnames\nAbsolute pathnames\nRelative pathnames\nAsk " +
-                                "before overwrite\nOverwrite without prompt\nSkip existing files", "body_format": null,
-                                "classification": "U", "depth": 0, "finalized": true, "links": [], "score": 0,
-                                "subsections": [], "title_text": "PE: STRINGS - RT_STRING (id:0xd6 - lang_id:0x0409" +
-                                " [English-United States])", "truncated": false}, {"body": "Auto rename\nAuto rename" +
-                                " existing files", "body_format": null, "classification": "U", "depth": 0,
-                                "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
-                                    "PE: STRINGS - RT_STRING (id:0xd7 - lang_id:0x0409 [English-United States])",
-                                "truncated": false}, {"body": "{0} bytes", "body_format": null, "classification":
-                                    "U", "depth": 0, "finalized": true, "links": [], "score": 0, "subsections": [],
-                                "title_text": "PE: STRINGS - RT_STRING (id:0xdc - lang_id:0x0409 [English-United " +
-                                "States])", "truncated": false}, {"body": "Unsupported compression method for " +
-                                "'{0}'.\nData error in '{0}'. File is broken\nCRC failed in '{0}'. File is " +
-                                "broken.\nData error in encrypted file '{0}'. Wrong password?\nCRC failed in e" +
-                                "ncrypted file '{0}'. Wrong password?\nWrong password?", "body_format": null,
-                                "classification": "U", "depth": 0, "finalized": true, "links": [], "score": 0,
-                                "subsections": [], "title_text": "PE: STRINGS - RT_STRING (id:0xe8 - lang_id:0x0409" +
-                                " [English-United States])", "truncated": false}, {"body": "Unsupported compression" +
-                                " method\nData error\nCRC failed\nUnavailable data\nUnexpected end of data\nThere " +
-                                "are some data after the end of the payload data\nIs not archive", "body_format": null,
-                                "classification": "U", "depth": 0, "finalized": true, "links": [], "score": 0,
-                                "subsections": [], "title_text": "PE: STRINGS - RT_STRING (id:0xe9 - lang_id:0x0409" +
-                                " [English-United States])", "truncated": false}, {"body": "Headers " +
-                                "Error\nWrong password", "body_format": null, "classification": "U", "depth": 0,
-                                "finalized": true, "links": [], "score": 0, "subsections": [], "title_text":
-                                    "PE: STRINGS - RT_STRING (id:0xea - lang_id:0x0409 [English-United States])",
-                                "truncated": false}, {"body": "Unavailable start of archive\nUnconfirmed start of " +
-                                "archive\nUnsupported feature", "body_format": null, "classification": "U", "depth": 0,
-                                "finalized": true, "links": [], "score": 0, "subsections": [], "title_text": "PE: " +
-                                "STRINGS - RT_STRING (id:0xec - lang_id:0x0409 [English-United States])",
-                                "truncated": false}], "tags": [{"classification": "U", "context": null,
-                            "type": "PE_LINK_TIME_STAMP", "usage": "CORRELATION", "value": "1525089600", "weight": 25},
-                            {"classification": "U", "context": null, "type": "PE_IMPORT_SORTED_SHA1",
-                                "usage": "CORRELATION", "value": "0b05ea58e42bb151223dfe3bcacb266c2ac31ded",
-                                "weight": 25}, {"classification": "U", "context": null, "type": "PE_IMPORT_MD5",
-                                "usage": "CORRELATION", "value": "da401ef5e9d5c4599673c26d95fa6029", "weight": 25},
-                            {"classification": "U", "context": null, "type": "PE_SECTION_HASH",
-                                "usage": "CORRELATION", "value": "36d2237fabbf741c1f79c3aaaa296f9f",
-                                "weight": 25}, {"classification": "U", "context": null, "type": "PE_SECTION_HASH",
-                                "usage": "CORRELATION", "value": "d9f1b3704890e0acf8a1cec6d0199d44", "weight": 25},
-                            {"classification": "U", "context": null, "type": "PE_SECTION_HASH", "usage": "CORRELATION",
-                                "value": "39c61b5f714a00c2675e278516c908aa", "weight": 25}, {"classification": "U",
-                                "context": null, "type": "PE_SECTION_HASH", "usage": "CORRELATION",
-                                "value": "35925cfdc1176bd9ffc634a58b40ec17", "weight": 25}, {"classification": "U",
-                                "context": null, "type": "PE_SECTION_HASH", "usage": "CORRELATION",
-                                "value": "fb925c412418e5e2a37568c9db0d7171", "weight": 25}, {"classification": "U",
-                                "context": null, "type": "PE_RESOURCE_LANGUAGE", "usage": "IDENTIFICATION",
-                                "value": "1033", "weight": 1}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Progress", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "&Background", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "&Pause", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Cancel", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Elapsed time:",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Remaining time:", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Files:", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Compression ratio:",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Errors:", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Total size:", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Speed:", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Processed:", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Compressed size:",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Progress1", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "List1",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "7-Zip self-extracting archive", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "E&xtract to:", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "...", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Extract", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Confirm File Replace",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Destination folder already contains processed" +
-                                " file.", "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Would you like to replace the existing file",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "with this one?", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "&Yes", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Yes to &All", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "A&uto Rename", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "&No", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "No to A&ll", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "&Cancel", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Enter password", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "&Enter password:",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "&Show password", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "OK",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "&Close", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "&Continue",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "&Foreground", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Paused",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Are you sure you want to cancel?", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Modified", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "The system cannot " +
-                                "allocate the required amount of memory", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Cannot create folder '{0}'", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Update operations are not supported for this archive.", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Can not open file '{0}' as archive", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Can not open encrypted archive '{0}'. Wrong password?", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unsupported archive type", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Can not open the file as {0} archive", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "The file is open as {0} archive", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "The archive is open with offset", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Extracting", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Skipping", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Specify a location for extracted files.",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Full pathnames", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "No pathnames", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Absolute pathnames",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Relative pathnames", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Ask before overwrite", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Overwrite without prompt",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Skip existing files", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Auto rename", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Auto rename existing files",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "{0} bytes", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unsupported compression method for '{0}'.", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Data error in '{0}'. File is broken",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "CRC failed in '{0}'. File is broken.",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION",
-                                "value": "Data error in encrypted file '{0}'. Wrong password?", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "CRC failed in encrypted file '{0}'. Wrong password?", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Wrong password?", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unsupported compression method", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Data error", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "CRC failed",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Unavailable data", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unexpected end of data", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "There are some data after the end of the payload data", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Is not archive", "weight": 0}, {"classification": "U", "context": null,
-                                "type": "FILE_STRING", "usage": "IDENTIFICATION", "value": "Headers Error",
-                                "weight": 0}, {"classification": "U", "context": null, "type": "FILE_STRING",
-                                "usage": "IDENTIFICATION", "value": "Wrong password", "weight": 0},
-                            {"classification": "U", "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unavailable start of archive", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unconfirmed start of archive", "weight": 0}, {"classification": "U",
-                                "context": null, "type": "FILE_STRING", "usage": "IDENTIFICATION",
-                                "value": "Unsupported feature", "weight": 0}], "tags_score": 201, "truncated": false},
-                    "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.TagCheck.v3_2_1_00e8e0e.c03247148011d541cabbdb3bdcbefdcc1.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [], "__expiry_ts__": "2018-06-15T12:34:47.216939Z",
-                    "classification": "U", "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [],
-                        "message": "", "milestones": {"service_completed": 0.0, "service_started": 0.0}, "service_name": "TagCheck",
-                        "service_version": "3.2.1.00e8e0e", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 0, "sections": [], "tags": [], "tags_score": 0,
-                        "truncated": false}, "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.Unpacker.v3_2_1_0820c62.c2155fe237e124db9961572041fd00e3f.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [], "__expiry_ts__": "2018-06-15T12:34:47.216939Z",
-                    "classification": "U", "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 0.0, "service_started": 0.0}, "service_name": "Unpacker",
-                        "service_version": "3.2.1.0820c62", "supplementary": []}, "result": {"classification": "U",
-                        "context": null, "default_usage": null, "score": 0, "sections": [], "tags": [], "tags_score": 0,
-                        "truncated": false}, "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"},
-                "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405.Yara.v3_2_1_00f140f_rac3806400c5964ff2a45c4b9799311eb.cd915213770742cf88eab23ed6a342c96.e": {"__access_grp1__": [],
-                    "__access_grp2__": [], "__access_lvl__": 100, "__access_req__": [], "__expiry_ts__": "2018-06-15T12:34:47.216939Z",
-                    "classification": "U", "created": "2018-06-14T12:34:47.270150Z", "response": {"extracted": [], "message": "",
-                        "milestones": {"service_completed": 0.0, "service_started": 0.0}, "service_name": "Yara",
-                        "service_version": "3.2.1.00f140f.rac3806400c5964ff2a45c4b9799311eb", "supplementary": []},
-                    "result": {"classification": "U", "context": null, "default_usage": null, "score": 0, "sections": [],
-                        "tags": [], "tags_score": 0, "truncated": false},
-                    "srl": "da33e6f66b2b55b8b94fbf7e7c3ef56fcabb22fd14cb870efe84b86ef0c01405"}},
-            "services": {"excluded": [], "selected": ["Extraction", "Static Analysis"]}, "state": "completed",
-            "submission": {"deep_scan": false, "description": "[TERMINAL] Inspection of file: encr_zipped.exe",
-                "groups": ["ADMIN", "INTERNAL", "USERS"], "ignore_cache": false, "ignore_filtering": false,
-                "max_score": 500, "metadata": {"filename": "encr_zipped.exe", "path": "/encr_zipped.exe",
-                    "ts": "2018-06-14T12:34:46.159050Z", "type": "TERMINAL"}, "original_selected": ["Extraction",
-                    "Static Analysis"], "params": {}, "priority": 150, "resubmit_to": [],
-                "scan_key": "d0c2df728586b5eee385ecb7f8afcdfcv0", "sid": "31e5fa07-fc81-4da7-9f63-6c716ee826d4",
-                "submitter": "admin", "ttl": 1}, "times": {"completed": "2018-06-14T12:34:51.716648Z",
-                "submitted": "2018-06-14T12:34:47.327619Z"}}];
-
+        // Retrieves the settings chosen by the admin for how detailed the results of the scan should be; assigns the
+        // settings to the $scope.results_settings variable, and if both mal_files and safe_files were set to off it
+        // doesn't display any results at all besides the general red / green light
         socket.emit('fe_get_results_settings',
             function(results_settings){
 
             _.defer(function () {
                 $scope.$apply(function () {
                     $scope.results_settings = results_settings;
-                    console.log($scope.results_settings);
+                });
+            });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.display_results = (results_settings['mal_files'] || results_settings['safe_files']);
                 });
             });
 
@@ -1176,44 +690,60 @@ app.controller('ResultsController', ['$scope', '$rootScope',
         // Listens for the transmission of our mal_files JSON object, containing all information on potentially
         // malicious files from our scan
         socket.on('mal_files_json', function(mal_files){
-            if (!_.isEmpty(mal_files)) {
+
+            // Checks if any malicious files were flagged; if so, indicates that the scan resulted in alert, and
+            // stores the array of malicious files to be used by results.html to populate our malicious files table
+            let parse_mal_files = JSON.parse(mal_files);
+            if (parse_mal_files.length !== 0) {
+
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.scan_success = false;
-                        console.log(JSON.parse(mal_files));
-                        $scope.tbl_mal_files = JSON.parse(mal_files);
+                        $scope.hide_mal_files = false;
                     });
                 });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.tbl_mal_files = parse_mal_files;
+                    });
+                });
+
             }
-            else {
+
+            // If no malicious files were flagged, our scan was a success!
+            else
                 _.defer(function() {
                     $scope.$apply(function () {
-                        $scope.scan_success = true;
+                        $scope.hide_mal_files = true;
                     });
                 });
-            }
+
         });
 
         // Listens for the transmission of our pass_files JSON object, containing basic information about files that
         // were determined not to be malicious
         socket.on('pass_files_json', function(pass_files){
-            if (!_.isEmpty(pass_files))
-                _.defer(function() {
-                    $scope.$apply(function () {
-                        $scope.no_files = false;
-                        $scope.show_pass_header = true;
-                        $scope.tbl_pass_files = JSON.parse(pass_files);
-                    });
-                });
-            else {
+            let parse_pass_files = JSON.parse(pass_files);
+            if (parse_pass_files.length !== 0) {
+
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.show_pass_header = false;
-                        if ($scope.scan_success)
-                            $scope.no_files = true;
+                        $scope.hide_pass_files = false;
                     });
                 });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.tbl_pass_files = parse_pass_files;
+                    });
+                });
+
             }
+
+            else
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.hide_pass_files = true;
+                    });
+                });
 
         });
 
@@ -1228,7 +758,6 @@ app.controller('ResultsController', ['$scope', '$rootScope',
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.result_settings = result_settings;
-                        console.log($scope.result_settings);
                     });
                 });
 
@@ -1236,6 +765,14 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
             $scope.scroll_results();
 
+        });
+
+        $rootScope.$on("device_removed", function () {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.hide_btn = false;
+                });
+            });
         });
 
         // Clears and resets the results section
@@ -1262,6 +799,7 @@ app.controller('ResultsController', ['$scope', '$rootScope',
             setTimeout(function(){
                 _.defer(function() {
                     $scope.$apply(function () {
+                        $scope.hide_btn = true;
                         $scope.show_results = false;
                     })
                 })
@@ -1271,13 +809,14 @@ app.controller('ResultsController', ['$scope', '$rootScope',
                 _.defer(function() {
                     $scope.$apply(function () {
                         $scope.results_cleared = false;
-                        $scope.show_pass_header = false;
-                        $scope.scan_success = false;
-                        $scope.no_files = false;
+                        $scope.hide_pass_files = true;
+                        $scope.hide_mal_files = false;
                         $scope.file_tree = [];
                         $scope.results_cleared = false;
                         $scope.tbl_pass_files = [];
                         $scope.tbl_mal_files = [];
+                        $scope.display_results = true;
+                        $scope.result_settings = {};
                     })
                 })
             }, 1000);
@@ -1286,27 +825,30 @@ app.controller('ResultsController', ['$scope', '$rootScope',
 
         $scope.scroll_results = function() {
             _.defer(function() {
-
                 $scope.$apply(function () {
                     $scope.show_results = true;
                 });
 
-                setTimeout(function() {
-                    // Creates a new intersection observer which is used to detect when the results section
-                    // comes on screen. When it does, we scroll to it
-                    const intersectionObserver = new IntersectionObserver((entries) => {
-                        let [entry] = entries;
-                        if (entry.isIntersecting) {
-                            setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start'
-                            }))
-                        }
-                    });
-                    intersectionObserver.observe(results);
-                }, 500);
+                // setTimeout(function() {
+                //     // Creates a new intersection observer which is used to detect when the results section
+                //     // comes on screen. When it does, we scroll to it
+                //     const intersectionObserver = new IntersectionObserver((entries) => {
+                //         let [entry] = entries;
+                //         if (entry.isIntersecting) {
+                //             setTimeout(() => document.getElementById('results_scroll_to').scrollIntoView({
+                //                 behavior: 'smooth',
+                //                 block: 'start'
+                //             }))
+                //         }
+                //     });
+                //     intersectionObserver.observe(results);
+                // }, 500);
 
             });
+        };
+
+        $scope.btn_new_session = function () {
+            $rootScope.$emit("new_session", {});
         };
 
         // Returns just the string representation of a JSON value (ie. removes brackets and quotation marks)
@@ -1673,6 +1215,7 @@ app.controller('SettingsController', ['$scope',
         $scope.new_pw = '';
         $scope.confirm_pw = '';
         $scope.alerts = [];
+        $scope.testing_connection = false;
 
         socket.on('connect', function() {
             socket.emit('fe_get_settings');
@@ -1703,6 +1246,7 @@ app.controller('SettingsController', ['$scope',
                     $scope.test_al_connect_success = false;
                     $scope.test_al_connect_fail = false;
                     $scope.show_al_waiting = true;
+                    $scope.testing_connection = true;
                 });
             });
 
@@ -1729,6 +1273,9 @@ app.controller('SettingsController', ['$scope',
                                 });
                             });
                     });
+
+                    $scope.testing_connection = false;
+
                 });
 
             });
@@ -1742,6 +1289,7 @@ app.controller('SettingsController', ['$scope',
                     $scope.test_smtp_connect_success = false;
                     $scope.test_smtp_connect_fail = false;
                     $scope.show_smtp_waiting = true;
+                    $scope.testing_connection = true;
                 });
             });
 
@@ -1770,6 +1318,9 @@ app.controller('SettingsController', ['$scope',
                                     $scope.smtp_test_txt = smtp_test_output[1]
                                 });
                             });
+
+                        $scope.testing_connection = false;
+
                     });
                 });
 
