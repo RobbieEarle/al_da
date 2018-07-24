@@ -1,3 +1,7 @@
+"""
+This file was used to construct my settings_db database; is not used in the actual application
+"""
+
 import sqlite3
 
 db = sqlite3.connect('../settings_db')

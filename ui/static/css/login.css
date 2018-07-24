@@ -40,7 +40,9 @@
     .card {
         background-color: #FFF;
         /* just in case there no content*/
-        padding: 20px 25px 30px;
+        padding-left: 40px;
+        padding-right: 40px;
+        padding-top: 40px;
         margin: auto auto;
         /* shadows and rounded borders */
         -moz-border-radius: 2px;
@@ -53,7 +55,6 @@
 
     .card-container.card {
         max-width: 350px;
-        padding: 40px 40px;
     }
 }
 

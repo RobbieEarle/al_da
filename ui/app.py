@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, json, redirect, request, session, abort, flash
+from flask import Flask, render_template, json, redirect, request, session, flash
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
@@ -8,11 +8,8 @@ import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 
-import sqlite3
 from assemblyline_client import Client, ClientError
-import sys
 import traceback
-import os
 
 from helper.views import create_menu
 import eventlet
@@ -25,13 +22,23 @@ from cryptography.fernet import Fernet
 eventlet.monkey_patch()
 
 
-# ============== Default Property Values ==============
+# ============== Default Values ==============
 
+# To hold default admin settings as retrieved from DB
 default_settings = {}
+
+# To hold the values entered by the user as credentials for each session
 session_credentials = []
+
+# Reflects whether or not our virtual machine is currently connected and ready to receive new devices
 vm_connected = False
+
+# Key and Cipher Suite used to decrypt DB contents
 key = b'peja3W-4eEM9uuJJ95yOJU4r2iL9H6LfLBN4llb4xEs='
 cipher_suite = Fernet(key)
+
+# Set to true when user enters the wrong credentials logging into the settings page
+login_failed = False
 
 
 # ============== Flask & Socketio Setup ==============
@@ -47,6 +54,11 @@ CORS(app)
 # ============== Retrieving Settings From DB ==============
 
 def db_get_saved():
+    """
+    Retrieves and decodes contents of our settings_db
+    :return:
+    """
+
     settings_dict = {}
 
     db = sqlite3.connect('settings_db')
@@ -72,7 +84,7 @@ def db_get_saved():
     settings_dict["al_address"] = cipher_suite.decrypt(bytes(data_settings[saved][5]))
     settings_dict["al_username"] = cipher_suite.decrypt(bytes(data_settings[saved][6]))
     settings_dict["al_api_key"] = cipher_suite.decrypt(bytes(data_settings[saved][7]))
-    settings_dict["email_alerts"] = bool(cipher_suite.decrypt(bytes(data_settings[saved][8])))
+    settings_dict["email_alerts"] = bool(int(cipher_suite.decrypt(bytes(data_settings[saved][8]))))
     settings_dict["smtp_server"] = cipher_suite.decrypt(bytes(data_settings[saved][9]))
     settings_dict["smtp_port"] = cipher_suite.decrypt(bytes(data_settings[saved][10]))
     settings_dict["smtp_username"] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
@@ -124,117 +136,210 @@ def db_get_saved():
 
 # ============== Page Rendering ==============
 
-@auth.get_password
-def get_pw(username):
-    global default_settings
-    default_settings = db_get_saved()
-
-    if username == default_settings["user_id"]:
-        return default_settings["user_pw"]
-    return None
-
-
 @app.route('/')
 def index():
+    """
+    Called when we navigate to our default domain
+    :return:
+    """
+
     global default_settings
+
+    # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
+
+    # Sets the logged in attribute of our session to false, which will force the user to re-enter their login
+    # credentials if they attempt to visit the settings page
     session['logged_in'] = False
+
+    # Renders the scan.html page
     return render("scan.html", request.path)
 
 
 @app.route('/scan')
 def scan():
+    """
+    Called when we navigate to the /scan subdomain. Redirects to default domain
+    :return:
+    """
+
+    # Sets the logged in attribute of our session to false, which will force the user to re-enter their login
+    # credentials if they attempt to visit the settings page
     session['logged_in'] = False
+
+    # Redirects to default domain
     return redirect('/', code=301)
 
 
 @app.route('/admin')
 def admin():
+    """
+    Called when we successfully navigate to the administrative settings page
+    :return:
+    """
+
     global default_settings
+
+    # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
 
-    if not session.get('logged_in'):
+    # If we have been logged out by the scan page, forces user to re-enter credentials
+    if not session.get('logged_in') and default_settings["user_pw"] != '':
         return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path))
+
+    # Otherwise renders the admin.html page
     else:
         return render("admin.html", request.path)
 
 
 @app.route('/login', methods=['POST'])
 def do_admin_login():
-    global default_settings
-    default_settings = db_get_saved()
+    """
+    POST method called when a user attempts to log in. Validates their credentials and shows /admin page if valid
+    :return:
+    """
 
+    global default_settings
+    global login_failed
+
+    # Checks if credentials entered by the user match those on record; if so sets logged_in to true allowing admin.html
+    # to render
     if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings['user_id']:
         session['logged_in'] = True
+
+    # Otherwise sets login_failed to True. When the login.html page is brought up it will emit fe_login_status, which
+    # will check this variable to tell whether or not a failed login has occurred
     else:
-        flash('wrong password!')
+        login_failed = True
+
+    # Redirects to /admin
     return redirect('/admin', code=301)
 
 
 # ============== Front End Socketio Listeners ==============
 
-# Called by angular_controller.js when application is first opened. Establishes connection between our webapp
-# controller and this module
 @socketio.on('fe_scan_start')
 def fe_scan_start():
-    vm_control('restart')
+    """
+    Called when our scan page first loads
+    :return:
+    """
+
+    # vm_control('restart')
 
 
 @socketio.on('fe_get_credentials')
 def fe_get_credentials():
+    """
+    Called when our front end wants to populate screen 1 of the scan page (credentials)
+    :return: The credential settings as chosen by admin
+    """
+
     global default_settings
+
     return default_settings["credential_settings"]
 
 
 @socketio.on('fe_get_results_settings')
 def fe_get_results_settings():
+    """
+    Called when our front end wants to populate the results section of the scan page
+    :return: The results settings as chosen by admin
+    """
+
     global default_settings
+
     return default_settings["results_settings"]
 
 
-# Receives and records user credentials that are entered by user for the current session
 @socketio.on('fe_set_session_credentials')
 def fe_set_session_credentials(credentials):
+    """
+    Called when the front end has received a set of user credentials for a session
+    :param credentials: The user credentials for this session
+    :return:
+    """
+
     global session_credentials
 
     session_credentials = credentials
+
+    # Tells back end script that credentials have been receieved and we can start our submit / receive threads
     socketio.emit('start_scan')
+
+
+@socketio.on('fe_login_status')
+def fe_login_status():
+    """
+    Called when we load our login.html page. Checks if the user previously tried to log in and failed, outputs an error
+    message if necessary
+    :return:
+    """
+
+    global login_failed
+
+    if login_failed:
+        login_failed = False
+        return True
+    else:
+        return False
 
 
 @socketio.on('fe_validate_email')
 def fe_validate_email(addr):
+    """
+    Called by the front end when it wants to validate an email address entered in the settings page as a email alert
+    recipient
+    :param addr: The email address to be validated
+    :return: Whether or not the email address is valid
+    """
 
+    # Runs entry through simple regex
     if re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', addr) is not None:
         return True
 
     return False
 
 
-# Called by web app when the settings page is opened. Returns default values from database
 @socketio.on('fe_get_settings')
 def fe_get_settings():
+    """
+    Called by front end when settings page is fist opened. Returns all default settings from DB
+    :return:
+    """
+
     global default_settings
 
-    default_settings = db_get_saved()
+    # Makes a copy of default settings to send out, but with user_pw set to nothing and smtp_password set to a
+    # placeholder value
     default_settings_output = default_settings.copy()
     default_settings_output["user_pw"] = ''
     default_settings_output["smtp_password"] = convert_dots(default_settings["smtp_password"])
 
+    # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)
     socketio.emit('populate_settings', settings_json)
 
 
 @socketio.on('fe_validate_settings')
 def fe_validate_settings(settings):
+    """
+    Called by front end when the settings page wants to check if all input fields have been populated with valid data
+    :param settings: The pre-validation settings as entered by the user
+    :return: Array of alerts that were generated
+    """
 
     alerts = []
 
+    # User ID cannot be empty
     if settings["user_id"] == '':
         alerts.append('user_id')
 
+    # User cannot change admin password to the same password
     if settings["user_pw"] == default_settings["user_pw"]:
         alerts.append('repeat_pw')
 
+    # Terminal name cannot be empty
     if settings["terminal"] == '':
         alerts.append('terminal_blank')
 
@@ -243,19 +348,39 @@ def fe_validate_settings(settings):
 
 @socketio.on('fe_settings_save')
 def fe_settings_save(new_settings, default_smtp_pw_reuse):
+    """
+    Called when the front end is ready to save new user settings to our DB.
+    :param new_settings: The new user settings
+    :param default_smtp_pw_reuse: Boolean value representing whether or not to use previous smtp password
+    :return:
+    """
+
+    # Clears old saved DB values
     db_clear_saved()
+
+    # Saves new settings to DB
     db_save(new_settings, default_smtp_pw_reuse)
 
 
 @socketio.on('fe_test_connection_smtp')
 def fe_test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password, reuse_pw):
+    """
+    Called by front end settings page when user wants to test connection to an smtp server
+    :param smtp_server: Server address
+    :param smtp_port: Server port
+    :param smtp_username: Username
+    :param smtp_password: Password
+    :param reuse_pw: Boolean value; if true we use the same password as in DB
+    :return: Connection success
+    """
+
     global default_settings
 
+    # If the password field has not been altered, use the same password as in the original default settings
     if reuse_pw:
         smtp_password = default_settings["smtp_password"]
 
-    print smtp_server, smtp_port, smtp_username, smtp_password
-
+    # Tries to connect to SMTP server using given address and port. Times out after 8 seconds
     try:
         server = smtplib.SMTP(smtp_server, int(smtp_port), timeout=8)
         server.quit()
@@ -264,6 +389,7 @@ def fe_test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password
         output_txt = "Server connection error: " + traceback.format_exception_only(type(e), e)[0]
         return [False, output_txt]
 
+    # Tries to log in using given username and password
     try:
         server.starttls()
         server.login(smtp_username, smtp_password)
@@ -278,8 +404,15 @@ def fe_test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password
 
 @socketio.on('fe_test_connection_al')
 def fe_test_connection_al(al_ip_address, al_username, al_api_key):
-    print al_ip_address, al_username, al_api_key
+    """
+    Called by front end settings page when user wants to test connection to an Assemblyline server
+    :param al_ip_address: Assemblyline server IP address
+    :param al_username: Username
+    :param al_api_key: Api key
+    :return: Connection success
+    """
 
+    # Tries to connect to Assembyline server
     try:
         Client(al_ip_address, apikey=(al_username, al_api_key), verify=False)
     except Exception as e:
@@ -292,21 +425,26 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
     return [True, 'Connection successful']
 
 
-# Allows our web app to turn off or refresh our sandbox VM
 @socketio.on('vm_control')
-def vm_control(args):
+def vm_control(vm_command):
+    """
+    Called when front end wants to turn off or restart the virtual machine running our scrape application
+    :param args:
+    :return:
+    """
+
     global client_f_name, client_l_name, vm_connected
 
     # client_f_name = ''
     # client_l_name = ''
     # vm_connected = False
     #
-    # print "VM Control: " + args
+    # print "VM Control: " + vm_command
 
-    # if args == 'off' or 'restart':
+    # if vm_command == 'off' or 'restart':
     #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
     #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test')
-    # if args == 'restart' or 'on':
+    # if vm_command == 'restart' or 'on':
     #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
     #                     '--type headless')
 
@@ -315,6 +453,11 @@ def vm_control(args):
 
 @socketio.on('be_retrieve_settings')
 def be_retrieve_settings():
+    """
+    Called by the back end to retrieve the login settings for the Assemblyline server
+    :return: Assemblyline login settings from DB
+    """
+
     global default_settings
 
     al_settings = {
@@ -327,63 +470,109 @@ def be_retrieve_settings():
     return al_settings
 
 
-# Called by scrape_device.py when a device event occurs (connected, scanning, disconnected, etc). Argument specifies
-# type of device event
 @socketio.on('be_device_event')
-def be_device_event(args):
-    print args
-    socketio.emit('dev_event', args)
+def be_device_event(event_type):
+    """
+    Called by back end when a device event occurs (connected, loading, disconnected)
+    :param event_type: specifies what type of device event occurred
+    :return:
+    """
+
+    print event_type
+    socketio.emit('dev_event', event_type)
 
 
-# Called by scrape_drive.py whenever it wants to output information to the console
 @socketio.on('be_to_kiosk')
-def be_to_kiosk(args):
-    socketio.emit('output', args)
+def be_to_kiosk(msg):
+    """
+    Called by back end to send textual progress information to the front end
+    :param msg: message to be sent
+    :return:
+    """
+
+    socketio.emit('output', msg)
 
 
-# Outputs that current number of files ingested and files queued for ingestion, to be received by our webapp
 @socketio.on('be_ingest_status')
-def be_ingest_status(args):
-    socketio.emit('update_ingest', args)
+def be_ingest_status(update_type):
+    """
+    Called by the back end whenever a new file is submitted or received. Information is sent to front end in order to
+    update the progress bar in the scan screen
+    :param update_type: Gives the type of ingestion event that occurred
+    :return:
+    """
+
+    socketio.emit('update_ingest', update_type)
 
 
-# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
-# files that passed the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('be_pass_files')
 def be_pass_files(pass_files):
-    # print json.dumps(pass_files)
+    """
+    Called by back end when all files have been ingested. Passes list of safe files to the front end
+    :param pass_files: List of files that did not generate an alert
+    :return:
+    """
+
     pass_files_json = json.dumps(pass_files)
     socketio.emit('pass_files_json', pass_files_json)
 
 
-# Called by scrape_drive.py when all files have been ingested. Argument will be list containing information on all
-# files that did not pass the scan. List is JSONified and sent to angular_controller.js
 @socketio.on('be_mal_files')
 def be_mal_files(mal_files, terminal_id):
-    # print json.dumps(mal_files)
+    """
+    Called by back end when all files have been ingested. Passes list of flagged files to the front end
+    :param mal_files: List of files that generated an alert
+    :param terminal_id:
+    :return:
+    """
+
     mal_files_json = json.dumps(mal_files)
     socketio.emit('mal_files_json', mal_files_json)
+
+    # Sends email alert to all users on the recipient list
     email_alert(mal_files, terminal_id)
 
 
 # ============== Helper Functions ==============
 
-# Renders a new page
 def render(template, path):
+    """
+    Called by our Flask app when a new page is loaded. Renders corresponding HTML document
+    :param template: Name of the HTML document to be rendered
+    :param path: Path of this document
+    :return:
+    """
+
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin')
 
 
-def convert_dots(arg):
+def convert_dots(input_str):
+    """
+    Takes in a string and returns a string of dots of the same length
+    :param input_str:
+    :return:
+    """
+
     return_str = ''
-    for i in arg:
+    for i in input_str:
         return_str = return_str + '.'
     return return_str
 
 
 def email_alert(mal_files, terminal_id):
+    """
+    Sends email alert to all addresses in the recipients list
+    :param mal_files: List of files that were flagged
+    :param terminal_id: Name of the terminal that generated the alert
+    :return:
+    """
+
     global default_settings
 
-    if len(default_settings["recipients"]) > 0:
+    # Only sends if there is at least one recipient, and if email alerts have been turned on
+    if len(default_settings["recipients"]) > 0 and default_settings["email_alerts"]:
+
+        # Constructs message
         msg = MIMEMultipart()
         msg['From'] = default_settings["smtp_username"]
         msg['To'] = ", ".join(default_settings["recipients"])
@@ -393,31 +582,37 @@ def email_alert(mal_files, terminal_id):
         body = 'Alert generated by (' + terminal_id + ') at: ' + arrow.now().format('YYYY-MM-DD HH:mm') + '\r\n'
 
         body = body + '\r\n-- Session Details: ' + '\r\n'
-
         for credential in session_credentials:
             body = body + credential["name"] + ': ' + credential["value"] + '\r\n'
 
         body = body + '\r\n-- Flagged Files: ' + '\r\n'
-
         for x in mal_files:
             body = body + 'Filename: ' + x['submission']['metadata']['filename'] + '\r\n'
             body = body + 'SSID: ' + str(x['submission']['sid']) + '\r\n'
             body = body + 'Score: ' + str(x['submission']['max_score']) + '\r\n'
             body = body + '\r\n'
+
         msg.attach(MIMEText(body, 'plain'))
 
-        # try:
-        #     server = smtplib.SMTP(default_settings["smtp_server"], 587)
-        #     server.starttls()
-        #     server.login(default_settings["smtp_username"], default_settings["smtp_password"])
-        #     text = msg.as_string()
-        #     server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
-        #     server.quit()
-        # except:
-        #     print "Error sending email"
+        # Tries to connect to SMTP server and send message using credentials from settings screen
+        try:
+            server = smtplib.SMTP(default_settings["smtp_server"], 587)
+            server.starttls()
+            server.login(default_settings["smtp_username"], default_settings["smtp_password"])
+            text = msg.as_string()
+            server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
+            server.quit()
+        except:
+            print "Error sending email"
 
 
 def db_clear_saved():
+    """
+    Clears previously saved entries from our DB. Only targets entries where setting_id = 2, as these are saved entries.
+    Entries with setting_id = 1 are default values for when no saved entry is present.
+    :return:
+    """
+
     db = sqlite3.connect('settings_db')
     cursor = db.cursor()
 
@@ -442,17 +637,25 @@ def db_clear_saved():
 
 
 def db_save(new_settings, default_smtp_pw_reuse):
+    """
+    Encrypts and saves new settings to our DB
+    :param new_settings: New settings as determined by admin in settings page of front end
+    :param default_smtp_pw_reuse: Boolean value represents whether or not we should use same SMTP password
+    :return:
+    """
+
     global default_settings
 
     db = sqlite3.connect('settings_db')
     cursor = db.cursor()
 
+    # If new passwords have not been provided then old passwords are reused
     if new_settings["user_pw"] == '':
         new_settings["user_pw"] = default_settings["user_pw"]
-
     if default_smtp_pw_reuse or not new_settings["email_alerts"]:
         new_settings["smtp_password"] = default_settings["smtp_password"]
 
+    # -- Settings table
     cursor.execute("""
     INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
       email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
@@ -465,12 +668,13 @@ def db_save(new_settings, default_smtp_pw_reuse):
           cipher_suite.encrypt(bytes(new_settings['al_address'])),
           cipher_suite.encrypt(bytes(new_settings['al_username'])),
           cipher_suite.encrypt(bytes(new_settings['al_api_key'])),
-          cipher_suite.encrypt(bytes(new_settings['email_alerts'])),
+          cipher_suite.encrypt(bytes(int(new_settings['email_alerts']))),
           cipher_suite.encrypt(bytes(new_settings['smtp_server'])),
           cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
           cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
           cipher_suite.encrypt(bytes(new_settings["smtp_password"]))))
 
+    # -- Recipients table
     recipients = []
     i = 1
     for recipient in new_settings["recipients"]:
@@ -481,6 +685,7 @@ def db_save(new_settings, default_smtp_pw_reuse):
       VALUES(?,?,?)
     """, recipients)
 
+    # -- Credentials table
     credentials = []
     i = 5
     for credential in new_settings["credential_settings"]:
@@ -496,6 +701,7 @@ def db_save(new_settings, default_smtp_pw_reuse):
       VALUES(?,?,?,?,?)
     """, credentials)
 
+    # -- Results table
     results = []
     i = 8
     for result in new_settings["results_settings"]:
@@ -516,4 +722,3 @@ def db_save(new_settings, default_smtp_pw_reuse):
 
 if __name__ == '__main__':
     socketio.run(app, threaded=True)
-    # app.run()

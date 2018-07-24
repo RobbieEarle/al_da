@@ -10,7 +10,7 @@
 
         <section id="body" ng-controller="ScanController">
 
-            <div id="img_prompt" class="container container-with-overflow container-img anim z0"
+            <div id="img_prompt" class="container container-with-overflow container-img anim"
                      ng-class="{'bg-light-green': mini_kiosk && device_connected,
                      'bg-light-red': mini_kiosk && !device_connected}">
                 <div>
@@ -30,7 +30,7 @@
 
             <div uib-collapse="hide_output">
 
-                <section id="output" class="container container-with-overflow z0">
+                <section id="output" class="container container-with-overflow">
 
                     <section id="credentials" ng-if="curr_screen==1">
 
@@ -91,34 +91,11 @@
                         </div>
                     </section>
 
-                    <!--<div uib-collapse="curr_screen!=0 || !show_refresh">-->
-                        <!--<div class="pad-refresh center-text">-->
-                            <!--<img class="refresh-gif" src="/static/images/bars.svg">-->
-                            <!--<div class="refresh-gif-sub text-semi-muted">-->
-                                <!--Refreshing virtual machine-->
-                            <!--</div>-->
-                        <!--</div>-->
-                    <!--</div>-->
-
-                    <!--<div uib-collapse="curr_screen>1">-->
-                        <!--<div class="big-pad">-->
-                            <!--<div class="pad-button">-->
-                                <!--<button type="button" class='btn btn-default btn-style-blue btn-large'-->
-                                        <!--ng-disabled="(curr_screen==1 && (!f_name || !l_name)) || (curr_screen==0 && vm_restart)"-->
-                                        <!--ng-click="btn_handle_nav()">//btn_text//</button>-->
-                            <!--</div>-->
-                        <!--</div>-->
-                    <!--</div>-->
-
                 </section>
 
             </div>
 
-            <!--<section uib-collapse="curr_screen!=2" id="output" class="container container-with-overflow bg-group z0">-->
-                <!--<div class="big-pad"></div>-->
-            <!--</section>-->
-
-            <section id="powered_by" class="container container-with-overflow z1">
+            <section id="powered_by" class="container container-with-overflow">
                 <div>
                     <div id="footer" class="text-center pad-head-small"><a class="text-large" href="https://bitbucket.org/cse-assemblyline/assemblyline">Powered by <img style="vertical-align: bottom" height="32px" src="/static/images/banner.svg"></a></div>
                 </div>

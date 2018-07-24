@@ -4,9 +4,7 @@
     <section id="main-admin" ng-controller="SettingsController">
 
         <section id="header" class="container container-with-overflow container-header">
-            <!--<div class="_header_title">-->
-                <b>Admin Settings</b>
-            <!--</div>-->
+            <b>Admin Settings</b>
         </section>
 
         <section id="body" class="container container-with-overflow text-semi-muted">
@@ -121,16 +119,18 @@
                         </div>
 
                         <div class="pad-button">
+
                             <button type="button" class='btn btn-default btn-style-blue'
                                     ng-disabled="al_address=='' || al_username=='' || al_api_key==''
-                                    || testing_conneciton"
+                                    || testing_connection"
                                     ng-click="btn_al_connect()">Test connection</button>
-                            <img ng-if="show_al_waiting" class="waiting-gif" src="/static/images/spinner.svg">
+                            <img ng-if="show_al_waiting" class="waiting-gif" src="/static/images/loading.svg">
                             <i class="fas fa-check smtp_result_icon icon-green" ng-if="test_al_connect_success"></i>
                             <i class="fas fa-times smtp_result_icon icon-red" ng-if="test_al_connect_fail"></i>
                             <div class="pad-head indent" ng-if="test_al_connect_fail || test_al_connect_success">
                                 //al_test_txt//
                             </div>
+
                         </div>
 
                     </div>
@@ -159,9 +159,10 @@
                     <div id="email-settings" ng-class="{'disable': !default_settings.email_alerts}">
 
                         <div id="recipients" class="pad">
+
                             <div class="small-pad pad-head setting-indent">
 
-                                <form novalidate class="form-medium" ng-submit="add_recipient(new_recipient)">
+                                <form novalidate class="form-medium" ng-submit="btn_add_recipient(new_recipient)">
                                     <div class="form-title pad"><b>Add Recipient</b></div>
                                     <input type="text" class="form align-bottom" ng-model="new_recipient"
                                            uib-tooltip="//alert_msg//" tooltip-is-open="show_alert"
@@ -171,7 +172,7 @@
 
                                 <button type="button" class='btn btn-default btn-style-blue align-bottom reduce-margin'
                                             ng-disabled="new_recipient=='' || !default_settings.email_alerts"
-                                            ng-click="add_recipient(new_recipient)">
+                                            ng-click="btn_add_recipient(new_recipient)">
 
                                     <i class="fas fa-plus-circle"></i>
                                     <div class="recipient" style="display:inline">Add</div>
@@ -181,6 +182,7 @@
                             </div>
 
                             <div class="big-pad pad-head setting-indent">
+
                                 <form novalidate class="form-large">
 
                                     <div class="form-title pad"><b>Remove Recipient</b></div>
@@ -191,7 +193,7 @@
 
                                     <div ng-repeat="address in recipients_show"
                                          class="small-pad setting-indent clickable"
-                                         ng-click="remove_recipient(address)">
+                                         ng-click="btn_remove_recipient(address)">
 
                                         <i class="fas fa-minus-circle icon-red" style="display: inline"></i>
                                         <div class="small-indent" style="display:inline">//address//</div>
@@ -199,7 +201,9 @@
                                     </div>
 
                                 </form>
+
                             </div>
+
                         </div>
 
                         <div id="email-connect" class="group-elements"
@@ -208,6 +212,7 @@
                              'bg-group' : !test_smtp_connect_success && !test_smtp_connect_fail}">
 
                             <div class="small-pad">
+
                                 <form novalidate class="form-medium">
 
                                     <div class="form-title pad"><b>SMTP Server Address</b></div>
@@ -219,6 +224,7 @@
                                            test_smtp_connect_fail = false"/>
 
                                 </form>
+
                                 <form novalidate class="form-small">
 
                                     <div class="form-title pad"><b>Port</b></div>
@@ -231,9 +237,11 @@
 
 
                                 </form>
+
                             </div>
 
                             <div class="small-pad">
+
                                 <form novalidate class="form-medium">
 
                                     <div class="form-title pad"><b>Username</b></div>
@@ -245,6 +253,7 @@
                                            test_smtp_connect_fail = false"/>
 
                                 </form>
+
                                 <form novalidate class="form-small" name="smtp_password_form">
 
                                     <div class="form-title pad"><b>Password</b></div>
@@ -258,6 +267,7 @@
                                            test_smtp_connect_fail = false"/>
 
                                 </form>
+
                             </div>
 
                             <div class="pad-button">
@@ -268,7 +278,7 @@
                                         ng-click="btn_email_connect()">
                                     Test connection
                                 </button>
-                                <img ng-if="show_smtp_waiting" class="waiting-gif" src="/static/images/spinner.svg">
+                                <img ng-if="show_smtp_waiting" class="waiting-gif" src="/static/images/loading.svg">
                                 <i class="fas fa-check smtp_result_icon icon-green"
                                    ng-if="test_smtp_connect_success"></i>
                                 <i class="fas fa-times smtp_result_icon icon-red"
@@ -297,6 +307,7 @@
                 <div class="pad" uib-collapse="user_collapse">
 
                     <div class="small-pad setting-indent">
+
                         <form novalidate class="form-large">
 
                             <div class="form-title small-pad"><b>Session Credentials</b></div>
@@ -319,9 +330,11 @@
                             </div>
 
                         </form>
+
                     </div>
 
                     <div class="small-pad setting-indent">
+
                         <form novalidate class="form-large">
 
                             <div class="form-title small-pad"><b>Scan Result Details</b></div>
@@ -390,6 +403,7 @@
                             </div>
 
                         </form>
+
                     </div>
 
                 </div>
