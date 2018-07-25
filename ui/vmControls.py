@@ -1,10 +1,9 @@
-import subprocess
-import time
-
-
 """
 This file is only used for messing around with VM controls using VBoxManage; is not part of the actual application
 """
+
+import subprocess
+import time
 
 
 # p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" showvminfo "sandbox"',
@@ -23,20 +22,20 @@ This file is only used for messing around with VM controls using VBoxManage; is 
 # p = subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless')
 
 
-# p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff',
-#                 stdout=subprocess.PIPE,
-#                 stderr=subprocess.PIPE)
-# for line in p.stdout:
-#     print line
-# p.communicate()
-# #
-# p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test',
-#                 stdout=subprocess.PIPE,
-#                 stderr=subprocess.PIPE)
-# for line in p.stdout:
-#     print line
-# p.communicate()
+p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+for line in p.stdout:
+    print line
+p.communicate()
 #
+p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+for line in p.stdout:
+    print line
+p.communicate()
+
 # p = subprocess.Popen('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type headless',
 #                 stdout=subprocess.PIPE,
 #                 stderr=subprocess.PIPE)
