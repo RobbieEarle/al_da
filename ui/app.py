@@ -310,6 +310,8 @@ def fe_get_settings():
 
     global default_settings
 
+    default_settings = db_get_saved()
+
     # Makes a copy of default settings to send out, but with user_pw set to nothing and smtp_password set to a
     # placeholder value
     default_settings_output = default_settings.copy()
@@ -552,11 +554,13 @@ def convert_dots(input_str):
     :param input_str:
     :return:
     """
-
-    return_str = ''
-    for i in input_str:
-        return_str = return_str + '.'
-    return return_str
+    if len(input_str) != 0:
+        return_str = ''
+        for i in input_str:
+            return_str = return_str + '.'
+        return return_str
+    else:
+        return ''
 
 
 def email_alert(mal_files, terminal_id):
