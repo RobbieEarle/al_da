@@ -166,12 +166,12 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                         $scope.received_type = 'done';
                     });
                 });
-            }, 500);
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_output = "All files successfully scanned";
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_output = "All files successfully scanned";
+                    });
                 });
-            });
+            }, 500);
 
             // Hides our scan screen and makes the results page visible
             setTimeout(function () {
@@ -328,7 +328,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output;
             });
         });
-
         // Makes sure UI console keeps scrolling down automatically when UI console overflows
         _.defer(function () {
             $scope.$apply(function () {
