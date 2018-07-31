@@ -160,13 +160,13 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         // Called when all our files have been successfully scanned
         else if (event === 'done_loading') {
-
-            // Changes progress bar background to dark green and caption to indicate session was completed
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_type = 'done';
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_type = 'done';
+                    });
                 });
-            });
+            }, 500);
             _.defer(function () {
                 $scope.$apply(function () {
                     $scope.received_output = "All files successfully scanned";
@@ -261,68 +261,15 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         let filename = args["filename"];
 
         // Handles when files are received back from server
-        if (update_type === 'receive_file') {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.files_received++;
-                });
-            });
-            // _.defer(function () {
-            //     $scope.$apply(function () {
-            //         $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
-            //     });
-            // });
-        }
+        if (update_type === 'receive_file')
+            $scope.files_received++;
 
         // Handles when files are submitted to server for analysis
-        else if (update_type === 'submit_file') {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.files_submitted++;
-                });
-            });
-        }
-
-        // Updates our progress bars
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
-                $scope.percentage_sent = 100 - $scope.percentage_received;
-            });
-        });
-        // _.defer(function () {
-        //     $scope.$apply(function () {
-        //         $scope.percentage_sent = 100 - $scope.percentage_received;
-        //     });
-        // });
+        else if (update_type === 'submit_file')
+            $scope.files_submitted++;
 
         // Determines number of files waiting
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.files_waiting = $scope.files_submitted - $scope.files_received;
-            });
-        });
-
-        // Outputs text to console
-        let output = '';
-        if (update_type === 'submit_file')
-            output = 'File submitted: ' + filename;
-        else if (update_type === 'receive_file')
-            output = '  File received: ' + filename;
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output;
-            });
-        });
-
-        // Makes sure UI console keeps scrolling down automatically when UI console overflows
-        _.defer(function () {
-            $scope.$apply(function () {
-                let textarea = document.getElementById('kiosk_output_txt');
-                textarea.scrollTop = textarea.scrollHeight;
-            });
-        });
-
+        $scope.files_waiting = $scope.files_submitted - $scope.files_received;
         // If there are still files left to submit or receive, formats progress bar to show how many
         if ($scope.files_waiting !== 0) {
             _.defer(function () {
@@ -345,10 +292,10 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         // If there are no files left to receive but the scan has not finished (ie. has not been told by
         // by the back end that all partitions are done loading and scanning) then the progress bar
         // indicates that it is waiting for more files
-        else if ($scope.received_type !== 'done'){
-            setTimeout(function(){
+        else if ($scope.received_type !== 'done') {
+            setTimeout(function () {
                 if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                    _.defer(function() {
+                    _.defer(function () {
                         $scope.$apply(function () {
                             $scope.received_type = 'scanning';
                         });
@@ -361,6 +308,34 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 }
             }, 1000);
         }
+
+        // Updates our progress bars
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
+                $scope.percentage_sent = 100 - $scope.percentage_received;
+            });
+        });
+
+        // Outputs text to console
+        let output = '';
+        if (update_type === 'submit_file')
+            output = 'File submitted: ' + filename;
+        else if (update_type === 'receive_file')
+            output = '  File received: ' + filename;
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output;
+            });
+        });
+
+        // Makes sure UI console keeps scrolling down automatically when UI console overflows
+        _.defer(function () {
+            $scope.$apply(function () {
+                let textarea = document.getElementById('kiosk_output_txt');
+                textarea.scrollTop = textarea.scrollHeight;
+            });
+        });
 
     });
 
