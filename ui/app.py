@@ -29,7 +29,7 @@ eventlet.monkey_patch()
 
 # ============== Logging ==============
 
-format_str = '%(asctime)s: %(levelname)s:\t %(name)s: %(message)s'
+format_str = '%(asctime)s: %(levelname)s:\t %(message)s'
 date_format = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter(format_str, date_format)
 local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
@@ -80,75 +80,82 @@ def db_get_saved():
 
     settings_dict = {}
 
-    db = sqlite3.connect('settings_db')
-    cursor = db.cursor()
+    try:
 
-    cursor.execute("""SELECT * from setting""")
-    data_settings = cursor.fetchall()
+        db = sqlite3.connect('settings_db')
+        cursor = db.cursor()
 
-    cursor.execute("""SELECT * from recipient""")
-    data_recipients = cursor.fetchall()
+        cursor.execute("""SELECT * from setting""")
+        data_settings = cursor.fetchall()
 
-    cursor.execute("""SELECT * from credential""")
-    data_credentials = cursor.fetchall()
+        cursor.execute("""SELECT * from recipient""")
+        data_recipients = cursor.fetchall()
 
-    cursor.execute("""SELECT * from result""")
-    data_results = cursor.fetchall()
+        cursor.execute("""SELECT * from credential""")
+        data_credentials = cursor.fetchall()
 
-    saved = len(data_settings) - 1
+        cursor.execute("""SELECT * from result""")
+        data_results = cursor.fetchall()
 
-    settings_dict["user_id"] = cipher_suite.decrypt(bytes(data_settings[saved][2]))
-    settings_dict["user_pw"] = cipher_suite.decrypt(bytes(data_settings[saved][3]))
-    settings_dict["terminal"] = cipher_suite.decrypt(bytes(data_settings[saved][4]))
-    settings_dict["al_address"] = cipher_suite.decrypt(bytes(data_settings[saved][5]))
-    settings_dict["al_username"] = cipher_suite.decrypt(bytes(data_settings[saved][6]))
-    settings_dict["al_api_key"] = cipher_suite.decrypt(bytes(data_settings[saved][7]))
-    settings_dict["email_alerts"] = bool(int(cipher_suite.decrypt(bytes(data_settings[saved][8]))))
-    settings_dict["smtp_server"] = cipher_suite.decrypt(bytes(data_settings[saved][9]))
-    settings_dict["smtp_port"] = cipher_suite.decrypt(bytes(data_settings[saved][10]))
-    settings_dict["smtp_username"] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
-    settings_dict["smtp_password"] = cipher_suite.decrypt(bytes(data_settings[saved][12]))
+        saved = len(data_settings) - 1
 
-    recipients = []
-    for recipient in data_recipients:
+        settings_dict["user_id"] = cipher_suite.decrypt(bytes(data_settings[saved][2]))
+        settings_dict["user_pw"] = cipher_suite.decrypt(bytes(data_settings[saved][3]))
+        settings_dict["terminal"] = cipher_suite.decrypt(bytes(data_settings[saved][4]))
+        settings_dict["al_address"] = cipher_suite.decrypt(bytes(data_settings[saved][5]))
+        settings_dict["al_username"] = cipher_suite.decrypt(bytes(data_settings[saved][6]))
+        settings_dict["al_api_key"] = cipher_suite.decrypt(bytes(data_settings[saved][7]))
+        settings_dict["email_alerts"] = bool(int(cipher_suite.decrypt(bytes(data_settings[saved][8]))))
+        settings_dict["smtp_server"] = cipher_suite.decrypt(bytes(data_settings[saved][9]))
+        settings_dict["smtp_port"] = cipher_suite.decrypt(bytes(data_settings[saved][10]))
+        settings_dict["smtp_username"] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
+        settings_dict["smtp_password"] = cipher_suite.decrypt(bytes(data_settings[saved][12]))
 
-        recip_address = cipher_suite.decrypt(bytes(recipient[1]))
-        recip_setting_id = recipient[2]
+        recipients = []
+        for recipient in data_recipients:
 
-        if recip_setting_id == saved + 1:
-            recipients.append(recip_address)
+            recip_address = cipher_suite.decrypt(bytes(recipient[1]))
+            recip_setting_id = recipient[2]
 
-    settings_dict["recipients"] = recipients
+            if recip_setting_id == saved + 1:
+                recipients.append(recip_address)
 
-    credentials = []
-    for credential in data_credentials:
+        settings_dict["recipients"] = recipients
 
-        cred_name = cipher_suite.decrypt(bytes(credential[1]))
-        cred_active = cipher_suite.decrypt(bytes(credential[2]))
-        cred_mandatory = cipher_suite.decrypt(bytes(credential[3]))
-        cred_setting_id = credential[4]
+        credentials = []
+        for credential in data_credentials:
 
-        if cred_setting_id == saved + 1:
-            credentials.append({'name': cred_name,
-                                'active': bool(int(cred_active)),
-                                'mandatory': bool(int(cred_mandatory)),
-                                'session_val': ''})
+            cred_name = cipher_suite.decrypt(bytes(credential[1]))
+            cred_active = cipher_suite.decrypt(bytes(credential[2]))
+            cred_mandatory = cipher_suite.decrypt(bytes(credential[3]))
+            cred_setting_id = credential[4]
 
-    settings_dict["credential_settings"] = credentials
+            if cred_setting_id == saved + 1:
+                credentials.append({'name': cred_name,
+                                    'active': bool(int(cred_active)),
+                                    'mandatory': bool(int(cred_mandatory)),
+                                    'session_val': ''})
 
-    results = {}
-    for result in data_results:
+        settings_dict["credential_settings"] = credentials
 
-        result_type = cipher_suite.decrypt(bytes(result[1]))
-        result_active = cipher_suite.decrypt(bytes(result[2]))
-        result_setting_id = result[3]
+        results = {}
+        for result in data_results:
 
-        if result_setting_id == saved + 1:
-            results[result_type] = bool(int(result_active))
+            result_type = cipher_suite.decrypt(bytes(result[1]))
+            result_active = cipher_suite.decrypt(bytes(result[2]))
+            result_setting_id = result[3]
 
-    settings_dict["results_settings"] = results
+            if result_setting_id == saved + 1:
+                results[result_type] = bool(int(result_active))
 
-    db.close()
+        settings_dict["results_settings"] = results
+
+        db.close()
+
+        my_logger.info("Settings successfully retrieved from database")
+
+    except Exception as e:
+        my_logger.error("Error retrieving settings from database")
 
     return settings_dict
 
@@ -254,6 +261,8 @@ def fe_scan_start():
     :return:
     """
 
+    my_logger.info("Front end connected")
+
     # vm_control('restart')
 
 
@@ -266,6 +275,8 @@ def fe_get_credentials():
 
     global default_settings
 
+    my_logger.info("Sent credentials to front end")
+
     return default_settings["credential_settings"]
 
 
@@ -277,6 +288,8 @@ def fe_get_results_settings():
     """
 
     global default_settings
+
+    my_logger.info("Sent results settings to front end")
 
     return default_settings["results_settings"]
 
@@ -291,8 +304,11 @@ def fe_set_session_credentials(credentials):
 
     global session_credentials
 
+    my_logger.info("Credentials successfully entered")
+
     session_credentials = credentials
 
+    my_logger.info("Starting new scan")
     # Tells back end script that credentials have been receieved and we can start our submit / receive threads
     socketio.emit('start_scan')
 
@@ -325,8 +341,10 @@ def fe_validate_email(addr):
 
     # Runs entry through simple regex
     if re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', addr) is not None:
+        my_logger.info("Email validation successful")
         return True
 
+    my_logger.info("Email validation failure")
     return False
 
 
@@ -349,6 +367,7 @@ def fe_get_settings():
 
     # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)
+    my_logger.info("Settings sent to front end")
     socketio.emit('populate_settings', settings_json)
 
 
@@ -418,6 +437,7 @@ def fe_test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password
         server = smtplib.SMTP(smtp_server, int(smtp_port))
     except Exception as e:
         output_txt = "Server connection error: " + traceback.format_exception_only(type(e), e)[0]
+        my_logger.error(output_txt)
         return [False, output_txt]
 
     # Tries to log in using given username and password
@@ -427,9 +447,11 @@ def fe_test_connection_smtp(smtp_server, smtp_port, smtp_username, smtp_password
     except Exception as e:
         server.quit()
         output_txt = "Login error: " + traceback.format_exception_only(type(e), e)[0]
+        my_logger.error(output_txt)
         return [False, output_txt]
 
     server.quit()
+    my_logger.info("SMTP connection test successful")
     return [True, 'Connection successful']
 
 
@@ -449,10 +471,13 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
     except Exception as e:
         if type(e) is ClientError:
             output_txt = json.loads(str(e))
+            my_logger.error(output_txt)
             return [False, "Login error: " + output_txt["api_error_message"]]
         else:
+            my_logger.error(traceback.format_exception_only(type(e), e)[0])
             return [False, traceback.format_exception_only(type(e), e)[0]]
 
+    my_logger.info("Assemblyline server connection test successful")
     return [True, 'Connection successful']
 
 
@@ -488,8 +513,9 @@ def be_retrieve_settings():
     Called by the back end to retrieve the login settings for the Assemblyline server
     :return: Assemblyline login settings from DB
     """
-
     global default_settings
+
+    my_logger.info("Sandbox retrieved Assemblyline server settings")
 
     al_settings = {
         "address": default_settings["al_address"],
@@ -508,6 +534,8 @@ def be_device_event(event_type, *args):
     :param event_type: specifies what type of device event occurred
     :return:
     """
+
+    my_logger.info("Device event : " + event_type)
 
     if event_type == 'done_loading':
 
@@ -559,6 +587,10 @@ def be_ingest_status(update_type, filename):
         "update_type": update_type,
         "filename": filename
     }
+    if update_type == 'submit_file':
+        my_logger.info(" - submitted file : " + filename)
+    elif update_type == 'receive':
+        my_logger.info(" - received file : " + filename)
 
     # my_logger.info(" ------------- " + update_type + filename)
     socketio.emit('update_ingest', args)
@@ -574,6 +606,7 @@ def render(template, path):
     :return:
     """
 
+    my_logger.info("Rendering page: " + template)
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin')
 
 
@@ -648,8 +681,9 @@ def email_alert(mal_files):
             text = msg.as_string()
             server.sendmail(default_settings["smtp_username"], default_settings["recipients"], text)
             server.quit()
+            my_logger.info("Email alert successfully sent")
         except:
-            my_logger.error("Error sending email")
+            my_logger.error("Error sending email alert")
 
 
 def db_clear_saved():
@@ -659,27 +693,32 @@ def db_clear_saved():
     :return:
     """
 
-    db = sqlite3.connect('settings_db')
-    cursor = db.cursor()
+    try:
+        db = sqlite3.connect('settings_db')
+        cursor = db.cursor()
 
-    cursor.execute('''
-      DELETE FROM setting WHERE setting_id=2
-    ''')
+        cursor.execute('''
+          DELETE FROM setting WHERE setting_id=2
+        ''')
 
-    cursor.execute('''
-      DELETE FROM recipient WHERE setting_id=2
-    ''')
+        cursor.execute('''
+          DELETE FROM recipient WHERE setting_id=2
+        ''')
 
-    cursor.execute('''
-      DELETE FROM credential WHERE setting_id=2
-    ''')
+        cursor.execute('''
+          DELETE FROM credential WHERE setting_id=2
+        ''')
 
-    cursor.execute('''
-      DELETE FROM result WHERE setting_id=2
-    ''')
+        cursor.execute('''
+          DELETE FROM result WHERE setting_id=2
+        ''')
 
-    db.commit()
-    db.close()
+        db.commit()
+        db.close()
+        my_logger.info("Successfully cleared previous database values")
+
+    except Exception as e:
+        my_logger.error("Error clearing previous database values: " + str(e))
 
 
 def db_save(new_settings, default_smtp_pw_reuse):
@@ -692,78 +731,83 @@ def db_save(new_settings, default_smtp_pw_reuse):
 
     global default_settings
 
-    db = sqlite3.connect('settings_db')
-    cursor = db.cursor()
+    try:
+        db = sqlite3.connect('settings_db')
+        cursor = db.cursor()
 
-    # If new passwords have not been provided then old passwords are reused
-    if new_settings["user_pw"] == '':
-        new_settings["user_pw"] = default_settings["user_pw"]
-    if default_smtp_pw_reuse or not new_settings["email_alerts"]:
-        new_settings["smtp_password"] = default_settings["smtp_password"]
+        # If new passwords have not been provided then old passwords are reused
+        if new_settings["user_pw"] == '':
+            new_settings["user_pw"] = default_settings["user_pw"]
+        if default_smtp_pw_reuse or not new_settings["email_alerts"]:
+            new_settings["smtp_password"] = default_settings["smtp_password"]
 
-    # -- Settings table
-    cursor.execute("""
-    INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
-      email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (2,
-          cipher_suite.encrypt(b'SAVED'),
-          cipher_suite.encrypt(bytes(new_settings['user_id'])),
-          cipher_suite.encrypt(bytes(new_settings["user_pw"])),
-          cipher_suite.encrypt(bytes(new_settings['terminal'])),
-          cipher_suite.encrypt(bytes(new_settings['al_address'])),
-          cipher_suite.encrypt(bytes(new_settings['al_username'])),
-          cipher_suite.encrypt(bytes(new_settings['al_api_key'])),
-          cipher_suite.encrypt(bytes(int(new_settings['email_alerts']))),
-          cipher_suite.encrypt(bytes(new_settings['smtp_server'])),
-          cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
-          cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
-          cipher_suite.encrypt(bytes(new_settings["smtp_password"]))))
+        # -- Settings table
+        cursor.execute("""
+        INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
+          email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (2,
+              cipher_suite.encrypt(b'SAVED'),
+              cipher_suite.encrypt(bytes(new_settings['user_id'])),
+              cipher_suite.encrypt(bytes(new_settings["user_pw"])),
+              cipher_suite.encrypt(bytes(new_settings['terminal'])),
+              cipher_suite.encrypt(bytes(new_settings['al_address'])),
+              cipher_suite.encrypt(bytes(new_settings['al_username'])),
+              cipher_suite.encrypt(bytes(new_settings['al_api_key'])),
+              cipher_suite.encrypt(bytes(int(new_settings['email_alerts']))),
+              cipher_suite.encrypt(bytes(new_settings['smtp_server'])),
+              cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
+              cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
+              cipher_suite.encrypt(bytes(new_settings["smtp_password"]))))
 
-    # -- Recipients table
-    recipients = []
-    i = 1
-    for recipient in new_settings["recipients"]:
-        recipients.append((i, cipher_suite.encrypt(bytes(recipient)), 2))
-        i += 1
-    cursor.executemany("""
-    INSERT INTO recipient(recipient_id, recipient_address, setting_id)
-      VALUES(?,?,?)
-    """, recipients)
+        # -- Recipients table
+        recipients = []
+        i = 1
+        for recipient in new_settings["recipients"]:
+            recipients.append((i, cipher_suite.encrypt(bytes(recipient)), 2))
+            i += 1
+        cursor.executemany("""
+        INSERT INTO recipient(recipient_id, recipient_address, setting_id)
+          VALUES(?,?,?)
+        """, recipients)
 
-    # -- Credentials table
-    credentials = []
-    i = 5
-    for credential in new_settings["credential_settings"]:
-        cred_name = credential["name"]
-        cred_active = credential["active"]
-        cred_mandatory = credential["mandatory"]
-        credentials.append((i, cipher_suite.encrypt(bytes(cred_name)),
-                            cipher_suite.encrypt(bytes(int(cred_active))),
-                            cipher_suite.encrypt(bytes(int(cred_mandatory))), 2))
-        i += 1
-    cursor.executemany("""
-    INSERT INTO credential(credential_id, credential_name, active, mandatory, setting_id)
-      VALUES(?,?,?,?,?)
-    """, credentials)
+        # -- Credentials table
+        credentials = []
+        i = 5
+        for credential in new_settings["credential_settings"]:
+            cred_name = credential["name"]
+            cred_active = credential["active"]
+            cred_mandatory = credential["mandatory"]
+            credentials.append((i, cipher_suite.encrypt(bytes(cred_name)),
+                                cipher_suite.encrypt(bytes(int(cred_active))),
+                                cipher_suite.encrypt(bytes(int(cred_mandatory))), 2))
+            i += 1
+        cursor.executemany("""
+        INSERT INTO credential(credential_id, credential_name, active, mandatory, setting_id)
+          VALUES(?,?,?,?,?)
+        """, credentials)
 
-    # -- Results table
-    results = []
-    i = 8
-    for result in new_settings["results_settings"]:
-        result_type = cipher_suite.encrypt(bytes(result))
-        result_active = cipher_suite.encrypt(bytes(int(new_settings["results_settings"][result])))
-        results.append((i, result_type, result_active, 2))
-        i += 1
-    cursor.executemany("""
-    INSERT INTO result(result_id, result_type, active, setting_id)
-      VALUES(?,?,?,?)
-    """, results)
+        # -- Results table
+        results = []
+        i = 8
+        for result in new_settings["results_settings"]:
+            result_type = cipher_suite.encrypt(bytes(result))
+            result_active = cipher_suite.encrypt(bytes(int(new_settings["results_settings"][result])))
+            results.append((i, result_type, result_active, 2))
+            i += 1
+        cursor.executemany("""
+        INSERT INTO result(result_id, result_type, active, setting_id)
+          VALUES(?,?,?,?)
+        """, results)
 
-    db.commit()
-    db.close()
+        db.commit()
+        db.close()
 
-    default_settings = new_settings
+        default_settings = new_settings
+        my_logger.info("New settings successfully saved to database")
+
+    except Exception as e:
+        my_logger.error("Error saving new settings to database: " + str(e))
 
 
 if __name__ == '__main__':
