@@ -589,7 +589,7 @@ def be_ingest_status(update_type, filename):
     }
     if update_type == 'submit_file':
         my_logger.info(" - submitted file : " + filename)
-    elif update_type == 'receive':
+    elif update_type == 'receive_file':
         my_logger.info(" - received file : " + filename)
 
     # my_logger.info(" ------------- " + update_type + filename)
