@@ -251,27 +251,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     });
 
 
-    socket.on('output', function(output_txt){
-        /*
-        Called by back end script when there is a new message to output to the user
-         */
-
-        _.defer(function() {
-            $scope.$apply(function () {
-
-                // Outputs text to console
-                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output_txt;
-
-                // Makes sure UI console keeps scrolling down automatically when UI console overflows
-                let textarea = document.getElementById('kiosk_output_txt');
-                textarea.scrollTop = textarea.scrollHeight;
-
-            });
-        });
-
-    });
-
-
     socket.on('update_ingest', function(args){
         /*
         Called by back end script whenever a file is submitted or received. This function controls the status of
@@ -281,8 +260,22 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         let update_type = args["update_type"];
         let filename = args["filename"];
 
+        // Handles when files are received back from server
+        if (update_type === 'receive_file') {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.files_received++;
+                });
+            });
+            // _.defer(function () {
+            //     $scope.$apply(function () {
+            //         $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
+            //     });
+            // });
+        }
+
         // Handles when files are submitted to server for analysis
-        if (update_type === 'submit_file') {
+        else if (update_type === 'submit_file') {
             _.defer(function () {
                 $scope.$apply(function () {
                     $scope.files_submitted++;
@@ -290,26 +283,20 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             });
         }
 
-        // Handles when files are received back from server
-        else if (update_type === 'receive_file') {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.files_received++;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
-                });
-            });
-        }
-
-        // Calculates the percentage sent from the percentage received
+        // Updates our progress bars
         _.defer(function () {
             $scope.$apply(function () {
+                $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
                 $scope.percentage_sent = 100 - $scope.percentage_received;
             });
         });
+        // _.defer(function () {
+        //     $scope.$apply(function () {
+        //         $scope.percentage_sent = 100 - $scope.percentage_received;
+        //     });
+        // });
+
+        // Determines number of files waiting
         _.defer(function () {
             $scope.$apply(function () {
                 $scope.files_waiting = $scope.files_submitted - $scope.files_received;
@@ -317,9 +304,14 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         });
 
         // Outputs text to console
+        let output = '';
+        if (update_type === 'submit_file')
+            output = 'File submitted: ' + filename;
+        else if (update_type === 'receive_file')
+            output = '  File received: ' + filename;
         _.defer(function () {
             $scope.$apply(function () {
-                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + filename;
+                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output;
             });
         });
 
