@@ -33,7 +33,7 @@ formatter = logging.Formatter(format_str, date_format)
 local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
 local_handler.setFormatter(formatter)
 
-my_logger = logging.getLogger()
+my_logger = logging.getLogger("socketio")
 my_logger.setLevel(logging.DEBUG)
 my_logger.addHandler(local_handler)
 
