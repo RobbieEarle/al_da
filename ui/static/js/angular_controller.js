@@ -272,11 +272,14 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     });
 
 
-    socket.on('update_ingest', function(update_type, filename){
+    socket.on('update_ingest', function(args){
         /*
         Called by back end script whenever a file is submitted or received. This function controls the status of
         the scan progress bar.
          */
+
+        let update_type = args["update_type"];
+        let filename = args["filename"];
 
         // Handles when files are submitted to server for analysis
         if (update_type === 'submit_file') {
