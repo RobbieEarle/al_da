@@ -545,28 +545,17 @@ def be_device_event(event_type, *args):
     socketio.emit('dev_event', event_type)
 
 
-@socketio.on('be_to_kiosk')
-def be_to_kiosk(msg):
-    """
-    Called by back end to send textual progress information to the front end
-    :param msg: message to be sent
-    :return:
-    """
-
-    socketio.emit('output', msg)
-
-
-
 @socketio.on('be_ingest_status')
-def be_ingest_status(update_type):
+def be_ingest_status(update_type, filename):
     """
     Called by the back end whenever a new file is submitted or received. Information is sent to front end in order to
     update the progress bar in the scan screen
     :param update_type: Gives the type of ingestion event that occurred
+    :param filename: Gives the name of the file that has been submitted or received
     :return:
     """
 
-    socketio.emit('update_ingest', update_type)
+    socketio.emit('update_ingest', update_type, filename)
 
 
 # ============== Helper Functions ==============

@@ -272,55 +272,101 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     });
 
 
-    socket.on('update_ingest', function(update_type){
+    socket.on('update_ingest', function(update_type, filename){
         /*
         Called by back end script whenever a file is submitted or received. This function controls the status of
         the scan progress bar.
          */
 
-        _.defer(function() {
-            $scope.$apply(function () {
-
-                // Handles when files are submitted to server for analysis
-                if (update_type === 'submit_file') {
+        // Handles when files are submitted to server for analysis
+        if (update_type === 'submit_file') {
+            _.defer(function () {
+                $scope.$apply(function () {
                     $scope.files_submitted++;
-                }
+                });
+            });
+        }
 
-                // Handles when files are received back from server
-                else if (update_type === 'receive_file') {
+        // Handles when files are received back from server
+        else if (update_type === 'receive_file') {
+            _.defer(function () {
+                $scope.$apply(function () {
                     $scope.files_received++;
+                });
+            });
+            _.defer(function () {
+                $scope.$apply(function () {
                     $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
-                }
+                });
+            });
+        }
 
-                // Calculates the percentage sent from the percentage received
+        // Calculates the percentage sent from the percentage received
+        _.defer(function () {
+            $scope.$apply(function () {
                 $scope.percentage_sent = 100 - $scope.percentage_received;
-                $scope.files_waiting = $scope.files_submitted - $scope.files_received;
-
-                // If there are still files left to submit or receive, formats progress bar to show how many
-                if ($scope.files_waiting !== 0) {
-                    $scope.received_type = 'received';
-                    $scope.received_output = "Scanned: " + $scope.files_received;
-                    $scope.submit_output = "Queue: " + $scope.files_waiting;
-                }
-
-                // If there are no files left to receive but the scan has not finished (ie. has not been told by
-                // by the back end that all partitions are done loading and scanning) then the progress bar
-                // indicates that it is waiting for more files
-                else if ($scope.received_type !== 'done'){
-                    setTimeout(function(){
-                        if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                            _.defer(function() {
-                                $scope.$apply(function () {
-                                    $scope.received_type = 'scanning';
-                                    $scope.received_output = "Searching for more files";
-                                });
-                            });
-                        }
-                    }, 1000);
-                }
-
             });
         });
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.files_waiting = $scope.files_submitted - $scope.files_received;
+            });
+        });
+
+        // Outputs text to console
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + filename;
+            });
+        });
+
+        // Makes sure UI console keeps scrolling down automatically when UI console overflows
+        _.defer(function () {
+            $scope.$apply(function () {
+                let textarea = document.getElementById('kiosk_output_txt');
+                textarea.scrollTop = textarea.scrollHeight;
+            });
+        });
+
+        // If there are still files left to submit or receive, formats progress bar to show how many
+        if ($scope.files_waiting !== 0) {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.received_type = 'received';
+                });
+            });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.received_output = "Scanned: " + $scope.files_received;
+                });
+            });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.submit_output = "Queue: " + $scope.files_waiting;
+                });
+            });
+        }
+
+        // If there are no files left to receive but the scan has not finished (ie. has not been told by
+        // by the back end that all partitions are done loading and scanning) then the progress bar
+        // indicates that it is waiting for more files
+        else if ($scope.received_type !== 'done'){
+            setTimeout(function(){
+                if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
+                    _.defer(function() {
+                        $scope.$apply(function () {
+                            $scope.received_type = 'scanning';
+                        });
+                    });
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_output = "Searching for more files";
+                        });
+                    });
+                }
+            }, 1000);
+        }
+
     });
 
 
