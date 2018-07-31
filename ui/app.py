@@ -546,7 +546,7 @@ def be_device_event(event_type, *args):
 
 
 @socketio.on('be_ingest_status')
-def be_ingest_status(update_type, filename):
+def be_ingest_status(self, update_type, filename):
     """
     Called by the back end whenever a new file is submitted or received. Information is sent to front end in order to
     update the progress bar in the scan screen
@@ -555,7 +555,8 @@ def be_ingest_status(update_type, filename):
     :return:
     """
 
-    socketio.emit('update_ingest', update_type, filename)
+    my_logger.info(" ------------- " + self + update_type + filename)
+    # socketio.emit('update_ingest', update_type, filename)
 
 
 # ============== Helper Functions ==============
