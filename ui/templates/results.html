@@ -134,17 +134,17 @@
                 <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted"
                      ng-if="results_settings.safe_files && !hide_pass_files">
                     <p><b>Safe files</b></p>
-                    <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-metadata.al_score'" class="panel-default">
+                    <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-submission.metadata.al_score'" class="panel-default">
 
                         <div uib-accordion-heading>
                             <div class="row text-semi-muted">
-                                <div class="result-detail-header">//file.metadata.filename//</div>
-                                <div ng-if="results_settings.score" class="result-detail-header text-right">//file.metadata.al_score//</div>
+                                <div class="result-detail-header">//file.submission.metadata.filename//</div>
+                                <div ng-if="results_settings.score" class="result-detail-header text-right">//file.submission.metadata.al_score//</div>
                             </div>
                         </div>
 
                         <div class="pad">
-                            <p><b>Path:</b> //file.metadata.path//</p>
+                            <p><b>Path:</b> //file.submission.metadata.path//</p>
                         </div>
 
                     </div>
