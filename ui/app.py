@@ -12,6 +12,8 @@ from assemblyline_client import Client, ClientError
 import traceback
 
 from helper.views import create_menu
+from helper.loggers import StreamToLogger
+import sys
 import eventlet
 import arrow
 import re
@@ -36,6 +38,7 @@ local_handler.setFormatter(formatter)
 my_logger = logging.getLogger("socketio")
 my_logger.setLevel(logging.DEBUG)
 my_logger.addHandler(local_handler)
+sys.stderr = StreamToLogger(my_logger, logging.ERROR)
 
 
 # ============== Default Values ==============
