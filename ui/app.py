@@ -20,6 +20,7 @@ import sqlite3
 from cryptography.fernet import Fernet
 
 import logging
+from logging.handlers import RotatingFileHandler
 
 eventlet.monkey_patch()
 
