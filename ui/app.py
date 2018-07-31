@@ -35,7 +35,7 @@ formatter = logging.Formatter(format_str, date_format)
 local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
 local_handler.setFormatter(formatter)
 
-my_logger = logging.getLogger("socketio")
+my_logger = logging.getLogger("alda")
 my_logger.setLevel(logging.DEBUG)
 my_logger.addHandler(local_handler)
 sys.stderr = StreamToLogger(my_logger, logging.ERROR)
@@ -66,7 +66,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = 'changeme123'
 app.debug = True
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=my_logger)
 CORS(app)
 
 
