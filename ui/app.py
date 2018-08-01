@@ -50,9 +50,6 @@ default_settings = {}
 # To hold the values entered by the user as credentials for each session
 session_credentials = []
 
-# Reflects whether or not our virtual machine is currently connected and ready to receive new devices
-vm_connected = False
-
 # Key and Cipher Suite used to decrypt DB contents
 key = b'peja3W-4eEM9uuJJ95yOJU4r2iL9H6LfLBN4llb4xEs='
 cipher_suite = Fernet(key)
@@ -483,19 +480,19 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
 
 
 @socketio.on('vm_control')
-def vm_control(vm_command):
+def vm_control():
     """
     Called when front end wants to turn off or restart the virtual machine running our scrape application
     :param args:
     :return:
     """
 
-    global client_f_name, client_l_name, vm_connected
+    active_machines = subprocess.call('VBoxManage list runningvms')
 
-    # client_f_name = ''
-    # client_l_name = ''
-    # vm_connected = False
-    #
+    if re.search('alda_sandbox', active_machines) is not None:
+        print " ------------- Success!!!"
+        print str(active_machines)
+
     # print "VM Control: " + vm_command
 
     # if vm_command == 'off' or 'restart':
@@ -569,6 +566,9 @@ def be_device_event(event_type, *args):
 
         except Exception as e:
             my_logger.error("Error retrieving file information from server: " + str(e))
+
+    if event_type == 'disconnected':
+        vm_control()
 
     socketio.emit('dev_event', event_type)
 
