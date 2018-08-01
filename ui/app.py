@@ -487,11 +487,18 @@ def vm_control():
     :return:
     """
 
-    active_machines = subprocess.call('VBoxManage list runningvms')
+    subprocess.call('VBoxManage list runningvms')
 
-    if re.search('alda_sandbox', active_machines) is not None:
-        print " ------------- Success!!!"
-        print str(active_machines)
+    p = subprocess.Popen('VBoxManage list runningvms',
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    for line in p.stdout:
+        my_logger.info("------- " + line)
+    p.communicate()
+
+    # if re.search('alda_sandbox', active_machines) is not None:
+    #     print " ------------- Success!!!"
+    #     print str(active_machines)
 
     # print "VM Control: " + vm_command
 
