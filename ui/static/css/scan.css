@@ -175,12 +175,20 @@
     background-color: #72c86f;
 }
 
-.progress-bar-sent {
+.progress-bar-sent, .progress-bar-loading {
     background-color: #2c5180;
+}
+
+.progress-bar-scanning {
+    background-color: #636b77;
 }
 
 .progress-bar-done {
     background-color: #00881b;
+}
+
+.progress-bar-early {
+    background-color: #880011;
 }
 
 

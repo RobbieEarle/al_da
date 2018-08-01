@@ -74,7 +74,9 @@
 
                     <section ng-if="curr_screen==2">
                         <div class="pad-button">
-                            <div uib-progress ng-class="{'progress-striped active': received_type=='scanning'}">
+                            <div uib-progress
+                                 ng-class="{'progress-striped active': received_type=='scanning'
+                                 || received_type=='loading'}">
                                 <div uib-bar value="percentage_received" type=//received_type//>
                                     <span ng-hide="percentage_received < 5">//received_output//</span>
                                 </div>

@@ -32,7 +32,8 @@ eventlet.monkey_patch()
 format_str = '%(asctime)s: %(levelname)s:\t %(message)s'
 date_format = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter(format_str, date_format)
-local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
+local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 local_handler.setFormatter(formatter)
 
 my_logger = logging.getLogger("alda")
@@ -536,10 +537,12 @@ def be_device_event(event_type, *args):
     """
 
     my_logger.info("Device event : " + event_type)
+    args = list(args)
+    my_logger.info("------------- Num args : " + str(len(args)))
 
-    if event_type == 'done_loading':
+    if len(args) == 2:
 
-        args = list(args)
+        socketio.emit('dev_event', 'loading_results')
 
         try:
 
@@ -547,25 +550,22 @@ def be_device_event(event_type, *args):
                               apikey=(default_settings["al_username"], default_settings["al_api_key"]),
                               verify=False)
 
-            if args[0] is not None:
+            pass_files = []
+            for sid in args[0]:
+                pass_files.append(get_sid_info(terminal, sid, False))
 
-                pass_files = []
-                for sid in args[0]:
-                    pass_files.append(get_sid_info(terminal, sid, False))
+            pass_files_json = json.dumps(pass_files)
+            socketio.emit('pass_files_json', pass_files_json)
 
-                pass_files_json = json.dumps(pass_files)
-                socketio.emit('pass_files_json', pass_files_json)
+            mal_files = []
+            for sid in args[1]:
+                mal_files.append(get_sid_info(terminal, sid, True))
 
-            if args[1] is not None:
-                mal_files = []
-                for sid in args[1]:
-                    mal_files.append(get_sid_info(terminal, sid, True))
+            mal_files_json = json.dumps(mal_files)
+            socketio.emit('mal_files_json', mal_files_json)
 
-                mal_files_json = json.dumps(mal_files)
-                socketio.emit('mal_files_json', mal_files_json)
-
-                # Sends email alert to all users on the recipient list
-                email_alert(mal_files)
+            # Sends email alert to all users on the recipient list
+            email_alert(mal_files)
 
         except Exception as e:
             my_logger.error("Error retrieving file information from server: " + str(e))
@@ -587,10 +587,11 @@ def be_ingest_status(update_type, filename):
         "update_type": update_type,
         "filename": filename
     }
+
     if update_type == 'submit_file':
         my_logger.info(" - submitted file : " + filename)
     elif update_type == 'receive_file':
-        my_logger.info(" - received file : " + filename)
+        my_logger.info(" -    received file : " + filename)
 
     # my_logger.info(" ------------- " + update_type + filename)
     socketio.emit('update_ingest', args)

@@ -47,6 +47,17 @@
 
         <section ng-if="display_results && (!hide_mal_files || results_settings.safe_files)" class="container container-with-overflow">
 
+            <div class="pad-head" ng-if="!scan_complete">
+                <div uib-alert ng-class="'alert-danger'">
+                    <b>Error</b> - Device was removed before scan could be completed. The results listed are for the
+                    files that were scanned before the device was removed.
+                    </br>
+                    </br>
+                    <b>Use of this device on-site is strictly prohibited, without exception.</b> Please begin a new session
+                    and complete a full scan before using this device.
+                </div>
+            </div>
+
             <div class="text-center" uib-collapse="hide_btn">
                 <div class="pad-head pad">
                     <button type="button" class='btn btn-default btn-style-blue btn-large' ng-click="btn_new_session()">

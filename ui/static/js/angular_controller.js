@@ -28,7 +28,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
 
     // Text that accompanies kiosk_img
-    $scope.kiosk_img_sub = 'Please attach block device';
+    $scope.kiosk_img_sub = 'Please attach storage device';
 
     // When a device is added / removed, this string records the type of event that occurred. Is used by our
     // animOutputHeader animation directive; when any device event occurs, the current kiosk_img fades, and this
@@ -110,10 +110,24 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Handles device events outputted by our back end script
         */
 
+        if (event === 'new_detected'){
+            $scope.device_connected = true;
+        }
+
+        else if (event === 'remove_detected') {
+            $scope.device_connected = false;
+            // If our scan was finished (ie. results were shown), shows a button to start a new session without
+            // removing the results from the previous session (this way the user can unplug their device and they
+            // can still read through the results)
+            if ($scope.received_type === 'done') {
+                $rootScope.$emit("device_removed", {});
+            }
+        }
+
         // Called when a device is first connected. Resets all variables related to our scan progress bar screen
         // (these variables will have have been reset previously when the device was removed, but this occurs
         // again just in case in the interim a straggling file was sent through by the back end app)
-        if (event === 'connected') {
+        else if (event === 'connected') {
 
             _.defer(function () {
                 $scope.$apply(function () {
@@ -159,37 +173,44 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         }
 
         // Called when all our files have been successfully scanned
-        else if (event === 'done_loading') {
+        else if (event === 'done_loading' && $scope.device_connected) {
+
             setTimeout(function () {
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.received_type = 'done';
+                if ($scope.device_connected) {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_type = 'done';
+                        });
                     });
-                });
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.received_output = "All files successfully scanned";
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_output = "All files successfully scanned";
+                        });
                     });
-                });
+                }
             }, 500);
 
             // Hides our scan screen and makes the results page visible
             setTimeout(function () {
-                _.defer(function () {
-                    $scope.$apply(function () {
+                if ($scope.device_connected) {
+                    _.defer(function () {
+                        $scope.$apply(function () {
 
-                        $scope.hide_output = true;
+                            $scope.hide_output = true;
 
-                        setTimeout(function () {
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $rootScope.$emit("results_init", {});
-                                })
-                            });
-                        }, 1000);
+                            setTimeout(function () {
+                                if ($scope.device_connected) {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            $rootScope.$emit("results_init", true, {});
+                                        })
+                                    });
+                                }
+                            }, 1000);
 
-                    })
-                })
+                        })
+                    });
+                }
             }, 1500);
 
         }
@@ -200,34 +221,99 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // socket.emit('vm_control', 'restart');
             // $scope.vm_restart = true;
 
-            // If our scan never got a chance to finish, starts a new session
             if ($scope.received_type !== 'done'){
-                $scope.new_session();
+
+                if ($scope.curr_screen === 2) {
+
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_type = 'early';
+                            });
+                        });
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.percentage_received = 100;
+                                $scope.percentage_sent = 0;
+                            });
+                        });
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_output = "Device removed before scan could be completed";
+                            });
+                        });
+                    }, 500);
+
+                    // Hides our scan screen and makes the results page visible
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+
+                                $scope.hide_output = true;
+
+                                setTimeout(function () {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            $rootScope.$emit("results_init", false, {});
+                                        })
+                                    });
+                                }, 1000);
+                                setTimeout(function () {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            $rootScope.$emit("device_removed", {});
+                                        })
+                                    });
+                                }, 1500);
+
+                            })
+                        })
+                    }, 1500);
+
+                }
+
+                else{
+
+                    // Makes mini-kiosk change to red and display "Device disconnected"
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.new_session();
+                            });
+                        });
+                    }, 100);
+
+                }
+
             }
 
-            // If our scan was finished (ie. results were shown), shows a button to start a new session without
-            // removing the results from the previous session (this way the user can unplug their device and they
-            // can still read through the results)
-            else {
-                $rootScope.$emit("device_removed", {});
-            }
+        }
 
-            // Makes mini-kiosk change to red and display "Device disconnected"
-            setTimeout(function () {
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.device_connected = false;
-                        $scope.mini_kiosk_sub = 'Device Disconnected';
-                    });
+        else if (event === 'loading_results') {
+
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.received_type = 'loading';
                 });
-            }, 1500);
+            });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.percentage_received = 100;
+                    $scope.percentage_sent = 0;
+                });
+            });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.received_output = "Retrieving detailed results from server";
+                });
+            });
 
         }
 
         // If we are still in screen 0 (ie. our large kiosk_img is still visible), then we alter our device_event
         // variable which is being watched by our animation directive. Will change the image being displayed
         // depending on the device event
-        if ($scope.curr_screen === 0)
+        if ($scope.curr_screen === 0 && ($scope.device_connected || event === 'remove_detected'))
             _.defer(function() {
                 $scope.$apply(function () {
                     $scope.device_event = event;
@@ -256,85 +342,88 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Called by back end script whenever a file is submitted or received. This function controls the status of
         the scan progress bar.
          */
+        if ($scope.device_connected) {
 
-        let update_type = args["update_type"];
-        let filename = args["filename"];
+            let update_type = args["update_type"];
+            let filename = args["filename"];
 
-        // Handles when files are received back from server
-        if (update_type === 'receive_file')
-            $scope.files_received++;
+            // Handles when files are received back from server
+            if (update_type === 'receive_file')
+                $scope.files_received++;
 
-        // Handles when files are submitted to server for analysis
-        else if (update_type === 'submit_file')
-            $scope.files_submitted++;
+            // Handles when files are submitted to server for analysis
+            else if (update_type === 'submit_file')
+                $scope.files_submitted++;
 
-        // Determines number of files waiting
-        $scope.files_waiting = $scope.files_submitted - $scope.files_received;
-        // If there are still files left to submit or receive, formats progress bar to show how many
-        if ($scope.files_waiting !== 0) {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_type = 'received';
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_output = "Scanned: " + $scope.files_received;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.submit_output = "Queue: " + $scope.files_waiting;
-                });
-            });
-        }
-
-        // If there are no files left to receive but the scan has not finished (ie. has not been told by
-        // by the back end that all partitions are done loading and scanning) then the progress bar
-        // indicates that it is waiting for more files
-        else if ($scope.received_type !== 'done') {
-            setTimeout(function () {
-                if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.received_type = 'scanning';
-                        });
+            // Determines number of files waiting
+            $scope.files_waiting = $scope.files_submitted - $scope.files_received;
+            // If there are still files left to submit or receive, formats progress bar to show how many
+            if ($scope.files_waiting !== 0) {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_type = 'received';
                     });
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.received_output = "Searching for more files";
-                        });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_output = "Scanned: " + $scope.files_received;
                     });
-                }
-            }, 1000);
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.submit_output = "Queue: " + $scope.files_waiting;
+                    });
+                });
+            }
+
+            // If there are no files left to receive but the scan has not finished (ie. has not been told by
+            // by the back end that all partitions are done loading and scanning) then the progress bar
+            // indicates that it is waiting for more files
+            else if ($scope.received_type !== 'done') {
+                setTimeout(function () {
+                    if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_type = 'scanning';
+                            });
+                        });
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_output = "Searching for more files";
+                            });
+                        });
+                    }
+                }, 1000);
+            }
+
+            // Updates our progress bars
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
+                    $scope.percentage_sent = 100 - $scope.percentage_received;
+                });
+            });
+
+            // Outputs text to console
+            let output = '';
+            if (update_type === 'submit_file')
+                output = 'File submitted: ' + filename;
+            else if (update_type === 'receive_file')
+                output = '  File received: ' + filename;
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output;
+                });
+            });
+            // Makes sure UI console keeps scrolling down automatically when UI console overflows
+            _.defer(function () {
+                $scope.$apply(function () {
+                    let textarea = document.getElementById('kiosk_output_txt');
+                    textarea.scrollTop = textarea.scrollHeight;
+                });
+            });
+
         }
-
-        // Updates our progress bars
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.percentage_received = 100 * ($scope.files_received / $scope.files_submitted);
-                $scope.percentage_sent = 100 - $scope.percentage_received;
-            });
-        });
-
-        // Outputs text to console
-        let output = '';
-        if (update_type === 'submit_file')
-            output = 'File submitted: ' + filename;
-        else if (update_type === 'receive_file')
-            output = '  File received: ' + filename;
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.kiosk_output = $scope.kiosk_output + '\r\n' + output;
-            });
-        });
-        // Makes sure UI console keeps scrolling down automatically when UI console overflows
-        _.defer(function () {
-            $scope.$apply(function () {
-                let textarea = document.getElementById('kiosk_output_txt');
-                textarea.scrollTop = textarea.scrollHeight;
-            });
-        });
 
     });
 
@@ -389,7 +478,31 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         setTimeout(function(){
 
-            if (device_event === 'connected') {
+            if (device_event === 'new_detected'){
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img = '/static/images/scrape_conn.svg';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img_sub = 'Device detected';
+                    });
+                });
+            }
+            else if (device_event === 'remove_detected') {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img_sub = 'Please attach block device';
+                    });
+                });
+            }
+            else if (device_event === 'connected') {
 
                 _.defer(function () {
                     $scope.$apply(function () {
@@ -413,11 +526,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.kiosk_img_sub = 'Connection successful';
-                    });
-                });
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.device_connected = true;
                     });
                 });
                 _.defer(function () {
@@ -528,54 +636,62 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Called by our after_hide_img function once our Assembyline server has been connected
          */
 
-        // Requests necessary credentials from our Flask app in order to populate our credentials page
-        socket.emit('fe_get_credentials',
-            function(credentials){
+        if ($scope.device_connected) {
 
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.credentials = credentials;
+            // Requests necessary credentials from our Flask app in order to populate our credentials page
+            socket.emit('fe_get_credentials',
+                function (credentials) {
+
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.credentials = credentials;
+                        });
+                    });
+
                 });
-            });
 
-        });
-
-        // Hides our main kiosk_img and kiosk_img_sub images
-        setTimeout(function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.device_event = 'hide';
+            // Hides our main kiosk_img and kiosk_img_sub images
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        if ($scope.device_connected)
+                            $scope.device_event = 'hide';
+                    });
                 });
-            });
-        }, 1000);
+            }, 1000);
 
-        // Changes the current screen to 1 and sets the text to be displayed by our main button. Is basically
-        // prepping our output screen for when hide_output is set to false and this screen is shown
-        setTimeout(function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.curr_screen = 1;
+            // Changes the current screen to 1 and sets the text to be displayed by our main button. Is basically
+            // prepping our output screen for when hide_output is set to false and this screen is shown
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        if ($scope.device_connected)
+                            $scope.curr_screen = 1;
+                    });
                 });
-            });
-        }, 1200);
+            }, 1200);
 
-        // Causes our thin green bar along the top to show, indicating our device is connected
-        setTimeout(function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.mini_kiosk = true;
+            // Causes our thin green bar along the top to show, indicating our device is connected
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        if ($scope.device_connected)
+                            $scope.mini_kiosk = true;
+                    });
                 });
-            });
-        }, 1800);
+            }, 1800);
 
-        // Reveals our output screen
-        setTimeout(function(){
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.hide_output = false;
+            // Reveals our output screen
+            setTimeout(function () {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        if ($scope.device_connected)
+                            $scope.hide_output = false;
+                    });
                 });
-            });
-        }, 2400);
+            }, 2400);
+
+        }
 
     };
 
@@ -635,16 +751,19 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         setTimeout(function(){
 
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+            if (!$scope.device_connected) {
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+                    });
                 });
-            });
-            _.defer(function() {
-                $scope.$apply(function () {
-                    $scope.kiosk_img_sub = 'Please attach block device';
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img_sub = 'Please attach block device';
+                    });
                 });
-            });
+            }
+
             _.defer(function() {
                 $scope.$apply(function () {
                     $scope.kiosk_output = '';
@@ -755,6 +874,9 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
     // and device removed
     $scope.hide_btn = true;
 
+    // Controls whether or not an error alert comes up telling the user the results are based on incomplete scan
+    $scope.scan_complete = true;
+
 
     // ----------------------- Socket Event Handlers
 
@@ -829,10 +951,16 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
 
     // ----------------------- Root Scope Event Handlers
 
-    $rootScope.$on("results_init", function() {
+    $rootScope.$on("results_init", function(self, scan_complete) {
         /*
         Called by our ScanController after our back end script has indicated that all files have been scanned
          */
+        console.log(scan_complete);
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.scan_complete = scan_complete;
+            });
+        });
 
         // Retrieves the admin's result settings from our DB
         socket.emit('fe_get_results_settings',
@@ -975,6 +1103,7 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
                 $scope.show_results = true;
             });
         });
+
     };
 
 
@@ -2044,9 +2173,10 @@ app.directive('animOutputHeader', function($animate) {
                     $animate.removeClass(elem, 'img-hide').then(scope.after_show_img);
                 }
                 if (scope.device_event === 'connected'
+                    || scope.device_event === 'new_detected'
+                    || scope.device_event === 'remove_detected'
                     || scope.device_event === 'al_server_success'
                     || scope.device_event === 'al_server_failure'
-                    || scope.device_event === 'disconnected'
                     || scope.device_event === 'hide') {
                     $animate.addClass(elem, 'hidden');
                     $animate.addClass(elem, 'img-hide').then(scope.after_hide_img(scope.device_event));

@@ -1,15 +1,4 @@
 import logging
-from socketIO_client import SocketIO
-
-
-class OutputHandler(logging.Handler):
-
-    def __init__(self, socket, *args, **kwargs):
-        logging.Handler.__init__(self, *args, **kwargs)
-        self.socketio = socket
-
-    def emit(self, record):
-        self.socketio.emit('logging', self.format(record))
 
 
 class StreamToLogger(object):
