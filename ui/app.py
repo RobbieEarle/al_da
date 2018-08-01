@@ -2,7 +2,7 @@ from flask import Flask, render_template, json, redirect, request, session, flas
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
-import subprocess
+import os
 import smtplib
 
 from email.MIMEMultipart import MIMEMultipart
@@ -487,14 +487,7 @@ def vm_control():
     :return:
     """
 
-    subprocess.call('VBoxManage list runningvms')
-
-    p = subprocess.Popen('VBoxManage list runningvms',
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    for line in p.stdout:
-        my_logger.info("------- " + line)
-    p.communicate()
+    my_logger.info(" ------------- " + str(os.system('VBoxManage list runningvms')))
 
     # if re.search('alda_sandbox', active_machines) is not None:
     #     print " ------------- Success!!!"
