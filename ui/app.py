@@ -22,6 +22,8 @@ import traceback
 import smtplib
 import sqlite3
 from cryptography.fernet import Fernet
+import time
+import subprocess
 
 eventlet.monkey_patch()
 
@@ -477,6 +479,50 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
     return [True, 'Connection successful']
 
 
+@socketio.on('vm_control')
+def vm_control():
+    """
+    Called when front end wants to turn off or restart the virtual machine running our scrape application
+    :param args:
+    :return:
+    """
+
+    def get_vm_state():
+        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
+        vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
+        return vm_state
+
+    if get_vm_state() != 'poweroff':
+        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
+
+    while get_vm_state() != 'poweroff':
+        time.sleep(1)
+        pass
+
+    subprocess.call(['VBoxManage', 'snapshot', 'alda_sandbox', 'restore', 'alda_clean'])
+
+    while get_vm_state() != 'saved':
+        time.sleep(1)
+        pass
+
+    subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless'])
+
+    my_logger.info(" --------- DONE REFRESH VM")
+
+    # if re.search('alda_sandbox', active_machines) is not None:
+    #     print " ------------- Success!!!"
+    #     print str(active_machines)
+
+    # print "VM Control: " + vm_command
+
+    # if vm_command == 'off' or 'restart':
+    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
+    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test')
+    # if vm_command == 'restart' or 'on':
+    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
+    #                     '--type headless')
+
+
 # ============== Back End Socketio Listeners ==============
 
 @socketio.on('be_retrieve_settings')
@@ -542,6 +588,9 @@ def be_device_event(event_type, *args):
 
         except Exception as e:
             my_logger.error("Error retrieving file information from server: " + str(e))
+
+    if event_type == 'disconnected':
+        vm_control()
 
     socketio.emit('dev_event', event_type)
 
