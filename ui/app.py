@@ -499,11 +499,11 @@ def vm_control():
     # print str(subprocess.check_output(['VBoxManage', '', 'runningvms']))
 
     vm_state = ''
-    while vm_state != 'poweroff':
-        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
-        my_logger.info(vm_info)
-        vm_state = str(subprocess.check_output(['sed', '-n', "'s/^VMState=//p'", vm_info]))
-        my_logger.info(vm_state)
+    # while vm_state != 'poweroff':
+    vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
+    my_logger.info(vm_info)
+    vm_state = str(subprocess.check_output(['sed', '-n', "'s/^VMState=//p'", vm_info]))
+    my_logger.info(vm_state)
 
 
 
