@@ -4,6 +4,7 @@ from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
 import os
 import smtplib
+import time
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -493,19 +494,19 @@ def vm_control():
     my_logger.info("-------------- VM CONTROL")
     running_vms = str(subprocess.check_output(['VBoxManage', 'list', 'runningvms']))
 
-    if 'alda_sandbox' in running_vms:
+    def get_vm_state():
+        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
+        vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
+        return vm_state
+
+    if get_vm_state() != 'poweroff':
         subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
 
-    # print str(subprocess.check_output(['VBoxManage', '', 'runningvms']))
+    while get_vm_state() != 'poweroff':
+        time.sleep(1)
+        pass
 
-    vm_state = ''
-    # while vm_state != 'poweroff':
-    vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
-    my_logger.info(vm_info)
-    vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
-    my_logger.info(vm_state)
-
-
+    subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
 
     # if re.search('alda_sandbox', active_machines) is not None:
     #     print " ------------- Success!!!"
