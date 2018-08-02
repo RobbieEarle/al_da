@@ -17,6 +17,7 @@ import sys
 import eventlet
 import arrow
 import re
+import subprocess
 
 import sqlite3
 from cryptography.fernet import Fernet
@@ -487,7 +488,10 @@ def vm_control():
     :return:
     """
 
-    my_logger.info(" ------------- " + str(os.system('VBoxManage list runningvms')))
+    # my_logger.info(" ------------- " + str(os.system('VBoxManage list runningvms')))
+
+    my_logger.info("-------------- VM CONTROL")
+    my_logger.info(str(subprocess.check_output(['VBoxManage', 'list', 'runningvms'])))
 
     # if re.search('alda_sandbox', active_machines) is not None:
     #     print " ------------- Success!!!"
@@ -535,7 +539,6 @@ def be_device_event(event_type, *args):
 
     my_logger.info("Device event : " + event_type)
     args = list(args)
-    my_logger.info("------------- Num args : " + str(len(args)))
 
     if len(args) == 2:
 
