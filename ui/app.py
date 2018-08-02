@@ -494,7 +494,17 @@ def vm_control():
     running_vms = str(subprocess.check_output(['VBoxManage', 'list', 'runningvms']))
 
     if 'alda_sandbox' in running_vms:
-        subprocess.call(['VBoxManage', 'controlvm', 'sandbox', 'poweroff'])
+        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
+
+    # print str(subprocess.check_output(['VBoxManage', '', 'runningvms']))
+
+    vm_state = ''
+    while vm_state != 'poweroff':
+        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
+        my_logger.info(vm_info)
+        vm_state = str(subprocess.check_output(['sed', '-n', "'s/^VMState=//p'", vm_info]))
+        my_logger.info(vm_state)
+
 
 
     # if re.search('alda_sandbox', active_machines) is not None:
