@@ -494,7 +494,7 @@ def vm_control():
     running_vms = str(subprocess.check_output(['VBoxManage', 'list', 'runningvms']))
 
     if 'alda_sandbox' in running_vms:
-        subprocess.call('VBoxManage controlvm sandbox poweroff')
+        subprocess.call(['VBoxManage', 'controlvm', 'sandbox', 'poweroff'])
 
 
     # if re.search('alda_sandbox', active_machines) is not None:
