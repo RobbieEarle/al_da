@@ -480,70 +480,12 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
     return [True, 'Connection successful']
 
 
-@socketio.on('vm_control')
-def vm_control():
-    """
-    Called when front end wants to turn off or restart the virtual machine running our scrape application
-    :param args:
-    :return:
-    """
-
-    def get_vm_state():
-        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
-        vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
-        return vm_state
-
-    if get_vm_state() != 'poweroff':
-        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
-
-    while get_vm_state() != 'poweroff':
-        time.sleep(1)
-        pass
-
-    subprocess.call(['VBoxManage', 'snapshot', 'alda_sandbox', 'restore', 'alda_clean'])
-
-    while get_vm_state() != 'saved':
-        time.sleep(1)
-        pass
-
-    time.sleep(1)
-
-    while True:
-        try:
-            subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless'])
-            break
-        except Exception as e:
-
-            my_logger.error("Error starting VM: " + str(e))
-            my_logger.error("Retrying....")
-            time.sleep(2)
-
-            try:
-                subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless', '--type', 'emergencystop'])
-                break
-            except Exception as e2:
-                my_logger.error("Error starting VM: " + str(e))
-                time.sleep(2)
-
-
-
-    my_logger.info(" --------- DONE REFRESH VM")
-
-    # if re.search('alda_sandbox', active_machines) is not None:
-    #     print " ------------- Success!!!"
-    #     print str(active_machines)
-
-    # print "VM Control: " + vm_command
-
-    # if vm_command == 'off' or 'restart':
-    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" controlvm sandbox poweroff')
-    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" snapshot sandbox restore Test')
-    # if vm_command == 'restart' or 'on':
-    #     subprocess.call('"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm sandbox --type emergencystop '
-    #                     '--type headless')
-
-
 # ============== Back End Socketio Listeners ==============
+
+@socketio.on('be_connected')
+def be_connected():
+    my_logger.info("============= BACKEND CONNECTED")
+
 
 @socketio.on('be_retrieve_settings')
 def be_retrieve_settings():
@@ -610,7 +552,7 @@ def be_device_event(event_type, *args):
             my_logger.error("Error retrieving file information from server: " + str(e))
 
     if event_type == 'disconnected':
-        vm_control()
+        vm_refresh()
 
     socketio.emit('dev_event', event_type)
 
@@ -650,6 +592,56 @@ def render(template, path):
 
     my_logger.info("Rendering page: " + template)
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin')
+
+
+def vm_refresh():
+    """
+    Called when front end wants to turn off or restart the virtual machine running our scrape application
+    :return:
+    """
+
+    def get_vm_state():
+        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
+        vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
+        return vm_state
+
+    if get_vm_state() != 'poweroff':
+        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
+        my_logger.info("Powering off VM")
+
+    while get_vm_state() != 'poweroff':
+        time.sleep(1)
+        pass
+
+    subprocess.call(['VBoxManage', 'snapshot', 'alda_sandbox', 'restore', 'alda_clean'])
+    my_logger.info("Restoring VM snapshot")
+
+    while get_vm_state() != 'saved':
+        time.sleep(1)
+        pass
+
+    time.sleep(1)
+
+    while True:
+        try:
+            subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless'])
+            break
+        except Exception as e:
+
+            my_logger.error("Error starting VM: " + str(e))
+            my_logger.error("Retrying....")
+            time.sleep(2)
+
+            try:
+                subprocess.call(
+                    ['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless', '--type', 'emergencystop'])
+                break
+            except Exception as e2:
+                my_logger.error("Error starting VM: " + str(e))
+                my_logger.error("Retrying....")
+                time.sleep(2)
+
+    my_logger.info("Starting VM")
 
 
 def convert_dots(input_str):

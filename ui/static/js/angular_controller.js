@@ -48,11 +48,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     // depends on which screen is currently active
     $scope.hide_output = true;
 
-
-    $scope.vm_restart = false;
-    $scope.show_refresh = false;
-
-
     // Total number of files that have been submitted to the AL server
     $scope.files_submitted = 0;
 
@@ -217,9 +212,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         // Called when a device is disconnected
         else if (event === 'disconnected') {
-
-            // socket.emit('vm_control', 'restart');
-            // $scope.vm_restart = true;
 
             if ($scope.received_type !== 'done'){
 
@@ -424,21 +416,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             });
 
         }
-
-    });
-
-
-    socket.on('vm_on', function(){
-        /*
-        Called when our VM has finished resetting and is ready to receive more files
-         */
-
-        _.defer(function(){
-            $scope.$apply(function(){
-                $scope.vm_restart = false;
-                $scope.show_refresh = false;
-            });
-        });
 
     });
 
