@@ -502,11 +502,7 @@ def vm_control():
 
     subprocess.call(['VBoxManage', 'snapshot', 'alda_sandbox', 'restore', 'alda_clean'])
 
-    while get_vm_state() != 'saved':
-        time.sleep(1)
-        pass
-
-    subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'emergencystop', '--type', 'headless'])
+    subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless', '--type', 'emergencystop'])
 
     my_logger.info(" --------- DONE REFRESH VM")
 
