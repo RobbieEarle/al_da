@@ -502,7 +502,30 @@ def vm_control():
 
     subprocess.call(['VBoxManage', 'snapshot', 'alda_sandbox', 'restore', 'alda_clean'])
 
-    subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless', '--type', 'emergencystop'])
+    while get_vm_state() != 'saved':
+        time.sleep(1)
+        pass
+
+    time.sleep(1)
+
+    while True:
+        try:
+            subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless'])
+            break
+        except Exception as e:
+
+            my_logger.error("Error starting VM: " + str(e))
+            my_logger.error("Retrying....")
+            time.sleep(2)
+
+            try:
+                subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless', '--type', 'emergencystop'])
+                break
+            except Exception as e2:
+                my_logger.error("Error starting VM: " + str(e))
+                time.sleep(2)
+
+
 
     my_logger.info(" --------- DONE REFRESH VM")
 
