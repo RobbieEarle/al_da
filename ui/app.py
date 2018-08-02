@@ -491,7 +491,8 @@ def vm_control():
     # my_logger.info(" ------------- " + str(os.system('VBoxManage list runningvms')))
 
     my_logger.info("-------------- VM CONTROL")
-    my_logger.info(str(subprocess.check_output(['VBoxManage', 'list', 'runningvms'])))
+    my_logger.info(str(subprocess.check_output(['VBoxManage', 'list', 'runningvms', '|', 'grep', 'alda_sandbox'])))
+    my_logger.info(str(subprocess.check_output(['VBoxManage', 'list', 'runningvms', '|', 'grep', 'dsfsd'])))
 
     # if re.search('alda_sandbox', active_machines) is not None:
     #     print " ------------- Success!!!"
