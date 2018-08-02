@@ -506,7 +506,7 @@ def vm_control():
         time.sleep(1)
         pass
 
-    subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'headless', '--type', 'emergencystop'])
+    subprocess.call(['VBoxManage', 'startvm', 'alda_sandbox', '--type', 'emergencystop', '--type', 'headless'])
 
     my_logger.info(" --------- DONE REFRESH VM")
 
