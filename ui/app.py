@@ -502,7 +502,7 @@ def vm_control():
     # while vm_state != 'poweroff':
     vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
     my_logger.info(vm_info)
-    vm_state = str(subprocess.check_output(['sed', '-n', "'s/^VMState=//p'", vm_info]))
+    vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
     my_logger.info(vm_state)
 
 
