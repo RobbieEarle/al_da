@@ -74,7 +74,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
 
     // Dict that is populated by our Flask back end based on the credentials chosen by the user in the admin page
-    $scope.credentials = [];
+    $scope.credentials = {};
 
     // Controls whether or not 'Connected' / 'Disconnected' mini display shows that the top of our output container.
     // This appears whenever our kiosk_img prompt is minimized (ie. on all screens except for 0)
@@ -650,7 +650,17 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         // in an email alert)
         setTimeout(function () {
 
-            socket.emit('fe_set_session_credentials', $scope.credentials);
+            let credentials = [];
+
+            for (let i = 0; i < $scope.credentials.length; i++) {
+                if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
+                    credentials.push({
+                        'name': $scope.credentials[i].name,
+                        'value': $scope.credentials[i].session_val
+                    })
+                }
+            }
+            socket.emit('fe_set_session_credentials', credentials);
 
         }, 2000);
 
@@ -666,22 +676,15 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         if ($scope.device_connected) {
 
-            // Requests necessary credentials from our Flask app in order to populate our credentials page
+            let empty = false;
+
+            // Checks whether admin has requested any credentials
             socket.emit('fe_get_credentials',
                 function (credentials) {
 
-                    console.log(credentials);
-
-                    for (let i = 0; i < credentials; i++) {
-                        if (credentials[i].active && credentials[i].session_val !== '') {
-                            $scope.credentials.push({
-                                'name': credentials[i].name,
-                                'value': credentials[i].session_val
-                            })
-                        }
-                    }
-
-                    console.log($scope.credentials);
+                    for (let i = 0; i < credentials.length; i++)
+                        if (credentials[i].active)
+                            empty = true;
 
                 });
 
@@ -698,8 +701,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // Changes the current screen to 1 (credentials) or 2 (scan), depending if admin has activated credentials
             setTimeout(function () {
                 // console.log($scope.credentials.length());
-                console.log($scope.credentials.length);
-                if ($scope.credentials.length > 0)
+                if (!empty)
                     _.defer(function () {
                         $scope.$apply(function () {
                             if ($scope.device_connected)
@@ -736,10 +738,11 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
             }, 2400);
 
-            if ($scope.credentials.length === 0)
+            if ($scope.curr_screen === 2)
                 setTimeout(function () {
 
-                    socket.emit('fe_set_session_credentials', $scope.credentials);
+                    let credentials = [];
+                    socket.emit('fe_set_session_credentials', credentials);
 
                 }, 3200);
 
