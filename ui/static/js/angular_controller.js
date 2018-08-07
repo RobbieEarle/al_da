@@ -745,13 +745,14 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
             }, 2400);
 
-            if ($scope.curr_screen === 2)
-                setTimeout(function () {
+            setTimeout(function () {
 
+                if (empty) {
                     let credentials = [];
                     socket.emit('fe_set_session_credentials', credentials);
+                }
 
-                }, 3200);
+            }, 3200);
 
         }
 
