@@ -670,6 +670,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             socket.emit('fe_get_credentials',
                 function (credentials) {
 
+                    console.log(credentials);
+
                     for (let i = 0; i < credentials; i++) {
                         if (credentials[i].active && credentials[i].session_val !== '') {
                             $scope.credentials.push({
@@ -678,6 +680,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                             })
                         }
                     }
+
+                    console.log($scope.credentials);
 
                 });
 
