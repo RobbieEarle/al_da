@@ -108,255 +108,259 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Handles device events outputted by our back end script
         */
 
-        if (event === 'new_detected') {
-            $scope.device_connected = true;
-        }
+        if (!$scope.vm_refreshing) {
 
-        else if (event === 'remove_detected') {
-            $scope.device_connected = false;
-            // If our scan was finished (ie. results were shown), shows a button to start a new session without
-            // removing the results from the previous session (this way the user can unplug their device and they
-            // can still read through the results)
-            if ($scope.received_type === 'done' || $scope.received_type === 'timeout') {
-                $rootScope.$emit("device_removed", {});
+            if (event === 'new_detected') {
+                $scope.device_connected = true;
             }
-        }
 
-        // Called when a device is first connected. Resets all variables related to our scan progress bar screen
-        // (these variables will have have been reset previously when the device was removed, but this occurs
-        // again just in case in the interim a straggling file was sent through by the back end app)
-        else if (event === 'connected') {
-
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.files_submitted = 0;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.files_received = 0;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.files_waiting = 0;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.percentage_received = 0;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.percentage_sent = 0;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_outout = '';
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_type = 'received';
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.kiosk_output = '';
-                });
-            });
-
-        }
-
-        // Called when all our files have been successfully scanned
-        else if (event === 'done_loading' && $scope.device_connected) {
-
-            setTimeout(function () {
-                if ($scope.device_connected) {
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.received_type = 'done';
-                        });
-                    });
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.received_output = "All files successfully scanned";
-                        });
-                    });
+            else if (event === 'remove_detected') {
+                $scope.device_connected = false;
+                // If our scan was finished (ie. results were shown), shows a button to start a new session without
+                // removing the results from the previous session (this way the user can unplug their device and they
+                // can still read through the results)
+                if ($scope.received_type === 'done' || $scope.received_type === 'timeout') {
+                    $rootScope.$emit("device_removed", {});
                 }
-            }, 500);
+            }
 
-            // Hides our scan screen and makes the results page visible
-            setTimeout(function () {
-                if ($scope.device_connected) {
-                    _.defer(function () {
-                        $scope.$apply(function () {
+            // Called when a device is first connected. Resets all variables related to our scan progress bar screen
+            // (these variables will have have been reset previously when the device was removed, but this occurs
+            // again just in case in the interim a straggling file was sent through by the back end app)
+            else if (event === 'connected') {
 
-                            $scope.hide_output = true;
-
-                            setTimeout(function () {
-                                if ($scope.device_connected) {
-                                    _.defer(function () {
-                                        $scope.$apply(function () {
-                                            $rootScope.$emit("results_init", 'done', {});
-                                        })
-                                    });
-                                }
-                            }, 1000);
-
-                        })
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.files_submitted = 0;
                     });
-                }
-            }, 1500);
-
-        }
-
-        // Called when a timeout occurs while waiting to receive files
-        else if (event === 'timeout' && $scope.device_connected) {
-
-            setTimeout(function () {
-                if ($scope.device_connected) {
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.received_type = 'timeout';
-                        });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.files_received = 0;
                     });
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.received_output = "Timeout";
-                        });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.files_waiting = 0;
                     });
-                }
-            }, 500);
-
-            // Hides our scan screen and makes the results page visible
-            setTimeout(function () {
-                if ($scope.device_connected) {
-                    _.defer(function () {
-                        $scope.$apply(function () {
-
-                            $scope.hide_output = true;
-
-                            setTimeout(function () {
-                                if ($scope.device_connected) {
-                                    _.defer(function () {
-                                        $scope.$apply(function () {
-                                            $rootScope.$emit("results_init", 'timeout', {});
-                                        })
-                                    });
-                                }
-                            }, 1000);
-
-                        })
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.percentage_received = 0;
                     });
-                }
-            }, 1500);
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.percentage_sent = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_outout = '';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_type = 'received';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_output = '';
+                    });
+                });
 
-        }
+            }
 
-        // Called when a device is disconnected
-        else if (event === 'disconnected') {
+            // Called when all our files have been successfully scanned
+            else if (event === 'done_loading' && $scope.device_connected) {
 
-            if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout') {
-
-                if ($scope.curr_screen === 2) {
-
-                    setTimeout(function () {
+                setTimeout(function () {
+                    if ($scope.device_connected) {
                         _.defer(function () {
                             $scope.$apply(function () {
-                                $scope.received_type = 'early';
+                                $scope.received_type = 'done';
                             });
                         });
                         _.defer(function () {
                             $scope.$apply(function () {
-                                $scope.percentage_received = 100;
-                                $scope.percentage_sent = 0;
+                                $scope.received_output = "All files successfully scanned";
                             });
                         });
-                        _.defer(function () {
-                            $scope.$apply(function () {
-                                $scope.received_output = "Device removed before scan could be completed";
-                            });
-                        });
-                    }, 500);
+                    }
+                }, 500);
 
-                    // Hides our scan screen and makes the results page visible
-                    setTimeout(function () {
+                // Hides our scan screen and makes the results page visible
+                setTimeout(function () {
+                    if ($scope.device_connected) {
                         _.defer(function () {
                             $scope.$apply(function () {
 
                                 $scope.hide_output = true;
 
                                 setTimeout(function () {
-                                    _.defer(function () {
-                                        $scope.$apply(function () {
-                                            $rootScope.$emit("results_init", 'premature', {});
-                                        })
-                                    });
+                                    if ($scope.device_connected) {
+                                        _.defer(function () {
+                                            $scope.$apply(function () {
+                                                $rootScope.$emit("results_init", 'done', {});
+                                            })
+                                        });
+                                    }
                                 }, 1000);
-                                setTimeout(function () {
-                                    _.defer(function () {
-                                        $scope.$apply(function () {
-                                            $rootScope.$emit("device_removed", {});
-                                        })
-                                    });
-                                }, 1500);
 
                             })
-                        })
-                    }, 1500);
+                        });
+                    }
+                }, 1500);
 
-                }
+            }
 
-                else {
+            // Called when a timeout occurs while waiting to receive files
+            else if (event === 'timeout' && $scope.device_connected) {
 
-                    // Makes mini-kiosk change to red and display "Device disconnected"
-                    setTimeout(function () {
+                setTimeout(function () {
+                    if ($scope.device_connected) {
                         _.defer(function () {
                             $scope.$apply(function () {
-                                $scope.new_session();
+                                $scope.received_type = 'timeout';
                             });
                         });
-                    }, 100);
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_output = "Timeout";
+                            });
+                        });
+                    }
+                }, 500);
+
+                // Hides our scan screen and makes the results page visible
+                setTimeout(function () {
+                    if ($scope.device_connected) {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+
+                                $scope.hide_output = true;
+
+                                setTimeout(function () {
+                                    if ($scope.device_connected) {
+                                        _.defer(function () {
+                                            $scope.$apply(function () {
+                                                $rootScope.$emit("results_init", 'timeout', {});
+                                            })
+                                        });
+                                    }
+                                }, 1000);
+
+                            })
+                        });
+                    }
+                }, 1500);
+
+            }
+
+            // Called when a device is disconnected
+            else if (event === 'disconnected') {
+
+                if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout') {
+
+                    if ($scope.curr_screen === 2) {
+
+                        setTimeout(function () {
+                            _.defer(function () {
+                                $scope.$apply(function () {
+                                    $scope.received_type = 'early';
+                                });
+                            });
+                            _.defer(function () {
+                                $scope.$apply(function () {
+                                    $scope.percentage_received = 100;
+                                    $scope.percentage_sent = 0;
+                                });
+                            });
+                            _.defer(function () {
+                                $scope.$apply(function () {
+                                    $scope.received_output = "Device removed before scan could be completed";
+                                });
+                            });
+                        }, 500);
+
+                        // Hides our scan screen and makes the results page visible
+                        setTimeout(function () {
+                            _.defer(function () {
+                                $scope.$apply(function () {
+
+                                    $scope.hide_output = true;
+
+                                    setTimeout(function () {
+                                        _.defer(function () {
+                                            $scope.$apply(function () {
+                                                $rootScope.$emit("results_init", 'premature', {});
+                                            })
+                                        });
+                                    }, 1000);
+                                    setTimeout(function () {
+                                        _.defer(function () {
+                                            $scope.$apply(function () {
+                                                $rootScope.$emit("device_removed", {});
+                                            })
+                                        });
+                                    }, 1500);
+
+                                })
+                            })
+                        }, 1500);
+
+                    }
+
+                    else {
+
+                        // Makes mini-kiosk change to red and display "Device disconnected"
+                        setTimeout(function () {
+                            _.defer(function () {
+                                $scope.$apply(function () {
+                                    $scope.new_session();
+                                });
+                            });
+                        }, 100);
+
+                    }
 
                 }
 
             }
 
+            else if (event === 'loading_results') {
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_type = 'loading';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.percentage_received = 100;
+                        $scope.percentage_sent = 0;
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.received_output = "Retrieving detailed results from server";
+                    });
+                });
+
+            }
+
+            // If we are still in screen 0 (ie. our large kiosk_img is still visible), then we alter our device_event
+            // variable which is being watched by our animation directive. Will change the image being displayed
+            // depending on the device event
+            if ($scope.curr_screen === 0 && ($scope.device_connected || event === 'remove_detected'))
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.device_event = event;
+                    });
+                });
+
         }
-
-        else if (event === 'loading_results') {
-
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_type = 'loading';
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.percentage_received = 100;
-                    $scope.percentage_sent = 0;
-                });
-            });
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.received_output = "Retrieving detailed results from server";
-                });
-            });
-
-        }
-
-        // If we are still in screen 0 (ie. our large kiosk_img is still visible), then we alter our device_event
-        // variable which is being watched by our animation directive. Will change the image being displayed
-        // depending on the device event
-        if ($scope.curr_screen === 0 && ($scope.device_connected || event === 'remove_detected'))
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.device_event = event;
-                });
-            });
 
     });
 
