@@ -552,10 +552,10 @@ def be_device_event(event_type, *args):
         except Exception as e:
             my_logger.error("Error retrieving file information from server: " + str(e))
 
+    socketio.emit('dev_event', event_type)
+
     if event_type == 'disconnected':
         vm_refresh()
-
-    socketio.emit('dev_event', event_type)
 
 
 @socketio.on('be_ingest_status')
