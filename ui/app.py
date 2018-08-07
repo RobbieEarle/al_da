@@ -485,6 +485,7 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
 @socketio.on('be_connected')
 def be_connected():
     my_logger.info("============= BACKEND CONNECTED")
+    socketio.emit('vm_refreshing', False)
 
 
 @socketio.on('be_retrieve_settings')
@@ -599,6 +600,8 @@ def vm_refresh():
     Called when front end wants to turn off or restart the virtual machine running our scrape application
     :return:
     """
+
+    socketio.emit('vm_refreshing', True)
 
     def get_vm_state():
         vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
