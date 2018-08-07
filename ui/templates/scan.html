@@ -19,13 +19,13 @@
                 </div>
                 <div class="text-center" uib-collapse="curr_screen!=0">
                     <div class="pad">
-                        <div ng-if="vm_refreshing">
-                            <img class="fade-anim connect-icon" src='/static/images/refresh.svg'>
-                            <div class="fade-anim connect-icon-sub text-semi-muted">
+                        <div class="fade-anim" ng-if="vm_refreshing">
+                            <img class="connect-icon" src='/static/images/refresh.svg'>
+                            <div class="connect-icon-sub text-semi-muted">
                                 <b>Refreshing VM</b>
                             </div>
                         </div>
-                        <div ng-if="!vm_refreshing">
+                        <div class="fade-anim" ng-if="!vm_refreshing">
                             <img class="fade-anim connect-icon" anim-output-header="device_event" src=//kiosk_img//>
                             <div class="fade-anim connect-icon-sub text-semi-muted" anim-output-header="device_event">
                                 <b>//kiosk_img_sub//</b>
