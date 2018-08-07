@@ -33,8 +33,8 @@ eventlet.monkey_patch()
 format_str = '%(asctime)s: %(levelname)s:\t %(message)s'
 date_format = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter(format_str, date_format)
-local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
-# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('/tmp/kiosk.log', maxBytes=500000, backupCount=5)
+local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 local_handler.setFormatter(formatter)
 
 my_logger = logging.getLogger("alda")
@@ -350,7 +350,7 @@ def fe_validate_email(addr):
 @socketio.on('fe_get_settings')
 def fe_get_settings():
     """
-    Called by front end when settings page is fist opened. Returns all default settings from DB
+    Called by front end when settings page is first opened. Returns all default settings from DB
     :return:
     """
 

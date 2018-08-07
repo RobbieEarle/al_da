@@ -8,7 +8,13 @@
 }
 
 #results_scroll_to {
-    padding-bottom: 65px;
+    padding-bottom: 55px;
+}
+
+@media (min-width: 768px) {
+    #main-scan {
+        padding-bottom: 65px;
+    }
 }
 
 .result-split-left {

@@ -114,7 +114,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // If our scan was finished (ie. results were shown), shows a button to start a new session without
             // removing the results from the previous session (this way the user can unplug their device and they
             // can still read through the results)
-            if ($scope.received_type === 'done') {
+            if ($scope.received_type === 'done' || $scope.received_type === 'timeout') {
                 $rootScope.$emit("device_removed", {});
             }
         }
@@ -197,7 +197,50 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                                 if ($scope.device_connected) {
                                     _.defer(function () {
                                         $scope.$apply(function () {
-                                            $rootScope.$emit("results_init", true, {});
+                                            $rootScope.$emit("results_init", 'done', {});
+                                        })
+                                    });
+                                }
+                            }, 1000);
+
+                        })
+                    });
+                }
+            }, 1500);
+
+        }
+
+        // Called when a timeout occurs while waiting to receive files
+        else if (event === 'timeout' && $scope.device_connected) {
+
+            setTimeout(function () {
+                if ($scope.device_connected) {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_type = 'timeout';
+                        });
+                    });
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_output = "Timeout";
+                        });
+                    });
+                }
+            }, 500);
+
+            // Hides our scan screen and makes the results page visible
+            setTimeout(function () {
+                if ($scope.device_connected) {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+
+                            $scope.hide_output = true;
+
+                            setTimeout(function () {
+                                if ($scope.device_connected) {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            $rootScope.$emit("results_init", 'timeout', {});
                                         })
                                     });
                                 }
@@ -213,7 +256,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         // Called when a device is disconnected
         else if (event === 'disconnected') {
 
-            if ($scope.received_type !== 'done'){
+            if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout'){
 
                 if ($scope.curr_screen === 2) {
 
@@ -246,7 +289,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                                 setTimeout(function () {
                                     _.defer(function () {
                                         $scope.$apply(function () {
-                                            $rootScope.$emit("results_init", false, {});
+                                            $rootScope.$emit("results_init", 'premature', {});
                                         })
                                     });
                                 }, 1000);
@@ -264,7 +307,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
                 }
 
-                else{
+                else {
 
                     // Makes mini-kiosk change to red and display "Device disconnected"
                     setTimeout(function () {
@@ -854,6 +897,8 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
     // Controls whether or not an error alert comes up telling the user the results are based on incomplete scan
     $scope.scan_complete = true;
 
+    $scope.error_output = '';
+
 
     // ----------------------- Socket Event Handlers
 
@@ -928,16 +973,44 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
 
     // ----------------------- Root Scope Event Handlers
 
-    $rootScope.$on("results_init", function(self, scan_complete) {
+    $rootScope.$on("results_init", function(self, result_type) {
         /*
         Called by our ScanController after our back end script has indicated that all files have been scanned
          */
-        console.log(scan_complete);
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.scan_complete = scan_complete;
+        console.log(result_type);
+
+        if (result_type === 'done') {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.scan_complete = true;
+                });
             });
-        });
+        }
+
+        else {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.scan_complete = false;
+                });
+            });
+            if (result_type === 'premature')
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.error_output = 'Error - Device was removed before scan could be completed. The ' +
+                            'results listed are for the files that were scanned before the device was removed.' +
+                            'Use of this device on-site is strictly prohibited, without exception. Please begin ' +
+                            'a new session and complete a full scan before using this device.'
+                    });
+                });
+            else if (result_type === 'timeout')
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.error_output = 'Error - Timeout. Server took too long to respond to application. ' +
+                            'Please remove device and try again. If this error persists please contact network ' +
+                            'administration immediately.'
+                    });
+                });
+        }
 
         // Retrieves the admin's result settings from our DB
         socket.emit('fe_get_results_settings',

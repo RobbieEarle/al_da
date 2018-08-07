@@ -1,14 +1,15 @@
 /* ------- Elements ------- */
 
 #main-scan {
-    padding-top: 25px;
-    padding-bottom: 45px;
+    padding-top: 60px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
 }
 
-.banner-img {
-    width: 25%;
+@media (min-width: 768px) {
+    #main-scan {
+        padding-top: 25px;
+    }
 }
 
 .connect-icon {
@@ -189,6 +190,10 @@
 
 .progress-bar-early {
     background-color: #880011;
+}
+
+.progress-bar-timeout {
+    background-color: #af6b0a;
 }
 
 
