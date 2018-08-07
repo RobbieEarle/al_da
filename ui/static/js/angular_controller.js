@@ -536,7 +536,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.kiosk_img_sub = 'Please attach block device';
+                        $scope.kiosk_img_sub = 'Please attach storage device';
                     });
                 });
             }
@@ -582,7 +582,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.kiosk_img_sub = 'Please attach block device';
+                        $scope.kiosk_img_sub = 'Please attach storage device';
                     });
                 });
 
@@ -797,7 +797,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.kiosk_img_sub = 'Please attach block device';
+                        $scope.kiosk_img_sub = 'Please attach storage device';
                     });
                 });
             }
