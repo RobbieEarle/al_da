@@ -74,7 +74,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
 
     // Dict that is populated by our Flask back end based on the credentials chosen by the user in the admin page
-    $scope.credentials = {};
+    $scope.credentials = [];
 
     // Controls whether or not 'Connected' / 'Disconnected' mini display shows that the top of our output container.
     // This appears whenever our kiosk_img prompt is minimized (ie. on all screens except for 0)
@@ -650,17 +650,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         // in an email alert)
         setTimeout(function () {
 
-            let credentials = [];
-
-            for (let i = 0; i < $scope.credentials.length; i++) {
-                if ($scope.credentials[i].active && $scope.credentials[i].session_val !== '') {
-                    credentials.push({
-                        'name': $scope.credentials[i].name,
-                        'value': $scope.credentials[i].session_val
-                    })
-                }
-            }
-            socket.emit('fe_set_session_credentials', credentials);
+            socket.emit('fe_set_session_credentials', $scope.credentials);
 
         }, 2000);
 
@@ -679,6 +669,15 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // Requests necessary credentials from our Flask app in order to populate our credentials page
             socket.emit('fe_get_credentials',
                 function (credentials) {
+
+                    for (let i = 0; i < credentials; i++) {
+                        if (credentials[i].active && credentials[i].session_val !== '') {
+                            $scope.credentials.push({
+                                'name': credentials[i].name,
+                                'value': credentials[i].session_val
+                            })
+                        }
+                    }
 
                     _.defer(function () {
                         $scope.$apply(function () {
@@ -742,8 +741,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             if ($scope.credentials.length === 0)
                 setTimeout(function () {
 
-                    let credentials = [];
-                    socket.emit('fe_set_session_credentials', credentials);
+                    socket.emit('fe_set_session_credentials', $scope.credentials);
 
                 }, 3200);
 
