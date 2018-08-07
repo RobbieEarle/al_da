@@ -676,15 +676,20 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         if ($scope.device_connected) {
 
-            let empty = false;
+            let empty = true;
 
             // Checks whether admin has requested any credentials
             socket.emit('fe_get_credentials',
                 function (credentials) {
 
-                    for (let i = 0; i < credentials.length; i++)
+                    for (let i = 0; i < credentials.length; i++) {
+                        console.log(credentials[i].active + ", " + credentials[i].active);
                         if (credentials[i].active)
-                            empty = true;
+                            empty = false;
+                            console.log("Not empty")
+                    }
+
+                    console.log(empty);
 
                 });
 
