@@ -679,12 +679,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                         }
                     }
 
-                    _.defer(function () {
-                        $scope.$apply(function () {
-                            $scope.credentials = credentials;
-                        });
-                    });
-
                 });
 
             // Hides our main kiosk_img and kiosk_img_sub images
@@ -700,7 +694,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // Changes the current screen to 1 (credentials) or 2 (scan), depending if admin has activated credentials
             setTimeout(function () {
                 // console.log($scope.credentials.length());
-                console.log($scope.credentials.length)
+                console.log($scope.credentials.length);
                 if ($scope.credentials.length > 0)
                     _.defer(function () {
                         $scope.$apply(function () {
