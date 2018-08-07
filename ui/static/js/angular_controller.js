@@ -683,13 +683,15 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 function (credentials) {
 
                     for (let i = 0; i < credentials.length; i++) {
-                        console.log(credentials[i].active + ", " + credentials[i].active);
                         if (credentials[i].active)
                             empty = false;
-                            console.log("Not empty")
                     }
 
-                    console.log(empty);
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.credentials = credentials;
+                        });
+                    });
 
                 });
 
