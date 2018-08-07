@@ -698,15 +698,24 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
             }, 1000);
 
-            // Changes the current screen to 1 and sets the text to be displayed by our main button. Is basically
-            // prepping our output screen for when hide_output is set to false and this screen is shown
+            // Changes the current screen to 1 (credentials) or 2 (scan), depending if admin has activated credentials
             setTimeout(function () {
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        if ($scope.device_connected)
-                            $scope.curr_screen = 1;
+
+                if ($scope.credentials.length > 0)
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            if ($scope.device_connected)
+                                $scope.curr_screen = 1;
+                        });
                     });
-                });
+                else
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            if ($scope.device_connected)
+                                $scope.curr_screen = 2;
+                        });
+                    });
+
             }, 1200);
 
             // Causes our thin green bar along the top to show, indicating our device is connected
@@ -728,6 +737,14 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     });
                 });
             }, 2400);
+
+            if ($scope.credentials.length === 0)
+                setTimeout(function () {
+
+                    let credentials = [];
+                    socket.emit('fe_set_session_credentials', credentials);
+
+                }, 3200);
 
         }
 
@@ -1014,8 +1031,8 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
             if (result_type === 'premature')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = 'Error - Device was removed before scan could be completed. The ' +
-                            'results listed are for the files that were scanned before the device was removed.' +
+                        $scope.error_output = 'Device was removed before scan could be completed. The ' +
+                            'results listed are for the files that were scanned before the device was removed. ' +
                             'Use of this device on-site is strictly prohibited, without exception. Please begin ' +
                             'a new session and complete a full scan before using this device.'
                     });
@@ -1023,7 +1040,7 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
             else if (result_type === 'timeout')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = 'Error - Timeout. Server took too long to respond to application. ' +
+                        $scope.error_output = 'Timeout. Server took too long to respond to application. ' +
                             'Please remove device and try again. If this error persists please contact network ' +
                             'administration immediately.'
                     });
