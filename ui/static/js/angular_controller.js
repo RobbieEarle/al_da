@@ -1041,17 +1041,17 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.error_output = "Device was removed before scan could be completed. The " +
-                            "results listed are for the files that were scanned before the device was removed.\r\n" +
+                            "results listed are for the files that were scanned before the device was removed.\r\n\r\n" +
                             "Use of this device on-site is strictly prohibited, without exception (even if no " +
                             "malware was detected, it is possible that a file that was waiting to be scanned would " +
-                            "have triggered an alert).\r\nPlease begin a new session and complete a full scan before " +
+                            "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
                             "using this device."
                     });
                 });
             else if (result_type === 'timeout')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = "Timeout. Server took too long to respond to application.\n\n" +
+                        $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
                             "Please remove device and try again. If this error persists please contact network " +
                             "administration immediately."
                     });
