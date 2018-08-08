@@ -45,19 +45,19 @@
 
         </div>
 
+        <div class="text-center" uib-collapse="hide_btn">
+            <div class="pad-head pad">
+                <button type="button" class='btn btn-default btn-style-blue btn-large' ng-click="btn_new_session()">
+                    Begin new session
+                </button>
+            </div>
+        </div>
+
         <section ng-if="display_results && (!hide_mal_files || results_settings.safe_files)" class="container container-with-overflow">
 
             <div class="pad-head" ng-if="!scan_complete">
                 <div uib-alert ng-class="'alert-danger'">
                     <b>Error - </b>//error_output//
-                </div>
-            </div>
-
-            <div class="text-center" uib-collapse="hide_btn">
-                <div class="pad-head pad">
-                    <button type="button" class='btn btn-default btn-style-blue btn-large' ng-click="btn_new_session()">
-                        Begin new session
-                    </button>
                 </div>
             </div>
 
