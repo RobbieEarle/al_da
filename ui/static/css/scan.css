@@ -1,14 +1,15 @@
 /* ------- Elements ------- */
 
 #main-scan {
-    padding-top: 25px;
-    padding-bottom: 45px;
+    padding-top: 60px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
 }
 
-.banner-img {
-    width: 25%;
+@media (min-width: 768px) {
+    #main-scan {
+        padding-top: 25px;
+    }
 }
 
 .connect-icon {
@@ -44,6 +45,10 @@
     font-size: 20px;
     display: inline;
     vertical-align: center;
+}
+
+.connect-icon-sub-2 {
+    font-size: 16px;
 }
 
 .connect-icon-small-sub {
@@ -191,6 +196,10 @@
     background-color: #880011;
 }
 
+.progress-bar-timeout {
+    background-color: #af6b0a;
+}
+
 
 /* ------- Animations ------- */
 
@@ -229,4 +238,16 @@
   -o-transition: all ease-in-out 0.2s;
   transition: all ease-in-out 0.2s;
   opacity: 0;
+}
+
+.refresh-anim {
+    -webkit-transition: all ease-in-out 0.2s;
+    -moz-transition: all ease-in-out 0.2s;
+    -ms-transition: all ease-in-out 0.2s;
+    -o-transition: all ease-in-out 0.2s;
+    transition: all ease-in-out 0.2s;
+}
+
+.refresh-anim.ng-hide {
+    opacity: 0;
 }

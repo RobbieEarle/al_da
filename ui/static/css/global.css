@@ -200,6 +200,20 @@ section.container-with-overflow{
     color: #ffffff;
 }
 
+@media (min-width: 768px) {
+    .container-with-overflow {
+        padding-left: 60px;
+        padding-right: 60px;
+    }
+}
+
+@media (min-width: 828px) {
+    .container-with-overflow {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+}
+
 .bg-group {
     background-color: #f0f0f0 !important;
 }
