@@ -53,6 +53,12 @@
                 </div>
             </div>
 
+            <div class="pad-head" ng-if="scan_complete">
+                <div uib-alert ng-class="'alert'">
+                    All files have been successfully scanned
+                </div>
+            </div>
+
             <div class="text-center" uib-collapse="hide_btn">
                 <div class="pad-head pad">
                     <button type="button" class='btn btn-default btn-style-blue btn-large' ng-click="btn_new_session()">
