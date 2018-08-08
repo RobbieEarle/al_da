@@ -21,9 +21,6 @@
                     <div class="pad">
                         <div ng-if="vm_refreshing">
                             <img class="connect-icon" src='/static/images/refresh.svg'>
-                            <!--<div class="connect-icon-sub text-semi-muted">-->
-                                <!--<b>Refreshing Virtual Machine</b>-->
-                            <!--</div>-->
                             <div class="connect-icon-sub-2 pad-head-big">
                                 Refreshing Virtual Machine - <b>DO NOT ATTACH DEVICE</b>
                             </div>
@@ -64,9 +61,13 @@
                         <div class="form-style-8 text-center">
 
                             <form novalidate class="text-semi-muted">
-                                <div ng-repeat="credential in credentials" ng-if="credential.active" class="credential-box split pad-head">
+                                <div ng-repeat="credential in credentials" ng-if="credential.active"
+                                     class="credential-box split pad-head">
                                     <div>
-                                        <div ng-if="credential.mandatory" class="credential-title" style="display: inline;"><b>* </b></div><b>//credential.name//</b>
+                                        <div ng-if="credential.mandatory" class="credential-title" style="display: inline;">
+                                            <b>* </b>
+                                        </div>
+                                        <b>//credential.name//</b>
                                     </div>
                                     <div class="pad">
                                         <input type="text" class="text-center" ng-model="credential.session_val"/>
@@ -114,7 +115,11 @@
 
             <section id="powered_by" class="container container-with-overflow">
                 <div>
-                    <div id="footer" class="text-center pad-head-small"><a class="text-large" href="https://bitbucket.org/cse-assemblyline/assemblyline">Powered by <img style="vertical-align: bottom" height="32px" src="/static/images/banner.svg"></a></div>
+                    <div id="footer" class="text-center pad-head-small">
+                        <a class="text-large" href="https://bitbucket.org/cse-assemblyline/assemblyline">
+                            Powered by <img style="vertical-align: bottom" height="32px" src="/static/images/banner.svg">
+                        </a>
+                    </div>
                 </div>
                 <div class="pad font-arial fine-print">
                     //kiosk_footer//

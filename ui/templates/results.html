@@ -3,7 +3,8 @@
 
     <div id="results_scroll_to"></div>
 
-    <section id="results" uib-collapse="!show_results" ng-controller="ResultsController" ng-class="{'pad-foot-big': !display_results}">
+    <section id="results" uib-collapse="!show_results" ng-controller="ResultsController"
+             ng-class="{'pad-foot-big': !display_results}">
 
         <section class="container container-with-overflow container-header pad-head">
             <div>
@@ -68,14 +69,18 @@
             </div>
 
             <div class="pad-head" uib-collapse="results_clear">
-                <div uib-accordion close-others="true" class="pad table text-semi-muted" ng-if="!hide_mal_files && results_settings.mal_files" uib-collapse="results_clear">
+                <div uib-accordion close-others="true" class="pad table text-semi-muted"
+                     ng-if="!hide_mal_files && results_settings.mal_files" uib-collapse="results_clear">
                     <p><b>Potentially malicious files</b></p>
-                    <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'" class="panel-danger">
+                    <div uib-accordion-group ng-repeat="file in tbl_mal_files | orderBy : '-submission.max_score'"
+                         class="panel-danger">
 
                         <div uib-accordion-heading>
                             <div class="row opacity8">
                                 <div class="result-detail-header">//file.submission.metadata.filename//</div>
-                                <div ng-if="results_settings.score" class="result-detail-header text-right">//file.submission.max_score//</div>
+                                <div ng-if="results_settings.score" class="result-detail-header text-right">
+                                    //file.submission.max_score//
+                                </div>
                             </div>
                         </div>
 
@@ -90,7 +95,8 @@
 
                             <script type="text/ng-template" id="file_tree">
                                 <div ng-if="file_child.score>=500" ng-controller="ServicePopulateController">
-                                    <div ng-click="service_click(results_settings)" ng-class="{'result-detail-title': results_settings.file_services}">
+                                    <div ng-click="service_click(results_settings)"
+                                         ng-class="{'result-detail-title': results_settings.file_services}">
                                         <span ng-if="is_collapsed && results_settings.file_services"
                                               class="result-detail-glyph fas fa-chevron-circle-right"
                                               style="display:inline"></span>
@@ -98,7 +104,8 @@
                                               class="result-detail-glyph fas fa-chevron-circle-down"
                                               style="display:inline"></span>
                                         <p style="display:inline" ng-if="results_settings.score"
-                                           ng-class="{'results-alert': file_child.score>=500, 'results-safe': file_child.result.score<500}">
+                                           ng-class="{'results-alert': file_child.score>=500,
+                                           'results-safe': file_child.result.score<500}">
                                             <b>//file_child.score// :: </b></p>
                                         <p style="display:inline">//name_strip(file_child.name)//</p>
                                     </div>
@@ -112,14 +119,16 @@
                                                          ng-click="service_info(results_settings, result.response.service_name)"
                                                          ng-controller="ServiceController">
                                                         <p style="display:inline" ng-if="results_settings.score"
-                                                           ng-class="{'results-alert': result.result.score>=500, 'results-safe': result.result.score<500}">
+                                                           ng-class="{'results-alert': result.result.score>=500,
+                                                           'results-safe': result.result.score<500}">
                                                             <b>//result.result.score// :: </b></p>
                                                         <p style="display:inline"><b>//result.response.service_name//</b></p>
                                                     </div>
                                                     <div ng-repeat="detail in result.result.sections"
                                                          class="result-detail-service-adv">
                                                         <p style="display:inline" ng-if="results_settings.score"
-                                                           ng-class="{'results-alert': detail.score>=500, 'results-safe': detail.score<500}">
+                                                           ng-class="{'results-alert': detail.score>=500,
+                                                           'results-safe': detail.score<500}">
                                                             <b>//detail.score// :: </b></p>
                                                         <p style="display:inline">//detail.title_text//</p>
                                                     </div>
@@ -146,12 +155,15 @@
                 <div uib-accordion close-others="true" class="pad-bottom table text-semi-muted"
                      ng-if="results_settings.safe_files && !hide_pass_files">
                     <p><b>Safe files</b></p>
-                    <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-submission.metadata.al_score'" class="panel-default">
+                    <div uib-accordion-group ng-repeat="file in tbl_pass_files | orderBy : '-submission.metadata.al_score'"
+                         class="panel-default">
 
                         <div uib-accordion-heading>
                             <div class="row text-semi-muted">
                                 <div class="result-detail-header">//file.submission.metadata.filename//</div>
-                                <div ng-if="results_settings.score" class="result-detail-header text-right">//file.submission.metadata.al_score//</div>
+                                <div ng-if="results_settings.score" class="result-detail-header text-right">
+                                    //file.submission.metadata.al_score//
+                                </div>
                             </div>
                         </div>
 
