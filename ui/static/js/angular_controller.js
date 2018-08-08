@@ -1041,10 +1041,10 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.error_output = "Device was removed before scan could be completed. The " +
-                            "results listed are for the files that were scanned before the device was removed.\\n\\n" +
+                            "results listed are for the files that were scanned before the device was removed.\r\n" +
                             "Use of this device on-site is strictly prohibited, without exception (even if no " +
                             "malware was detected, it is possible that a file that was waiting to be scanned would " +
-                            "have triggered an alert).\n\nPlease begin a new session and complete a full scan before " +
+                            "have triggered an alert).\r\nPlease begin a new session and complete a full scan before " +
                             "using this device."
                     });
                 });
