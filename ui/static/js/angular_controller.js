@@ -110,10 +110,16 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         if (!$scope.vm_refreshing) {
 
+            // Called when a device is first connected (any device; this event simply changes the device connected
+            // picture from red to green to let the user know that their device has been plugged in. Once the device
+            // has been loaded and correctly identified as a block device the connected event will be called, but this
+            // can take a few moments. This event just shows the user that the device has been detected so they don't
+            // remove it prematurely
             if (event === 'new_detected') {
                 $scope.device_connected = true;
             }
 
+            // Called when a device is removed
             else if (event === 'remove_detected') {
                 $scope.device_connected = false;
                 // If our scan was finished (ie. results were shown), shows a button to start a new session without
@@ -124,7 +130,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 }
             }
 
-            // Called when a device is first connected. Resets all variables related to our scan progress bar screen
+            // Called when a block device is loaded. Resets all variables related to our scan progress bar screen
             // (these variables will have have been reset previously when the device was removed, but this occurs
             // again just in case in the interim a straggling file was sent through by the back end app)
             else if (event === 'connected') {
@@ -261,7 +267,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // Called when a device is disconnected
             else if (event === 'disconnected') {
 
-                if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout') {
+                // Handles premature device removal
+                if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout'){
 
                     if ($scope.curr_screen === 2) {
 
@@ -471,6 +478,9 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
 
     socket.on('vm_refreshing', function(status){
+        /*
+        Called by back end when our VM is refreshing / not accepting new devices, or when it has finished refreshing
+         */
 
         _.defer(function () {
             $scope.$apply(function () {
@@ -707,7 +717,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
             // Changes the current screen to 1 (credentials) or 2 (scan), depending if admin has activated credentials
             setTimeout(function () {
-                // console.log($scope.credentials.length());
+
                 if (!empty)
                     _.defer(function () {
                         $scope.$apply(function () {
@@ -918,7 +928,8 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
     $scope.tbl_mal_files = [];
 
     // Message that is outputted to user if no files are flagged
-    $scope.pass_message = "Use of this device on-site is permitted.";
+    $scope.pass_message = "None of the files that were successfully submitted to the Assemblyline server have been " +
+        "flagged as potentially malicious.";
 
     // Message that is outputted to user if a malicious file is detected
     $scope.failure_message = "Use of this device on-site is strictly prohibited, without exception. " +
@@ -1020,8 +1031,9 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
         /*
         Called by our ScanController after our back end script has indicated that all files have been scanned
          */
-        console.log(result_type);
 
+        // If result_type is done then we know our scan successfully completed (ie. not by premature device removal or
+        // timeout)
         if (result_type === 'done') {
             _.defer(function () {
                 $scope.$apply(function () {
@@ -1030,6 +1042,7 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
             });
         }
 
+        // Otherwise we know we are showing the results for an incomplete scan
         else {
             _.defer(function () {
                 $scope.$apply(function () {
@@ -1039,18 +1052,20 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
             if (result_type === 'premature')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = 'Device was removed before scan could be completed. The ' +
-                            'results listed are for the files that were scanned before the device was removed. ' +
-                            'Use of this device on-site is strictly prohibited, without exception. Please begin ' +
-                            'a new session and complete a full scan before using this device.'
+                        $scope.error_output = "Device was removed before scan could be completed. The " +
+                            "results listed are for the files that were scanned before the device was removed. " +
+                            "Use of this device on-site is strictly prohibited, without exception (even if no " +
+                            "malware was detected, it is possible that a file that was waiting to be scanned would " +
+                            "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
+                            "using this device."
                     });
                 });
             else if (result_type === 'timeout')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = 'Timeout. Server took too long to respond to application. ' +
-                            'Please remove device and try again. If this error persists please contact network ' +
-                            'administration immediately.'
+                        $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
+                            "Please remove device and try again. If this error persists please contact network " +
+                            "administration immediately."
                     });
                 });
         }

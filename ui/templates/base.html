@@ -36,15 +36,23 @@
                                 {% for menu_item in menu %}
                                     {% if menu_item.has_submenu %}
                                         <li class="dropdown{% if menu_item.active %} active{% endif %} {{menu_item.class}}">
-                                            <a class="clickable dropdown-toggle" data-toggle="dropdown">{{menu_item.title}}<b class="caret"></b></a>
+                                            <a class="clickable dropdown-toggle"
+                                               data-toggle="dropdown">{{menu_item.title}}<b class="caret"></b></a>
                                             <ul class="dropdown-menu">
                                                 {% for submenu_item in menu_item.submenu %}
-                                                    <li class="{% if submenu_item.active %}active{% endif %} {{submenu_item.class}}">{% if submenu_item.link%}<a href="{{submenu_item.link}}">{% endif %}{{submenu_item.title}}{% if submenu_item.link %}</a>{% endif %}</li>
+                                                    <li class="{% if submenu_item.active %}active{% endif %} {{submenu_item.class}}">
+                                                        {% if submenu_item.link%}
+                                                        <a href="{{submenu_item.link}}">{% endif %}{{submenu_item.title}}{% if submenu_item.link %}
+                                                        </a>
+                                                        {% endif %}
+                                                    </li>
                                                 {% endfor %}
                                             </ul>
                                         </li>
                                     {% else %}
-                                        <li class="{% if menu_item.active %}active{% endif %} {{menu_item.class}}"><a href="{{menu_item.link}}">{{menu_item.title}}</a></li>
+                                        <li class="{% if menu_item.active %}active{% endif %} {{menu_item.class}}">
+                                            <a href="{{menu_item.link}}">{{menu_item.title}}</a>
+                                        </li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
