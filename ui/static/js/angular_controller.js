@@ -918,7 +918,8 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
     $scope.tbl_mal_files = [];
 
     // Message that is outputted to user if no files are flagged
-    $scope.pass_message = "Use of this device on-site is permitted.";
+    $scope.pass_message = "None of the files that were successfully submitted to the Assemblyline server have been " +
+        "flagged as potentially malicious.";
 
     // Message that is outputted to user if a malicious file is detected
     $scope.failure_message = "Use of this device on-site is strictly prohibited, without exception. " +
@@ -1039,18 +1040,20 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
             if (result_type === 'premature')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = 'Device was removed before scan could be completed. The ' +
-                            'results listed are for the files that were scanned before the device was removed. ' +
-                            'Use of this device on-site is strictly prohibited, without exception. Please begin ' +
-                            'a new session and complete a full scan before using this device.'
+                        $scope.error_output = "Device was removed before scan could be completed. The " +
+                            "results listed are for the files that were scanned before the device was removed.\n\n" +
+                            "Use of this device on-site is strictly prohibited, without exception (even if no " +
+                            "malware was detected, it is possible that a file that was waiting to be scanned would " +
+                            "have triggered an alert).\n\nPlease begin a new session and complete a full scan before " +
+                            "using this device."
                     });
                 });
             else if (result_type === 'timeout')
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = 'Timeout. Server took too long to respond to application. ' +
-                            'Please remove device and try again. If this error persists please contact network ' +
-                            'administration immediately.'
+                        $scope.error_output = "Timeout. Server took too long to respond to application.\n\n" +
+                            "Please remove device and try again. If this error persists please contact network " +
+                            "administration immediately."
                     });
                 });
         }
