@@ -8,7 +8,7 @@ def start():
     linux_dist = ''
 
     try:
-        linux_dist = str(subprocess.check_output(['cat', '/etc/*-release']))
+        linux_dist = str(subprocess.check_output(['cat', '/etc/os-release']))
     except Exception as e:
         print '  Error identifying Linux distribution:'
         print '    ' + str(type(e)) + ': ' + str(e)
