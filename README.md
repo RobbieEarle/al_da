@@ -21,7 +21,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 
 # Installation
 
-## Pre-requisites
+### Pre-requisites
 
 - Host machine should be running fresh Ubuntu 16.04.x Desktop install
 
@@ -66,7 +66,7 @@ At this point we are ready to install our al_scrape back end service. Please fol
 
 ### Install al_da
 
-**Install dependencies**
+##### Install dependencies
 
 - `sudo mkdir /var/log/al_da_kiosk`
 - `sudo chmod 661 /var/log/al_da_kiosk`
@@ -81,7 +81,7 @@ At this point we are ready to install our al_scrape back end service. Please fol
 - `sudo pip install flask-httpauth==3.2.4`
 - `sudo pip install arrow==0.12.1`
 
-**Install al_da**
+##### Install al_da
 
 - `cd ~`
 - `sudo git clone https://github.com/RobbieEarle/al_da.git`
