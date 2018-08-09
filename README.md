@@ -25,7 +25,9 @@ meantime the following steps can be followed to get al_scrape working for code r
 
 - Host machine should be running fresh Ubuntu 16.04.x Desktop install
 
-### Installing VirtualBox
+### Set up VirtualBox
+
+##### Installing VirtualBox
 
 - `sudo apt-get update`
 - `sudo apt-get upgrade`
@@ -48,6 +50,19 @@ meantime the following steps can be followed to get al_scrape working for code r
 
 At this point we are ready to install our al_scrape back end service. Please follow the instructions found 
 [here](https://github.com/RobbieEarle/al_scrape) in their entirety before continuing.
+
+##### Allow al_scrape to detect USB devices
+
+- Close VirtualBox
+- `sudo adduser $USER vboxusers`
+- Log out and log back in again
+- Open VirtualBox
+- Select alda_sandbox and go to Machine > Settings > USB
+- Check "Enable USB Controller" and click "USB 2.0"
+- Right click in the "USB Device Filters" box and select "Add Empty Filter"
+- Right click your new filter and go to "Edit Filter"
+- Rename your filter all_devices
+- Click "Ok" to exit
 
 ### Install al_da
 
