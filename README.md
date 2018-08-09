@@ -25,7 +25,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 
 - Host machine should be running fresh Ubuntu 16.04.x Desktop install
 
-##### Installing VirtualBox
+### Installing VirtualBox
 
 - `sudo apt-get update`
 - `sudo apt-get upgrade`
@@ -44,7 +44,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 - `mokutil --test-key MOK.der`
 - Reboot, perform MDK management, enroll MDK, continue, enroll key, enter pw, reboot
 
-##### Install al_scrape
+### Install al_scrape
 
 At this point we are ready to install our al_scrape back end service. Please follow the instructions found 
 [here](https://github.com/RobbieEarle/al_scrape) in their entirety before continuing.
