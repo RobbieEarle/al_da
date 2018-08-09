@@ -634,14 +634,16 @@ def vm_refresh():
         return vm_state
 
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
-    if get_vm_state() != 'poweroff':
+    if get_vm_state() == 'running':
         subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
         my_logger.info('Powering off VM')
 
     # Waits until the VM has been successfully been turned off
-    while get_vm_state() != 'poweroff':
+    while get_vm_state() == 'running':
         time.sleep(1)
         pass
+
+    time.sleep(1)
 
     # Restores the default snapshot of our VM
     subprocess.call(['VBoxManage', 'snapshot', 'alda_sandbox', 'restore', 'alda_clean'])
