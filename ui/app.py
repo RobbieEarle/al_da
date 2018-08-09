@@ -267,6 +267,7 @@ def fe_scan_start():
     """
 
     my_logger.info('Front end connected')
+    vm_refresh()
 
 
 @socketio.on('fe_get_credentials')
