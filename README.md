@@ -51,7 +51,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 At this point we are ready to install our al_scrape back end service. Please follow the instructions found 
 [here](https://github.com/RobbieEarle/al_scrape) in their entirety before continuing.
 
-##### Allow al_scrape to detect USB devices
+### Allow al_scrape to detect USB devices
 
 - Close VirtualBox
 - `sudo adduser $USER vboxusers`
