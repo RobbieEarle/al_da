@@ -118,7 +118,8 @@ enabled from the Settings page for when potentially malicious files are detected
 From the Settings page we are currently able to:
 
 - Set the account settings for this kiosk (ie. username and password required to access the settings page in the future)
-- Set the name of this kiosk
+- Set the name of this kiosk (this name will be appended to each scanned file on the remote AL server, so that in the 
+event of an alert, network admin can identify which kiosk the file originated from)
 - Configure remote Assemblyline server details
 - Set up email alerts:
     - Toggle alerts
