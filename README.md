@@ -1,13 +1,13 @@
 # Overview
 
 Assemblyline Device Audit (al_da) is a web application that runs in conjunction with the Assemblyline Scrape (al_scrape) 
-back end script. These applications are intended to be run on a single terminal (Kiosk), into which users can
+back end service. These applications are intended to be run on a single terminal (Kiosk), into which users can
 attach block devices in order to have their contents scraped and submitted to a remote Assemblyline server for 
 analysis.
 
-Assemblyline Device Audit is a Flask-Socketio application that hosts our HTML/CSS/JS scripts for the 
-application front end, and hosts a socketio server to facilitate communication between these scripts and our back end
-al_scrape script. The machine on which Assemblyline Device Audit is installed should be the same machine that hosts
+Assemblyline Device Audit is a Flask-Socketio application that hosts a web server for our HTML/CSS/JS front end scripts,
+and also hosts a socketio server to facilitate communication between these scripts and our back end
+al_scrape service. The machine on which Assemblyline Device Audit is installed should be the same machine that hosts
 the VirtualBox VM on which al_scrape is running. Assemblyline Device Audit's purpose is as follows:
 
 1. Set up Flask web server
@@ -95,3 +95,34 @@ To start receiving devices simply:
 - `flask run`
 
 The application runs by default on port 5000 of localhost: [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+
+# Using Assemblyline Device Audit
+
+### Scanning
+
+Scanning a device is fairly straight forward as the user will be guided with simple instructions throughout the process.
+Simply:
+
+1. Wait for the VM to refresh (if necessary)
+2. Plug in a block device
+3. Wait for al_da to connect to the Assemblyline server
+4. Enter user credentials (if necessary) and click start scan
+5. Wait for scan to complete
+6. View results
+
+All files are submitted to the remote Assemblyline server specified in the Settings page. Email alerts can also be
+enabled from the Settings page for when potentially malicious files are detected.
+
+### Settings
+
+From the Settings page we are currently able to:
+
+- Set the account settings for this kiosk (ie. username and password required to access the settings page in the future)
+- Set the name of this kiosk
+- Configure remote Assemblyline server details
+- Set up email alerts:
+    - Toggle alerts
+    - Add / remove alert recipients
+    - Configure SMTP server details
+- Control what credentials must be given by user prior to scanning
+- Control the level of detail the user is able to see from the scan results
