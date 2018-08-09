@@ -21,7 +21,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 
 # Installation
 
-### Pre-requisites
+## Pre-requisites
 
 - Host machine should be running fresh Ubuntu 16.04.x Desktop install
 
