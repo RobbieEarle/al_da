@@ -116,6 +116,7 @@ enabled from the Settings page for when potentially malicious files are detected
 ### Settings
 
 Default username: admin
+
 Default password: changeme
 
 From the Settings page we are currently able to:
