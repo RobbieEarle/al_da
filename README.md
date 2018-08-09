@@ -115,6 +115,9 @@ enabled from the Settings page for when potentially malicious files are detected
 
 ### Settings
 
+Default username: admin
+Default password: changeme
+
 From the Settings page we are currently able to:
 
 - Set the account settings for this kiosk (ie. username and password required to access the settings page in the future)
