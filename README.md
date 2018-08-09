@@ -34,7 +34,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 - `sudo apt-get install virtualbox`
 - `sudo apt-get install virtualbox-dkms`
 - `sudo apt-get install virtualbox-ext-pack`
-- `sudo apt-get install linux-headers generic`
+- `sudo apt-get install linux-headers-generic`
 
 ##### Signing kernel modules
 
