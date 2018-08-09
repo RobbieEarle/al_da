@@ -267,7 +267,6 @@ def fe_scan_start():
     """
 
     my_logger.info('Front end connected')
-
     if get_vm_state() != 'running':
         vm_refresh()
 
