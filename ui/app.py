@@ -267,7 +267,8 @@ def fe_scan_start():
     """
 
     my_logger.info('Front end connected')
-    vm_refresh()
+    if get_vm_state() != 'running':
+        vm_refresh()
 
 
 @socketio.on('fe_get_credentials')
@@ -613,6 +614,18 @@ def render(template, path):
     return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin')
 
 
+def get_vm_state():
+    """
+    Called within the vm_refresh function whenever we want to check the state of the virtual machine (ie. running,
+    poweroff, saved, etc)
+    :return: String; the current state of the VM
+    """
+
+    vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
+    vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
+    return vm_state
+
+
 def vm_refresh():
     """
     Called when front end wants to turn off or restart the virtual machine running our scrape application
@@ -621,17 +634,6 @@ def vm_refresh():
 
     # Tells front end that the VM is currently refreshing
     socketio.emit('vm_refreshing', True)
-
-    def get_vm_state():
-        """
-        Called within the vm_refresh function whenever we want to check the state of the virtual machine (ie. running,
-        poweroff, saved, etc)
-        :return: String; the current state of the VM
-        """
-
-        vm_info = str(subprocess.check_output(['VBoxManage', 'showvminfo', '--machinereadable', 'alda_sandbox']))
-        vm_state = re.search('.*VMState="(.*)"', vm_info).group(1)
-        return vm_state
 
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
     if get_vm_state() == 'running':
