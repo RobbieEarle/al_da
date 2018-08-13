@@ -735,7 +735,7 @@ def email_alert(mal_files):
     global default_settings
 
     # Only sends if there is at least one recipient, and if email alerts have been turned on
-    if len(default_settings['recipients']) > 0 and default_settings['email_alerts']:
+    if len(default_settings['recipients']) > 0 and len(mal_files) > 0 and default_settings['email_alerts']:
 
         # Constructs message
         msg = MIMEMultipart()
