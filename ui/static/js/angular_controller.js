@@ -122,6 +122,13 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // Called when a device is removed
             else if (event === 'remove_detected') {
                 $scope.device_connected = false;
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.mini_kiosk_sub = 'No device connected';
+                    });
+                });
+
                 // If our scan was finished (ie. results were shown), shows a button to start a new session without
                 // removing the results from the previous session (this way the user can unplug their device and they
                 // can still read through the results)
