@@ -37,6 +37,8 @@ def start():
               '-n vboxdrv)')
     os.system('sudo mokutil --import MOK.der')
 
+    # NEXT : Prompt user to restart their machine
+
 
 if __name__ == '__main__':
     start()
