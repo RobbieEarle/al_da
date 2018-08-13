@@ -921,4 +921,4 @@ def db_save(new_settings, default_smtp_pw_reuse):
 
 
 if __name__ == '__main__':
-    socketio.run(app, threaded=True)
+    socketio.run(app, host='0.0.0.0', threaded=True)
