@@ -710,10 +710,14 @@ def get_sid_info(terminal, sid, adv):
     :return: dict, contains file details
     """
 
-    if adv:
-        details = terminal.submission.full(sid)
-    else:
-        details = terminal.submission(sid)
+    try:
+        if adv:
+            details = terminal.submission.full(sid)
+        else:
+            details = terminal.submission(sid)
+    except ClientError as e:
+        my_logger.error("Error - SID " + str(e) + " does not exist on server.")
+        return {}
 
     full_path = details['submission']['metadata']['path']
 
