@@ -43,7 +43,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 - `sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n vboxdrv)`
 - `tail $(modinfo -n vboxdrv) | grep "Module signature appended"`
 - `sudo mokutil --import MOK.der`
-    - Enter password to user for MDK management
+    - Enter password to use for MDK management
 - `mokutil --test-key MOK.der`
 - Reboot, perform MDK management, enroll MDK, continue, enroll key, enter pw, reboot
 
