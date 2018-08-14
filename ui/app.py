@@ -573,8 +573,8 @@ def be_device_event(event_type, *args):
     socketio.emit('dev_event', event_type)
 
     # If the device event is a disconnection, refreshes our VM
-    # if event_type == 'disconnected':
-    #     vm_refresh()
+    if event_type == 'disconnected':
+        vm_refresh()
 
 
 @socketio.on('be_ingest_status')
@@ -718,15 +718,12 @@ def get_detailed_info(terminal, file_info):
 
     details['name'] = file_info['name']
     details['score'] = file_info['score']
-    details['sid'] = file_info['sid'] + ' (COULD NOT FIND ON SERVER)'
-    details['path'] = file_info['path']
+    details['sid'] = file_info['sid']
 
-    # full_path = details['submission']['metadata']['path']
-    #
-    # # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
-    # # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
-    # # that the path of this file matches what it would be on the device
-    # details['submission']['metadata']['path'] = full_path[full_path.find('temp_device') + 11:]
+    # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
+    # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
+    # that the path of this file matches what it would be on the device
+    details['path'] = file_info['path'][file_info['path'].find('temp_device') + 11:]
 
     return details
 
