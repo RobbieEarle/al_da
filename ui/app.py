@@ -573,8 +573,8 @@ def be_device_event(event_type, *args):
     socketio.emit('dev_event', event_type)
 
     # If the device event is a disconnection, refreshes our VM
-    if event_type == 'disconnected':
-        vm_refresh()
+    # if event_type == 'disconnected':
+    #     vm_refresh()
 
 
 @socketio.on('be_ingest_status')
