@@ -77,16 +77,16 @@
 
                         <div uib-accordion-heading>
                             <div class="row opacity8">
-                                <div class="result-detail-header">//file.submission.metadata.filename//</div>
+                                <div class="result-detail-header">//file.name//</div>
                                 <div ng-if="results_settings.score" class="result-detail-header text-right">
-                                    //file.submission.max_score//
+                                    //file.score//
                                 </div>
                             </div>
                         </div>
 
                         <div class="pad">
-                            <p><b>Path:</b> //file.submission.metadata.path//</p>
-                            <p ng-if="results_settings.sid"><b>SID:</b> //file.submission.sid//</p>
+                            <p><b>Path:</b> //file.path//</p>
+                            <p ng-if="results_settings.sid"><b>SID:</b> //file.sid//</p>
                         </div>
 
                         <div ng-if="results_settings.file_contents">
@@ -160,15 +160,15 @@
 
                         <div uib-accordion-heading>
                             <div class="row text-semi-muted">
-                                <div class="result-detail-header">//file.submission.metadata.filename//</div>
+                                <div class="result-detail-header">//file.name//</div>
                                 <div ng-if="results_settings.score" class="result-detail-header text-right">
-                                    //file.submission.metadata.al_score//
+                                    //file.score//
                                 </div>
                             </div>
                         </div>
 
                         <div class="pad">
-                            <p><b>Path:</b> //file.submission.metadata.path//</p>
+                            <p><b>Path:</b> //file.path//</p>
                         </div>
 
                     </div>

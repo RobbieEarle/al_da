@@ -554,11 +554,7 @@ def be_device_event(event_type, *args):
             # front end
             pass_files = []
             for file_info in args[0]:
-                details = {}
-                details['submission']['metadata']['filename'] = file_info['name']
-                details['submission']['al_score'] = file_info['score']
-                details['submission']['metadata']['path'] = file_info['path']
-                pass_files.append(details)
+                pass_files.append(file_info)
             pass_files_json = json.dumps(pass_files)
             socketio.emit('pass_files_json', pass_files_json)
 
@@ -719,18 +715,18 @@ def get_detailed_info(terminal, file_info):
         details = terminal.submission.full(file_info['sid'])
     except ClientError as e:
         my_logger.error("Error - Cannot find submission details for given SID:\r\n" + str(e))
-        details['submission']['metadata']['filename'] = file_info['name']
-        details['submission']['max_score'] = file_info['score']
-        details['submission']['sid'] = file_info['sid'] + ' (COULD NOT FIND ON SERVER)'
-        details['submission']['metadata']['path'] = file_info['path']
-        return {details}
 
-    full_path = details['submission']['metadata']['path']
+    details['name'] = file_info['name']
+    details['score'] = file_info['score']
+    details['sid'] = file_info['sid'] + ' (COULD NOT FIND ON SERVER)'
+    details['path'] = file_info['path']
 
-    # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
-    # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
-    # that the path of this file matches what it would be on the device
-    details['submission']['metadata']['path'] = full_path[full_path.find('temp_device') + 11:]
+    # full_path = details['submission']['metadata']['path']
+    #
+    # # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
+    # # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
+    # # that the path of this file matches what it would be on the device
+    # details['submission']['metadata']['path'] = full_path[full_path.find('temp_device') + 11:]
 
     return details
 
