@@ -553,16 +553,20 @@ def be_device_event(event_type, *args):
             # Populates pass_files array with basic file info for each sid passed from back end, and emits JSON dump to
             # front end
             pass_files = []
-            for sid in args[0]:
-                pass_files.append(get_sid_info(terminal, sid, False))
+            for file_info in args[0]:
+                details = {}
+                details['submission']['metadata']['filename'] = file_info['name']
+                details['submission']['al_score'] = file_info['score']
+                details['submission']['metadata']['path'] = file_info['path']
+                pass_files.append(details)
             pass_files_json = json.dumps(pass_files)
             socketio.emit('pass_files_json', pass_files_json)
 
             # Populates mal array with detailed file info for each sid passed from back end, and emits JSON dump to
             # front end
             mal_files = []
-            for sid in args[1]:
-                mal_files.append(get_sid_info(terminal, sid, True))
+            for file_info in args[1]:
+                mal_files.append(get_detailed_info(terminal, file_info))
             mal_files_json = json.dumps(mal_files)
             socketio.emit('mal_files_json', mal_files_json)
 
@@ -701,23 +705,25 @@ def convert_dots(input_str):
         return ''
 
 
-def get_sid_info(terminal, sid, adv):
+def get_detailed_info(terminal, file_info):
     """
     Retrieves file details from Assemblyline server corrseponding to a given sid
     :param terminal: Client, Assemblyline Client object
-    :param sid: string, corresponds to the file which we want to look up on the server
-    :param adv: boolean, true if we want advanced details, false otherwise
+    :param file_info: dict, contains basic file details
     :return: dict, contains file details
     """
 
+    details = {}
+
     try:
-        if adv:
-            details = terminal.submission.full(sid)
-        else:
-            details = terminal.submission(sid)
+        details = terminal.submission.full(file_info['sid'])
     except ClientError as e:
-        my_logger.error("Error - SID " + str(e) + " does not exist on server.")
-        return {}
+        my_logger.error("Error - Cannot find submission details for given SID:\r\n" + str(e))
+        details['submission']['metadata']['filename'] = file_info['name']
+        details['submission']['max_score'] = file_info['score']
+        details['submission']['sid'] = file_info['sid'] + ' (COULD NOT FIND ON SERVER)'
+        details['submission']['metadata']['path'] = file_info['path']
+        return {details}
 
     full_path = details['submission']['metadata']['path']
 
