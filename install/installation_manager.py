@@ -64,6 +64,18 @@ class Installer(object):
             self.milestone('.....apt install:' + packages)
         (_, _, _) = self.runcmd(cmd_line, shell=False)
 
+    def sudo_pip_install(self, modules):
+        cmd_line = ['sudo', '-H', 'pip', 'install']
+
+        if isinstance(modules, list):
+            cmd_line.extend(modules)
+            for module in modules:
+                self.milestone('.....pip install:' + module)
+        else:
+            cmd_line.append(modules)
+            self.milestone('.....pip install:' + modules)
+        (_, _, _) = self.runcmd(cmd_line, shell=False)
+
     def sign_kernal_mods(self):
 
         self.milestone('.....signing kernal modules')
@@ -96,14 +108,7 @@ class Installer(object):
             self.runcmd('sudo mkdir /var/log/al_da_kiosk')
             self.runcmd('sudo chmod 777 /var/log/al_da_kiosk')
 
-    def sudo_pip_install(self, modules):
-        cmd_line = ['sudo', '-H', 'pip', 'install']
-
-        if isinstance(modules, list):
-            cmd_line.extend(modules)
-            for module in modules:
-                self.milestone('.....pip install:' + module)
-        else:
-            cmd_line.append(modules)
-            self.milestone('.....pip install:' + modules)
-        (_, _, _) = self.runcmd(cmd_line, shell=False)
+    def make_service(self):
+        self.runcmd('sudo touch /lib/systemd/system/flask.service')
+        self.runcmd('sudo chmod 777 /lib/systemd/system/flask.service')
+        self.runcmd('sudo chmod 777 /lib/systemd/system/flask.service')
