@@ -12,6 +12,9 @@ def green(st):
 
 
 def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
+
+    # subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, cwd=cwd)
+
     if not silent:
         if not cwd:
             print "Running: %s" % cmdline
@@ -36,6 +39,6 @@ class Installer(object):
         self.log = logging.getLogger(session_name)
         self.log.info("test info")
 
-        cmdline = ['ls']
+        cmdline = ['touch', 'test.txt']
         _runcmd(cmdline)
 
