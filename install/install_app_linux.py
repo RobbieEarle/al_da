@@ -3,7 +3,6 @@ import re
 
 
 def start():
-    
     print
     print 'Welcome to Assemblyline Device Audit linux installer'
 
@@ -29,13 +28,23 @@ def start():
 
         while True:
             user_input = raw_input('  Would you like to continue? (y/n) ')
-            if user_input == 'n':
+            user_result = check_input(user_input)
+            if not user_result:
                 exit(1)
-            elif user_input == 'y':
+            elif user_result == 1:
                 break
             else:
-                print '    Error: invalid input (must be y or n)'
+                print '    Error: please enter y or n'
                 print
+
+
+def check_input(user_input):
+    if user_input == 'y' or user_input == 'yes' or user_input == 'Y' or user_input == 'Yes':
+        return 1
+    elif user_input == 'n' or user_input == 'no' or user_input == 'N' or user_input == 'No':
+        return 0
+    else:
+        return -1
 
 
 if __name__ == '__main__':
