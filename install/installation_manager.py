@@ -78,7 +78,7 @@ class Installer(object):
 
     def upgrade_pip(self):
         self.milestone('.....updating pip')
-        self.runcmd('sudo easy_install --upgrade pip')
+        self.runcmd('sudo -H pip install --upgrade pip')
 
     def sign_kernal_mods(self):
 
