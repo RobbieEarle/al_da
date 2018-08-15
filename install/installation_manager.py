@@ -109,6 +109,7 @@ class Installer(object):
             self.runcmd('sudo chmod 777 /var/log/al_da_kiosk')
 
     def make_service(self):
-        self.runcmd('sudo touch /lib/systemd/system/flask.service')
-        self.runcmd('sudo chmod 777 /lib/systemd/system/flask.service')
-        self.runcmd('sudo chmod 777 /lib/systemd/system/flask.service')
+        self.runcmd('sudo cp /opt/al_da/install/flask.service /lib/systemd/system/flask.service')
+        self.runcmd('sudo systemctl daemon-reload')
+        self.runcmd('sudo systemctl enable flask.service')
+        self.runcmd('sudo systemctl start flask.service')

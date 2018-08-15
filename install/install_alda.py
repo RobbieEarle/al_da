@@ -26,7 +26,7 @@ def start():
         #     'arrow==0.12.1'
         # ])
 
-
+        installer.make_service()
 
     else:
         print
