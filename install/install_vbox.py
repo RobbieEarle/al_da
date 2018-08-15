@@ -1,6 +1,6 @@
 import subprocess
 import os
-from install import Installer
+from al_da.install import Installer
 
 
 def start():
