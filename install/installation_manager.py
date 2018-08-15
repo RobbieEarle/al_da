@@ -41,7 +41,6 @@ class Installer(object):
 
     def __init__(self, session_name):
         self.log = logging.getLogger(session_name)
-        self.log.info("test info")
 
     @staticmethod
     def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
@@ -90,3 +89,9 @@ class Installer(object):
         except Exception as e:
             self.fatal('\r\n\r\nError setting password. Please try again')
 
+    def setup_logging(self, cur_os):
+
+        if 'linux' in cur_os:
+            self.milestone('.....creating logging directory:')
+            self.runcmd('sudo mkdir /var/log/al_da_kiosk')
+            self.runcmd('sudo chmod 661 /var/log/al_da_kiosk')
