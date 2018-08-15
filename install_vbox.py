@@ -1,11 +1,11 @@
 import subprocess
 import os
-import install.Installer
+from install import Installer
 
 
 def start():
 
-    installer = install.Installer()
+    installer = Installer()
 
     # try:
     #     subprocess.call(['sudo', 'apt-get', 'install', 'virtualbox'])
