@@ -78,5 +78,8 @@ class Installer(object):
                                 'MOK.der -nodes -days 36500 -subj "/CN=Descriptive common name/"')
         (_, _, _) = self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
                                 './MOK.der $(modinfo -n vboxdrv)')
+        self.log.info(green('\r\nIn order to sign a new kernel module for virtualbox to run, you must reboot > '
+                            '"Perform MDK Management" > "Enroll MDK" > Continue > "Enroll Key" > enter your password > '
+                            'reboot. Below you must choose the password you will use to enroll this key: '))
         (_, _, _) = self.runcmd('sudo mokutil --import MOK.der', piped_stdio=False)
 
