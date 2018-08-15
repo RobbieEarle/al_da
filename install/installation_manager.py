@@ -74,9 +74,9 @@ class Installer(object):
 
         self.milestone('.....signing kernal modules')
 
-        self.runcmd('openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days '
-                    '36500 -subj "/CN=Descriptive common name/"')
-        self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo '
-                    '-n vboxdrv)')
-        self.runcmd('sudo mokutil --import MOK.der')
+        (_, _, _) = self.runcmd('openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out '
+                                'MOK.der -nodes -days 36500 -subj "/CN=Descriptive common name/"')
+        # (_, _, _) = self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
+        #                         './MOK.der $(modinfo -n vboxdrv)')
+        # (_, _, _) = self.runcmd('sudo mokutil --import MOK.der')
 
