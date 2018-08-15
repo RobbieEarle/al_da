@@ -90,6 +90,6 @@ class Installer(object):
                       red('enter your password') +
                       green(' > reboot. Below you must choose the password you will use during this process (this '
                             'password will only need to be entered once, and does need to be remembered after the the '
-                            'MDK has been enrolled)\r\n\r\n'))
+                            'MDK has been enrolled)\r\n'))
         (_, _, _) = self.runcmd('sudo mokutil --import MOK.der', piped_stdio=False)
 

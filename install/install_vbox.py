@@ -13,7 +13,7 @@ def start():
 
     installer.milestone('\r\n\r\nPassword has been successfully set. Please enter "sudo reboot" now and follow these '
                         'steps when prompted: "Perform MDK Management" > "Enroll MDK" > Continue '
-                        '> "Enroll Key" > enter your password > reboot\r\n\r\n')
+                        '> "Enroll Key" > enter your password > reboot\r\n')
 
 
 if __name__ == '__main__':
