@@ -25,26 +25,16 @@ meantime the following steps can be followed to get al_scrape working for code r
 
 - Host machine should be running fresh Ubuntu 16.04.x Desktop install
 
-### Set up VirtualBox
-
-##### Installing VirtualBox
+### Download Al_da repo
 
 - `sudo apt-get update`
-- `sudo apt-get upgrade`
-- `sudo apt-get install virtualbox`
-- `sudo apt-get install virtualbox-dkms`
-- `sudo apt-get install virtualbox-ext-pack`
-- `sudo apt-get install linux-headers-generic`
+- `sudo apt-get -y upgrade`
+- `cd /opt`
+- `sudo git clone https://github.com/RobbieEarle/al_da.git`
 
-##### Signing kernel modules
+### Set up VirtualBox
 
-- `openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj 
-"/CN=al_scrape/"`
-- `sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n vboxdrv)`
-- `tail $(modinfo -n vboxdrv) | grep "Module signature appended"`
-- `sudo mokutil --import MOK.der`
-    - Enter password to use for MDK management
-- `mokutil --test-key MOK.der`
+- `python /opt/al_da/install/install_vbox.py`
 - Reboot, perform MDK management, enroll MDK, continue, enroll key, enter pw, reboot
 
 ### Install al_scrape
@@ -54,7 +44,7 @@ At this point we are ready to install our al_scrape back end service. Please fol
 
 ### Allow al_scrape to detect USB devices
 
-- Close VirtualBox
+- Close VirtualBox entirely
 - `sudo adduser $USER vboxusers`
 - Log out and log back in again
 - Open VirtualBox
@@ -67,33 +57,9 @@ At this point we are ready to install our al_scrape back end service. Please fol
 
 ### Install al_da
 
-##### Install dependencies
-
-- `sudo mkdir /var/log/al_da_kiosk`
-- `sudo chmod 661 /var/log/al_da_kiosk`
-- `sudo apt install python2.7 python-pip`
-- `sudo pip install flask==1.0.2`
-- `sudo pip install flask-socketio==3.0.1`
-- `sudo pip install flask-cors==3.0.6`
-- `sudo pip install eventlet==0.23.0`
-- `sudo pip install assemblyline-client==3.7.3`
-- `sudo pip install cryptography==2.3`
-- `sudo pip install email==4.0.2`
-- `sudo pip install flask-httpauth==3.2.4`
-- `sudo pip install arrow==0.12.1`
-
-##### Install al_da
-
-- `cd ~`
-- `sudo git clone https://github.com/RobbieEarle/al_da.git`
+- `python /opt/al_da/install/install_alda.py`
 
 ### Done
-
-To start receiving devices simply:
-
-- `cd ~/al_da/ui`
-- `set FLASK_APP=app.py`
-- `flask run`
 
 The application runs by default on port 5000 of localhost: [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
