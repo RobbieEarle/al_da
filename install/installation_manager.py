@@ -50,6 +50,9 @@ class Installer(object):
     def milestone(self, s):
         self.log.info(green(s))
 
+    def fatal(self, s):
+        self.log.error(red(s))
+
     def sudo_apt_get(self, packages):
         cmd_line = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q']
         # cmd_line = ['sudo', 'apt-get', '-y']
@@ -80,9 +83,9 @@ class Installer(object):
 
         self.milestone('.....signing kernal modules')
 
-        (_, _, _) = self.runcmd('openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out '
+        self.runcmd('openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out '
                                 'MOK.der -nodes -days 36500 -subj "/CN=Descriptive common name/"')
-        (_, _, _) = self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
+        self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
                                 './MOK.der $(modinfo -n vboxdrv)')
         self.log.info(green('\r\n\r\nWhen this script is finished running, you must perform the following steps for '
                             'VirtualBox to run properly: reboot > "Perform MDK Management" > "Enroll MDK" > Continue '
@@ -91,5 +94,12 @@ class Installer(object):
                       green(' > reboot. Below you must choose the password you will use during this process (this '
                             'password will only need to be entered once, and does need to be remembered after the the '
                             'MDK has been enrolled)\r\n'))
-        (_, _, _) = self.runcmd('sudo mokutil --import MOK.der', piped_stdio=False)
+
+        try:
+            self.runcmd('sudo mokutil --import MOK.der', piped_stdio=False)
+            self.milestone('\r\n\r\nPassword has been successfully set. Please enter "sudo reboot" now and follow '
+                           'these steps when prompted: "Perform MDK Management" > "Enroll MDK" > Continue '
+                            '> "Enroll Key" > enter your password > reboot\r\n')
+        except Exception as e:
+            self.fatal('\r\n\r\nError setting password. Please try again')
 
