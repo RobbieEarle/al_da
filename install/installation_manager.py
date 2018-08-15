@@ -76,7 +76,7 @@ class Installer(object):
 
         (_, _, _) = self.runcmd('openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out '
                                 'MOK.der -nodes -days 36500 -subj "/CN=Descriptive common name/"')
-        # (_, _, _) = self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
-        #                         './MOK.der $(modinfo -n vboxdrv)')
+        (_, _, _) = self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
+                                './MOK.der $(modinfo -n vboxdrv)')
         # (_, _, _) = self.runcmd('sudo mokutil --import MOK.der')
 
