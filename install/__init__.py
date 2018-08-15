@@ -5,6 +5,12 @@ import sys
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 
+def green(st):
+    prefix = '\x1b[' + '32m'
+    suffix = '\x1b[0m'
+    return prefix + st + suffix
+
+
 def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
     if not silent:
         if not cwd:
@@ -28,6 +34,8 @@ class Installer(object):
 
     def __init__(self):
         self.log = logging.getLogger('installer')
-        self.log.info("test!")
-
+        self.log.info("test info")
+        self.log.warn("test warn")
+        self.log.error("test error")
+        self.log.info(green('test green'))
 
