@@ -40,5 +40,5 @@ class Installer(object):
         self.log.info("test info")
 
         cmdline = ['touch', 'test.txt']
-        _runcmd(cmdline, shell=True)
+        _runcmd(cmdline, shell=False)
 
