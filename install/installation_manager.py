@@ -41,9 +41,19 @@ class Installer(object):
     def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
         return _runcmd(cmdline, shell, raise_on_error, piped_stdio, silent=silent, cwd=cwd)
 
+    def milestone(self, s):
+        self.log.info(green(s))
+
     def sudo_apt_get(self, packages):
         # args = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']
-        args = ['sudo', 'apt-get', '-y', 'install']
+        cmd_line = ['sudo', 'apt-get', '-y']
 
-        print isinstance(packages, list)
-        # cmd_line = apt_args
+        if isinstance(packages, list):
+            cmd_line.extend(packages)
+            for p in packages:
+                self.milestone('.....apt :' + p)
+        else:
+            cmd_line.append(packages)
+            self.milestone('.....apt :' + packages)
+        (_, _, _) = self.runcmd(cmd_line, shell=False)
+

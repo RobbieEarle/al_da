@@ -7,10 +7,10 @@ def start():
 
     installer = Installer('install_vbox')
 
-    cmdline = ['touch', 'test.txt']
+    cmdline = 'update'
     installer.sudo_apt_get(cmdline)
 
-    cmdline = 'test.txt'
+    cmdline = 'upgrade'
     installer.sudo_apt_get(cmdline)
 
     # try:
