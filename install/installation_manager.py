@@ -36,3 +36,6 @@ class Installer(object):
         self.log = logging.getLogger(session_name)
         self.log.info("test info")
 
+        cmdline = ['ls']
+        _runcmd(cmdline)
+
