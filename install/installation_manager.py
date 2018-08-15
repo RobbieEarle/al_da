@@ -11,6 +11,12 @@ def green(st):
     return prefix + st + suffix
 
 
+def red(st):
+    prefix = '\x1b[' + '31m'
+    suffix = '\x1b[0m'
+    return prefix + st + suffix
+
+
 def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
 
     if not silent:
@@ -80,8 +86,10 @@ class Installer(object):
                                 './MOK.der $(modinfo -n vboxdrv)')
         self.log.info(green('\r\n\r\nWhen this script is finished running, you must perform the following steps for '
                             'VirtualBox to run properly: reboot > "Perform MDK Management" > "Enroll MDK" > Continue '
-                            '> "Enroll Key" > enter your password > reboot. \r\n\r\nBelow you must choose the password you '
-                            'will use during this process (this password will only need to be entered once, and does '
-                            'need to be remembered after the the MDK has been enrolled)'))
+                            '> "Enroll Key" > ') +
+                      red('enter your password') +
+                      green(' > reboot. Below you must choose the password you will use during this process (this '
+                            'password will only need to be entered once, and does need to be remembered after the the '
+                            'MDK has been enrolled)\r\n\r\n'))
         (_, _, _) = self.runcmd('sudo mokutil --import MOK.der', piped_stdio=False)
 
