@@ -16,6 +16,8 @@ def start():
             'python-pip'
         ])
 
+        installer.upgrade_pip()
+
         installer.sudo_pip_install([
             'flask==1.0.2',
             'flask-socketio==3.0.1',

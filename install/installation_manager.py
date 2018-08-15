@@ -76,6 +76,10 @@ class Installer(object):
             self.milestone('.....pip install:' + modules)
         (_, _, _) = self.runcmd(cmd_line, shell=False)
 
+    def upgrade_pip(self):
+        self.milestone('.....updating pip')
+        self.runcmd('sudo easy_install --upgrade pip')
+
     def sign_kernal_mods(self):
 
         self.milestone('.....signing kernal modules')
