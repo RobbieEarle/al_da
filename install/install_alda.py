@@ -30,6 +30,9 @@ def start():
 
         installer.make_service()
 
+        installer.milestone('\r\n\r\nInstallation finished. You should now be able to visit the Assemblyline Device '
+                            'Audit front end web application at http://127.0.0.1:5000\r\n')
+
     else:
         print
         print 'Error: Assemblyline Device Audit is not supported on Windows or Mac OS X at the moment'
