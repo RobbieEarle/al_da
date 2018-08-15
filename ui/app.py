@@ -553,16 +553,16 @@ def be_device_event(event_type, *args):
             # Populates pass_files array with basic file info for each sid passed from back end, and emits JSON dump to
             # front end
             pass_files = []
-            for sid in args[0]:
-                pass_files.append(get_sid_info(terminal, sid, False))
+            for file_info in args[0]:
+                pass_files.append(file_info)
             pass_files_json = json.dumps(pass_files)
             socketio.emit('pass_files_json', pass_files_json)
 
             # Populates mal array with detailed file info for each sid passed from back end, and emits JSON dump to
             # front end
             mal_files = []
-            for sid in args[1]:
-                mal_files.append(get_sid_info(terminal, sid, True))
+            for file_info in args[1]:
+                mal_files.append(get_detailed_info(terminal, file_info))
             mal_files_json = json.dumps(mal_files)
             socketio.emit('mal_files_json', mal_files_json)
 
@@ -701,26 +701,29 @@ def convert_dots(input_str):
         return ''
 
 
-def get_sid_info(terminal, sid, adv):
+def get_detailed_info(terminal, file_info):
     """
     Retrieves file details from Assemblyline server corrseponding to a given sid
     :param terminal: Client, Assemblyline Client object
-    :param sid: string, corresponds to the file which we want to look up on the server
-    :param adv: boolean, true if we want advanced details, false otherwise
+    :param file_info: dict, contains basic file details
     :return: dict, contains file details
     """
 
-    if adv:
-        details = terminal.submission.full(sid)
-    else:
-        details = terminal.submission(sid)
+    details = {}
 
-    full_path = details['submission']['metadata']['path']
+    try:
+        details = terminal.submission.full(file_info['sid'])
+    except ClientError as e:
+        my_logger.error("Error - Cannot find submission details for given SID:\r\n" + str(e))
+
+    details['name'] = file_info['name']
+    details['score'] = file_info['score']
+    details['sid'] = file_info['sid']
 
     # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
     # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
     # that the path of this file matches what it would be on the device
-    details['submission']['metadata']['path'] = full_path[full_path.find('temp_device') + 11:]
+    details['path'] = file_info['path'][file_info['path'].find('temp_device') + 11:]
 
     return details
 
