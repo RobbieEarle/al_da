@@ -1,6 +1,6 @@
 import subprocess
 import os
-from . import Installer
+from installation_manager import Installer
 
 
 def start():
