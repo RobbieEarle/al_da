@@ -37,8 +37,8 @@ class Installer(object):
         self.log = logging.getLogger(session_name)
         self.log.info("test info")
 
-        cmdline = ['touch', 'test.txt']
-        self.runcmd(cmdline, shell=False)
+        cmdline = ['touch test.txt']
+        self.runcmd(cmdline)
 
     @staticmethod
     def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
