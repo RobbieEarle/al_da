@@ -11,7 +11,9 @@ def start():
     installer.sudo_apt_get_install(packages)
     installer.sign_kernal_mods()
 
-    # NEXT : Prompt user to restart their machine
+    installer.milestone('\r\n\r\nPassword has been successfully set. Please enter "sudo reboot" now and follow the '
+                        'steps listed above when prompted: "Perform MDK Management" > "Enroll MDK" > Continue '
+                        '> "Enroll Key" > enter your password > reboot')
 
 
 if __name__ == '__main__':
