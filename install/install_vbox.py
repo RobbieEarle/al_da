@@ -1,5 +1,3 @@
-import subprocess
-import os
 from installation_manager import Installer
 
 

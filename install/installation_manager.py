@@ -53,22 +53,8 @@ class Installer(object):
     def fatal(self, s):
         self.log.error(red(s))
 
-    def sudo_apt_get(self, packages):
-        cmd_line = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q']
-        # cmd_line = ['sudo', 'apt-get', '-y']
-
-        if isinstance(packages, list):
-            cmd_line.extend(packages)
-            for p in packages:
-                self.milestone('.....apt :' + p)
-        else:
-            cmd_line.append(packages)
-            self.milestone('.....apt :' + packages)
-        (_, _, _) = self.runcmd(cmd_line, shell=False)
-
     def sudo_apt_get_install(self, packages):
         cmd_line = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']
-        # cmd_line = ['sudo', 'apt-get', '-y']
 
         if isinstance(packages, list):
             cmd_line.extend(packages)
@@ -84,9 +70,10 @@ class Installer(object):
         self.milestone('.....signing kernal modules')
 
         self.runcmd('openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out '
-                                'MOK.der -nodes -days 36500 -subj "/CN=Descriptive common name/"')
+                    'MOK.der -nodes -days 36500 -subj "/CN=virtualbox/"')
         self.runcmd('sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv '
-                                './MOK.der $(modinfo -n vboxdrv)')
+                    './MOK.der $(modinfo -n vboxdrv)')
+
         self.log.info(green('\r\n\r\nWhen this script is finished running, you must perform the following steps for '
                             'VirtualBox to run properly: reboot > "Perform MDK Management" > "Enroll MDK" > Continue '
                             '> "Enroll Key" > ') +
@@ -98,8 +85,8 @@ class Installer(object):
         try:
             self.runcmd('sudo mokutil --import MOK.der', piped_stdio=False)
             self.milestone('\r\n\r\nPassword has been successfully set. Please enter "sudo reboot" now and follow '
-                           'these steps when prompted: "Perform MDK Management" > "Enroll MDK" > Continue '
-                            '> "Enroll Key" > enter your password > reboot\r\n')
+                           'these steps when prompted: "Perform MDK Management" > "Enroll MDK" > Continue > '
+                           '"Enroll Key" > enter your password > reboot\r\n')
         except Exception as e:
             self.fatal('\r\n\r\nError setting password. Please try again')
 
