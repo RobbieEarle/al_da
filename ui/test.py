@@ -3,6 +3,8 @@ import re
 
 active_connections = str(subprocess.check_output(['netstat', '-tuplen']))
 
+print active_connections
+
 if re.match('^.*(127.0.0.1:5000).*$', active_connections):
     print 'Success!'
 else:
