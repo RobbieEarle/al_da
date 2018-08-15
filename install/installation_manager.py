@@ -45,8 +45,8 @@ class Installer(object):
         self.log.info(green(s))
 
     def sudo_apt_get(self, packages):
-        # args = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']
-        cmd_line = ['sudo', 'apt-get', '-y']
+        args = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']
+        # cmd_line = ['sudo', 'apt-get', '-y']
 
         if isinstance(packages, list):
             cmd_line.extend(packages)
