@@ -121,6 +121,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
             // Called when a device is removed
             else if (event === 'remove_detected') {
+
                 $scope.device_connected = false;
 
                 _.defer(function () {
@@ -328,7 +329,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
                     else {
 
-                        // Makes mini-kiosk change to red and display "Device disconnected"
+                        // Resets all session variables
                         setTimeout(function () {
                             _.defer(function () {
                                 $scope.$apply(function () {
