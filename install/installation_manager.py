@@ -37,13 +37,15 @@ class Installer(object):
         self.log = logging.getLogger(session_name)
         self.log.info("test info")
 
-        cmdline = ['touch', 'test.txt']
-        self.runcmd(cmdline)
-
-        cmdline = 'touch test.txt'
-        self.runcmd(cmdline)
+        # cmdline = ['touch', 'test.txt']
+        # self.runcmd(cmdline)
+        #
+        # cmdline = 'touch test.txt'
+        # self.runcmd(cmdline)
 
     @staticmethod
     def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
         return _runcmd(cmdline, shell, raise_on_error, piped_stdio, silent=silent, cwd=cwd)
 
+    def sudo_apt_get(self, packages):
+        args = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']

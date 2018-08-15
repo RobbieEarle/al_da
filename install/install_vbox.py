@@ -7,6 +7,12 @@ def start():
 
     installer = Installer('install_vbox')
 
+    cmdline = ['touch', 'test.txt']
+    installer.runcmd(cmdline)
+
+    cmdline = 'touch test.txt'
+    installer.runcmd(cmdline)
+
     # try:
     #     subprocess.call(['sudo', 'apt-get', 'install', 'virtualbox'])
     # except Exception as e:
