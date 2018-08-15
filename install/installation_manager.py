@@ -64,9 +64,9 @@ class Installer(object):
         if isinstance(packages, list):
             cmd_line.extend(packages)
             for p in packages:
-                self.milestone('.....apt :' + p)
+                self.milestone('.....apt install:' + p)
         else:
             cmd_line.append(packages)
-            self.milestone('.....apt :' + packages)
+            self.milestone('.....apt install:' + packages)
         (_, _, _) = self.runcmd(cmd_line, shell=False)
 
