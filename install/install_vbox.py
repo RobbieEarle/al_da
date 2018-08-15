@@ -7,11 +7,8 @@ def start():
 
     installer = Installer('install_vbox')
 
-    cmdline = 'update'
-    installer.sudo_apt_get(cmdline)
-
-    cmdline = 'upgrade'
-    installer.sudo_apt_get(cmdline)
+    packages = ['virtualbox', 'virtualbox-dkms', 'virtualbox-ext-pack', 'linux-headers-generic']
+    installer.sudo_apt_get_install(packages)
 
     # try:
     #     subprocess.call(['sudo', 'apt-get', 'install', 'virtualbox'])

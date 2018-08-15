@@ -57,3 +57,16 @@ class Installer(object):
             self.milestone('.....apt :' + packages)
         (_, _, _) = self.runcmd(cmd_line, shell=False)
 
+    def sudo_apt_get_install(self, packages):
+        cmd_line = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']
+        # cmd_line = ['sudo', 'apt-get', '-y']
+
+        if isinstance(packages, list):
+            cmd_line.extend(packages)
+            for p in packages:
+                self.milestone('.....apt :' + p)
+        else:
+            cmd_line.append(packages)
+            self.milestone('.....apt :' + packages)
+        (_, _, _) = self.runcmd(cmd_line, shell=False)
+
