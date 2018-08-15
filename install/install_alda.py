@@ -11,7 +11,8 @@ def start():
     if 'linux' in cur_os:
 
         installer = Installer('install_alda')
-        installer.setup_logging(cur_os)
+        # installer.setup_logging(cur_os)
+        installer.sudo_apt_get_install(['python2.7', 'python-pip'])
 
     else:
         print
