@@ -13,8 +13,6 @@ def green(st):
 
 def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
 
-    # subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, cwd=cwd)
-
     if not silent:
         if not cwd:
             print "Running: %s" % cmdline
@@ -40,5 +38,9 @@ class Installer(object):
         self.log.info("test info")
 
         cmdline = ['touch', 'test.txt']
-        _runcmd(cmdline, shell=False)
+        self.runcmd(cmdline, shell=False)
+
+    @staticmethod
+    def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
+        return _runcmd(cmdline, shell, raise_on_error, piped_stdio, silent=silent, cwd=cwd)
 
