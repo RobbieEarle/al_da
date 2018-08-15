@@ -45,5 +45,5 @@ class Installer(object):
         # args = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', '-q', 'install']
         args = ['sudo', 'apt-get', '-y', 'install']
 
-        print type(type(packages))
+        print isinstance(packages)
         # cmd_line = apt_args
