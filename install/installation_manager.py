@@ -93,5 +93,8 @@ class Installer(object):
 
         if 'linux' in cur_os:
             self.milestone('.....creating logging directory:')
-            self.runcmd('sudo mkdir /var/log/al_da_kiosk')
+            try:
+                self.runcmd('sudo mkdir /var/log/al_da_kiosk')
+            except Exception as e:
+                self.log.error(str(e))
             self.runcmd('sudo chmod 661 /var/log/al_da_kiosk')
