@@ -32,10 +32,7 @@ def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=F
 
 class Installer(object):
 
-    def __init__(self):
-        self.log = logging.getLogger('installer')
+    def __init__(self, session_name):
+        self.log = logging.getLogger(session_name)
         self.log.info("test info")
-        self.log.warn("test warn")
-        self.log.error("test error")
-        self.log.info(green('test green'))
 

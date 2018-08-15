@@ -5,7 +5,7 @@ from installation_manager import Installer
 
 def start():
 
-    installer = Installer()
+    installer = Installer('install_vbox')
 
     # try:
     #     subprocess.call(['sudo', 'apt-get', 'install', 'virtualbox'])
