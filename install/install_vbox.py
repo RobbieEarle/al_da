@@ -8,10 +8,10 @@ def start():
     installer = Installer('install_vbox')
 
     cmdline = ['touch', 'test.txt']
-    installer.runcmd(cmdline)
+    installer.sudo_apt_get(cmdline)
 
-    cmdline = 'touch test.txt'
-    installer.runcmd(cmdline)
+    cmdline = 'test.txt'
+    installer.sudo_apt_get(cmdline)
 
     # try:
     #     subprocess.call(['sudo', 'apt-get', 'install', 'virtualbox'])
