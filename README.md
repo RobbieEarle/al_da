@@ -16,14 +16,12 @@ the VirtualBox VM on which al_scrape is running. Assemblyline Device Audit's pur
 4. Output results from al_scrape to user
 5. If desired, send email alerts to network administration
 
-**NOTE: Currently in the process of making an installation script that will simplify the installation process. In the
-meantime the following steps can be followed to get al_scrape working for code review*
-
 # Installation
 
 ### Pre-requisites
 
-- Host machine should be running fresh Ubuntu 16.04.x Desktop install
+- Host machine should ideally be running fresh Ubuntu 16.04.x Desktop install. Other versions of Ubuntu should also 
+work but have not been tested
 
 ### Download Al_da repo
 
@@ -40,7 +38,7 @@ meantime the following steps can be followed to get al_scrape working for code r
 ### Install al_scrape
 
 At this point we are ready to install our al_scrape back end service. Please follow the instructions found 
-[here](https://github.com/RobbieEarle/al_scrape) in their entirety before continuing.
+[here](https://github.com/RobbieEarle/al_scrape) in their entirety before continuing
 
 ### Allow al_scrape to detect USB devices
 
