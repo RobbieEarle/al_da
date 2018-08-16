@@ -911,6 +911,11 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.mini_kiosk_sub = 'No device connected';
                 });
             });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $rootScope.$emit("unlock_scan", {});
+                });
+            });
 
         }, 2500);
 
