@@ -29,8 +29,11 @@ eventlet.monkey_patch()
 # ============== Logging ==============
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
-# local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
-local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
+
+# -- OS CHANGES
+local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
+
 local_handler.setFormatter(formatter)
 
 my_logger = logging.getLogger('alda')
@@ -59,7 +62,10 @@ company_logo = 'static/uploads/Nalcor_Energy_Logo.png'
 
 # ============== Flask & Socketio Setup ==============
 
-UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
+# -- OS CHANGES
+UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
+# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
+
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'svg'])
 
 app = Flask(__name__)
