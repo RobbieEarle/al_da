@@ -9,6 +9,22 @@ let socket = io.connect('http://' + document.domain + ':' + location.port);
 
 /* === Scan Page == */
 
+app.controller('MainController', ['$scope', '$rootScope', function MainController($scope, $rootScope) {
+
+    $scope.lock_scan = false;
+
+    // ----------------------- Root Scope Event Handlers
+
+    $rootScope.$on("lock_scan", function (self, result_type) {
+        $scope.lock_scan = true;
+    });
+
+    $rootScope.$on("unlock_scan", function (self, result_type) {
+        $scope.lock_scan = false;
+    });
+
+}]);
+
 app.controller('ScanController', ['$scope', '$rootScope', function ScanController($scope, $rootScope) {
     /*
     Controls main kiosk output console and output icon
@@ -1040,56 +1056,62 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
         Called by our ScanController after our back end script has indicated that all files have been scanned
          */
 
-        // If result_type is done then we know our scan successfully completed (ie. not by premature device removal or
-        // timeout)
-        if (result_type === 'done') {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.scan_complete = true;
-                });
-            });
-        }
+        $rootScope.$emit("lock_scan", {});
 
-        // Otherwise we know we are showing the results for an incomplete scan
-        else {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.scan_complete = false;
-                });
-            });
-            if (result_type === 'premature')
+        setTimeout(function () {
+
+            // If result_type is done then we know our scan successfully completed (ie. not by premature device removal or
+            // timeout)
+            if (result_type === 'done') {
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = "Device was removed before scan could be completed. The " +
-                            "results listed are for the files that were scanned before the device was removed. " +
-                            "Use of this device on-site is strictly prohibited, without exception (even if no " +
-                            "malware was detected, it is possible that a file that was waiting to be scanned would " +
-                            "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
-                            "using this device."
+                        $scope.scan_complete = true;
                     });
                 });
-            else if (result_type === 'timeout')
+            }
+
+            // Otherwise we know we are showing the results for an incomplete scan
+            else {
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
-                            "Please remove device and try again. If this error persists please contact network " +
-                            "administration immediately."
+                        $scope.scan_complete = false;
                     });
                 });
-        }
+                if (result_type === 'premature')
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.error_output = "Device was removed before scan could be completed. The " +
+                                "results listed are for the files that were scanned before the device was removed. " +
+                                "Use of this device on-site is strictly prohibited, without exception (even if no " +
+                                "malware was detected, it is possible that a file that was waiting to be scanned would " +
+                                "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
+                                "using this device."
+                        });
+                    });
+                else if (result_type === 'timeout')
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
+                                "Please remove device and try again. If this error persists please contact network " +
+                                "administration immediately."
+                        });
+                    });
+            }
 
-        // Retrieves the admin's result settings from our DB
-        socket.emit('fe_get_results_settings',
-            function(result_settings){
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.result_settings = result_settings;
+            // Retrieves the admin's result settings from our DB
+            socket.emit('fe_get_results_settings',
+                function (result_settings) {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.result_settings = result_settings;
+                        });
+                    });
                 });
-            });
-        });
 
-        // Shows results page
-        $scope.results_init();
+            // Shows results page
+            $scope.results_init();
+
+        }, 1500);
 
     });
 

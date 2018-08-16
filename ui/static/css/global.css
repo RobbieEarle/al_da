@@ -2,7 +2,7 @@
 
 @media (min-width: 768px){
 	html, body{
-		background: #eeeeee;
+		background: #aaaaaa;
 	}
 }
 
@@ -136,7 +136,7 @@ html, body{
 @media (min-width: 768px){
 	section.container, .container-img{
 		background: #FFF;
-		/*box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 6px 1px;*/
+		box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 6px 1px;
 	}
 
 }
@@ -192,12 +192,14 @@ section.container-with-overflow{
 }
 
 .container-header {
-    padding-top: 30px !important;
-	padding-bottom: 30px !important;
+    padding-top: 15px !important;
+	padding-bottom: 15px !important;
     font-size: 22px;
-    background-color: #0f1c2e !important;
+    /*background-color: #0f1c2e !important;*/
+    background-color: #f0f0f0 !important;
+    /*border-color: #64707a !important;*/
     vertical-align: middle;
-    color: #ffffff;
+    color: #64707a;
 }
 
 @media (min-width: 768px) {
@@ -228,7 +230,7 @@ section.container-with-overflow{
 
 .navbar-dev{
 	background-color: #2c5180;
-	border-color: #00212D;
+	/*border-color: #00212D;*/
 }
 
 .navbar-dev .navbar-nav>li>a {
@@ -278,6 +280,11 @@ section.container-with-overflow{
     vertical-align: middle;
     white-space: pre-line;
     width: 70%;
+}
+
+.font-mont {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
 }
 
 .btn-large {

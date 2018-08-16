@@ -3,13 +3,21 @@
     <section id="main-scan">
 
         <section id="header" class="container container-with-overflow container-header">
-            <div>
+            {% if logo != '' %}
+            <div class="align-middle">
+                <img class="company-logo-img" src={{logo}}>
+            </div>
+            <div class="align-middle">
+                <img class="al-logo-img" src="/static/images/banner.svg">
+            </div>
+            {% else %}
+            <div class="medium-pad">
                 <b>Assemblyline Device Audit</b>
             </div>
+            {% endif %}
         </section>
 
         <section id="body" ng-controller="ScanController">
-
             <div id="img_prompt" class="container container-with-overflow container-img anim"
                      ng-class="{'bg-light-green': mini_kiosk && device_connected,
                      'bg-light-red': mini_kiosk && !device_connected}">
@@ -17,6 +25,7 @@
                     <img class="connect-icon-small" src='/static/images/usb_icon.svg'>
                     <div class="connect-icon-small-sub">//mini_kiosk_sub//</div>
                 </div>
+
                 <div class="text-center" uib-collapse="curr_screen!=0">
                     <div class="pad">
                         <div ng-if="vm_refreshing">
@@ -114,13 +123,13 @@
             </div>
 
             <section id="powered_by" class="container container-with-overflow">
-                <div>
-                    <div id="footer" class="text-center pad-head-small">
-                        <a class="text-large" href="https://bitbucket.org/cse-assemblyline/assemblyline">
-                            Powered by <img style="vertical-align: bottom" height="32px" src="/static/images/banner.svg">
-                        </a>
-                    </div>
-                </div>
+                <!--<div>-->
+                    <!--<div id="footer" class="text-center pad-head-small">-->
+                        <!--<a class="text-large" href="https://bitbucket.org/cse-assemblyline/assemblyline">-->
+                            <!--Powered by <img style="vertical-align: bottom" height="32px" src="/static/images/banner.svg">-->
+                        <!--</a>-->
+                    <!--</div>-->
+                <!--</div>-->
                 <div class="pad font-arial fine-print">
                     //kiosk_footer//
                 </div>

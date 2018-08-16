@@ -29,14 +29,23 @@
         <div id="wrap">
 
             {% if menu %}
-                <nav class="navbar navbar-inverse navbar-dev navbar-fixed-top" role="navigation">
+                <nav class="navbar navbar-dev navbar-fixed-top" role="navigation">
                     <div class="container">
-                        <div class="navbar-collapse">
+                        <div class="navbar-collapse navbar-logo">
+
+                            <div class="navbar-logo">
+                                <div class="navbar-header">
+                                    <a href="/">
+                                        <img class="logo-img" src='static/images/logo.svg'>
+                                    </a>
+                                </div>
+                            </div>
+
                             <ul class="nav navbar-nav">
                                 {% for menu_item in menu %}
                                     {% if menu_item.has_submenu %}
                                         <li class="dropdown{% if menu_item.active %} active{% endif %} {{menu_item.class}}">
-                                            <a class="clickable dropdown-toggle"
+                                            <a class="clickable"
                                                data-toggle="dropdown">{{menu_item.title}}<b class="caret"></b></a>
                                             <ul class="dropdown-menu">
                                                 {% for submenu_item in menu_item.submenu %}
@@ -63,9 +72,16 @@
 
             {% block results %}
             {% endblock %}
-
-            {% block main %}
-            {% endblock %}
+            <section ng-controller="MainController">
+                <div ng-class="{'outer': !lock_scan}">
+                    <div ng-class="{'middle': !lock_scan}">
+                        <div ng-class="{'inner': !lock_scan}">
+                            {% block main %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </section>
 
         </div>
     </body>

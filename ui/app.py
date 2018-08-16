@@ -1,5 +1,6 @@
 
 from flask import Flask, render_template, json, redirect, request, session
+from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
@@ -20,6 +21,7 @@ import smtplib
 import sqlite3
 import time
 import subprocess
+import os
 
 eventlet.monkey_patch()
 
@@ -27,7 +29,8 @@ eventlet.monkey_patch()
 # ============== Logging ==============
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
-local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 local_handler.setFormatter(formatter)
 
 my_logger = logging.getLogger('alda')
@@ -51,12 +54,18 @@ cipher_suite = Fernet(key)
 # Set to true when user enters the wrong credentials logging into the settings page
 login_failed = False
 
+company_logo = 'static/uploads/Nalcor_Energy_Logo.png'
+# company_logo = ''
 
 # ============== Flask & Socketio Setup ==============
+
+UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'svg'])
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = 'changeme123'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
 socketio = SocketIO(app, logger=my_logger)
 CORS(app)
@@ -214,7 +223,9 @@ def admin():
 
     # If we have been logged out by the scan page, forces user to re-enter credentials
     if not session.get('logged_in') and default_settings['user_pw'] != '':
-        return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path))
+        return render('login.html', request.path)
+        # return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path),
+        #                        logo_header=logo_header, logo_footer=logo_footer)
 
     # Otherwise renders the admin.html page
     else:
@@ -243,6 +254,19 @@ def do_admin_login():
 
     # Redirects to /admin
     return redirect('/admin', code=301)
+
+
+@app.route('/uploader', methods=['GET', 'POST'])
+def upload_file():
+
+    if request.method == 'POST':
+        f = request.files['file']
+        filename = secure_filename(f.filename)
+        logo_header = '/static/uploads/' + filename
+        logo_footer = '/static/uploads/' + filename
+        f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    return render('scan.html', request.path)
 
 
 # ============== Logging ==============
@@ -607,11 +631,14 @@ def render(template, path):
     Called by our Flask app when a new page is loaded. Renders corresponding HTML document
     :param template: string, name of the HTML document to be rendered
     :param path: string, path of this document
+    :param logo_menu: company logo to be displayed on front page in the menu bar
+    :param logo_footer: company logo to be displayed on front page in footer
     :return: Flask.render_template, corresponds to the passed in parameters
     """
 
     my_logger.info('Rendering page: ' + template)
-    return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin')
+    return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin',
+                           logo=company_logo)
 
 
 def get_vm_state():

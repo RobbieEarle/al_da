@@ -4,7 +4,9 @@
     <section id="main-admin" ng-controller="SettingsController">
 
         <section id="header" class="container container-with-overflow container-header">
-            <b>Admin Settings</b>
+            <div class="medium-pad">
+                <b>Admin Settings</b>
+            </div>
         </section>
 
         <section id="body" class="container container-with-overflow text-semi-muted">
@@ -59,6 +61,16 @@
                                 //password_alert_txt//
                             </div>
                         </div>
+                    </div>
+
+                    <div class="small-pad setting-indent">
+                        <form action="http://localhost:5000/uploader" method="POST" enctype="multipart/form-data">
+                            <div class="form-title pad"><b>Upload Company Logo</b></div>
+                            <input class="pad-head-small" type="file" name="file"/>
+                            <div class="pad-head-medium">
+                                <input class='btn btn-default btn-style-blue' type="submit"/>
+                            </div>
+                        </form>
                     </div>
 
                 </div>

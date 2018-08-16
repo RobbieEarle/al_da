@@ -107,7 +107,7 @@
 .refresh-gif-sub {
     font-size: 14px;
     display: inline;
-    vertical-align: center;
+    vertical-align: middle;
 }
 
 .fine-print {
@@ -118,6 +118,42 @@
 	padding-bottom: 10px;
 }
 
+.navbar-logo {
+    vertical-align: middle;
+}
+
+.logo-img {
+    height:35px;
+    padding-right: 20px;
+    padding-left: 10px;
+    margin-top:8px;
+    margin-bottom:5px;
+}
+
+.company-logo-img {
+    height: 80px;
+    vertical-align: middle;
+    display: inline;
+    /*text-align: center;*/
+    float:left;
+}
+
+.al-logo-img {
+    height: 50px;
+    margin-top: 14px;
+    vertical-align: middle;
+    display: inline;
+    /*text-align: center;*/
+    float: right;
+}
+
+.logo-footer {
+    height: 30px !important;;
+    display: inline;
+    vertical-align: middle;
+    padding-right: 0px !important;
+    padding-left: 30px !important;
+}
 
 /* ------- Modifiers ------- */
 
