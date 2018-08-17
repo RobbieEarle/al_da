@@ -270,14 +270,14 @@ def upload_file():
 
     global file_awaiting_upload
 
-    # if request.method == 'POST':
-    #     if 'file' not in request.files:
-    #         return redirect('/admin', code=301)
-    #     f = request.files['file']
-    #     if f.filename != '' and f and allowed_file(f.filename):
-    #         filename = secure_filename(f.filename)
-    #         f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    #         file_awaiting_upload = filename
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect('/admin', code=301)
+        f = request.files['file']
+        if f.filename != '' and f and allowed_file(f.filename):
+            filename = secure_filename(f.filename)
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_awaiting_upload = filename
 
     return redirect('/admin', code=301)
 
