@@ -30,9 +30,7 @@ eventlet.monkey_patch()
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
 
-# -- OS CHANGES
 local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
-# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 
 local_handler.setFormatter(formatter)
 
@@ -57,16 +55,12 @@ cipher_suite = Fernet(key)
 # Set to true when user enters the wrong credentials logging into the settings page
 login_failed = False
 
-# company_logo = 'static/uploads/Nalcor_Energy_Logo.png'
-# company_logo = ''
 file_awaiting_upload = None;
 
 
 # ============== Flask & Socketio Setup ==============
 
-# -- OS CHANGES
 UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
-# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
@@ -233,8 +227,6 @@ def admin():
     # If we have been logged out by the scan page, forces user to re-enter credentials
     if not session.get('logged_in') and default_settings['user_pw'] != '':
         return render('login.html', request.path)
-        # return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path),
-        #                        logo_header=logo_header, logo_footer=logo_footer)
 
     # Otherwise renders the admin.html page
     else:
