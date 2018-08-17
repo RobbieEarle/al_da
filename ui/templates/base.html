@@ -70,8 +70,6 @@
                 </nav>
 			{% endif %}
 
-            {% block results %}
-            {% endblock %}
             <section ng-controller="MainController">
                 <!--<div ng-class="{'outer': !lock_scan}">-->
                     <!--<div ng-class="{'middle': !lock_scan}">-->
@@ -79,6 +77,8 @@
                 <div class="outer">
                     <div class="middle">
                         <div class="inner">
+                            {% block results %}
+                            {% endblock %}
                             {% block main %}
                             {% endblock %}
                         </div>
