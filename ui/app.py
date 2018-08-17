@@ -31,8 +31,8 @@ eventlet.monkey_patch()
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
 
 # -- OS CHANGES
-# local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
-local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
+local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 
 local_handler.setFormatter(formatter)
 
@@ -65,8 +65,8 @@ file_awaiting_upload = None;
 # ============== Flask & Socketio Setup ==============
 
 # -- OS CHANGES
-# UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
-UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
+UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
+# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
