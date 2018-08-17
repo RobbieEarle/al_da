@@ -25,6 +25,7 @@ app.controller('MainController', ['$scope', '$rootScope', function MainControlle
 
 }]);
 
+
 app.controller('ScanController', ['$scope', '$rootScope', function ScanController($scope, $rootScope) {
     /*
     Controls main kiosk output console and output icon
@@ -1665,6 +1666,8 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
     // let the user save while one of these tests is occurring
     $scope.testing_connection = false;
 
+    $scope.awaiting_upload = '';
+
 
     // ----------------------- Socket Event Handlers
 
@@ -1685,18 +1688,89 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
         the settings page
          */
 
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.default_settings = JSON.parse(default_settings);
+            });
+        });
         _.defer(function() {
             $scope.$apply(function () {
-
-                $scope.default_settings = JSON.parse(default_settings);
                 $scope.smtp_pw_placeholder = $scope.default_settings.smtp_password;
+            });
+        });
+        _.defer(function() {
+            $scope.$apply(function () {
                 $scope.recipients_show = $scope.default_settings.recipients;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
                 $scope.credential_settings = $scope.default_settings.credential_settings;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
                 $scope.results_settings = $scope.default_settings.results_settings;
-                if ($scope.recipients_show.length > 0) {
+            });
+        });
+        if ($scope.recipients_show.length > 0) {
+            _.defer(function () {
+                $scope.$apply(function () {
                     $scope.no_recipients = false;
-                }
+                });
+            });
+        }
 
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.awaiting_upload = $scope.default_settings.company_logo;
+            });
+        });
+
+        _.defer(function () {
+            $scope.$apply(function () {
+                if ($scope.awaiting_upload !== '') {
+                    setTimeout(() => document.getElementById('user-settings').scrollIntoView({
+                        block: 'start'
+                    }));
+                }
+            });
+        });
+
+    });
+
+    socket.on('file_upload_alert', function (msg) {
+        /*
+        Called by app.py when a user attempts to upload an invalid file
+         */
+
+        let alert_class = '';
+        let alert_text = '';
+
+        if (msg === 'success'){
+            alert_class = 'success';
+            alert_text = 'Successfully uploaded new company logo'
+        }
+
+        else{
+            alert_class = 'danger'
+            alert_text = 'Error uploading file: ' + msg;
+        }
+
+        // Outputs success message to front end
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.settings_saved_class = alert_class;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.settings_saved_txt = alert_text;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.settings_saved = true;
             });
         });
 

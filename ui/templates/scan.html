@@ -5,16 +5,16 @@
         <section id="header" class="container container-with-overflow container-header">
             {% if logo != '' %}
             <div class="align-middle">
-                <img class="company-logo-img" src={{logo}}>
-            </div>
-            <div class="align-middle">
-                <img class="al-logo-img" src="/static/images/banner.svg">
+                <img class="logo-img-left" src={{logo}}>
             </div>
             {% else %}
-            <div class="medium-pad">
-                <b>Assemblyline Device Audit</b>
+            <div class="align-middle">
+                <img class="logo-img-left" src='static/images/logo2.svg'>
             </div>
             {% endif %}
+            <div class="align-middle">
+                <img class="logo-img-right" src="/static/images/banner.svg">
+            </div>
         </section>
 
         <section id="body" ng-controller="ScanController">
