@@ -1,5 +1,6 @@
 
 from flask import Flask, render_template, json, redirect, request, session
+from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
@@ -20,6 +21,7 @@ import smtplib
 import sqlite3
 import time
 import subprocess
+import os
 
 eventlet.monkey_patch()
 
@@ -27,7 +29,9 @@ eventlet.monkey_patch()
 # ============== Logging ==============
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
+
 local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+
 local_handler.setFormatter(formatter)
 
 my_logger = logging.getLogger('alda')
@@ -51,12 +55,19 @@ cipher_suite = Fernet(key)
 # Set to true when user enters the wrong credentials logging into the settings page
 login_failed = False
 
+file_awaiting_upload = None;
+
 
 # ============== Flask & Socketio Setup ==============
+
+UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
+
+ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = 'changeme123'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
 socketio = SocketIO(app, logger=my_logger)
 CORS(app)
@@ -110,6 +121,7 @@ def db_get_saved():
         settings_dict['smtp_port'] = cipher_suite.decrypt(bytes(data_settings[saved][10]))
         settings_dict['smtp_username'] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
         settings_dict['smtp_password'] = cipher_suite.decrypt(bytes(data_settings[saved][12]))
+        settings_dict['company_logo'] = cipher_suite.decrypt(bytes(data_settings[saved][13]))
     except Exception as e:
         my_logger.error('Error parsing decrypting settings: ' + str(e))
 
@@ -214,7 +226,7 @@ def admin():
 
     # If we have been logged out by the scan page, forces user to re-enter credentials
     if not session.get('logged_in') and default_settings['user_pw'] != '':
-        return render_template('login.html', app_name='AL Device Audit', menu=create_menu(request.path))
+        return render('login.html', request.path)
 
     # Otherwise renders the admin.html page
     else:
@@ -242,6 +254,23 @@ def do_admin_login():
         login_failed = True
 
     # Redirects to /admin
+    return redirect('/admin', code=301)
+
+
+@app.route('/uploader', methods=['GET', 'POST'])
+def upload_file():
+
+    global file_awaiting_upload
+
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect('/admin', code=301)
+        f = request.files['file']
+        if f.filename != '' and f and allowed_file(f.filename):
+            filename = secure_filename(f.filename)
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_awaiting_upload = filename
+
     return redirect('/admin', code=301)
 
 
@@ -359,15 +388,22 @@ def fe_get_settings():
     :return:
     """
 
-    global default_settings
+    global default_settings, file_awaiting_upload
 
     default_settings = db_get_saved()
 
     # Makes a copy of default settings to send out, but with user_pw set to nothing and smtp_password set to a
     # placeholder value
     default_settings_output = default_settings.copy()
+
     default_settings_output['user_pw'] = ''
     default_settings_output['smtp_password'] = convert_dots(default_settings['smtp_password'])
+
+    if file_awaiting_upload is not None:
+        default_settings_output['company_logo'] = str(file_awaiting_upload)
+        file_awaiting_upload = None
+    else:
+        default_settings_output['company_logo'] = ''
 
     # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)
@@ -607,11 +643,25 @@ def render(template, path):
     Called by our Flask app when a new page is loaded. Renders corresponding HTML document
     :param template: string, name of the HTML document to be rendered
     :param path: string, path of this document
+    :param logo_menu: company logo to be displayed on front page in the menu bar
+    :param logo_footer: company logo to be displayed on front page in footer
     :return: Flask.render_template, corresponds to the passed in parameters
     """
 
     my_logger.info('Rendering page: ' + template)
-    return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin')
+
+    logo = ''
+
+    if default_settings["company_logo"] != '':
+        logo = '/static/uploads/' + default_settings["company_logo"]
+
+    return render_template(template, app_name='AL Device Audit', menu=create_menu(path), user_js='admin',
+                           logo=logo)
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_vm_state():
@@ -841,12 +891,16 @@ def db_save(new_settings, default_smtp_pw_reuse):
         if default_smtp_pw_reuse or not new_settings['email_alerts']:
             new_settings['smtp_password'] = default_settings['smtp_password']
 
+        # If a new picture hasn't been chosen, use the old picture
+        if new_settings['company_logo'] == '':
+            new_settings['company_logo'] = default_settings['company_logo']
+
         # -- Settings table
         try:
             cursor.execute("""
             INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
-              email_alerts, smtp_server, smtp_port, smtp_username, smtp_password)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+              email_alerts, smtp_server, smtp_port, smtp_username, smtp_password, company_logo)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, (2,
                   cipher_suite.encrypt(b'SAVED'),
                   cipher_suite.encrypt(bytes(new_settings['user_id'])),
@@ -859,7 +913,9 @@ def db_save(new_settings, default_smtp_pw_reuse):
                   cipher_suite.encrypt(bytes(new_settings['smtp_server'])),
                   cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
                   cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
-                  cipher_suite.encrypt(bytes(new_settings['smtp_password']))))
+                  cipher_suite.encrypt(bytes(new_settings['smtp_password'])),
+                  cipher_suite.encrypt(bytes(new_settings['company_logo']))
+                  ))
         except Exception as e:
             my_logger.error('Error writing to setting table: ' + str(e))
             return

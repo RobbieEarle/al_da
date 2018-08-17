@@ -4,7 +4,9 @@
     <section id="main-admin" ng-controller="SettingsController">
 
         <section id="header" class="container container-with-overflow container-header">
-            <b>Admin Settings</b>
+            <div class="medium-pad">
+                <b>Admin Settings</b>
+            </div>
         </section>
 
         <section id="body" class="container container-with-overflow text-semi-muted">
@@ -305,6 +307,17 @@
                 </div>
 
                 <div class="pad" uib-collapse="user_collapse">
+
+                    <div class="small-pad setting-indent">
+
+                        <div class="form-title pad"><b>Upload Company Logo</b></div>
+
+                        <form class="form-large pad-bottom setting-indent" action="http://localhost:5000/uploader" method="POST" enctype="multipart/form-data">
+                            <input class="pad-head-small" type="file" name="file" onchange="form.submit()"/>
+                            <div class="pad-head-medium" ng-if="awaiting_upload != ''"><b>Awaiting Upload: </b>//awaiting_upload//</div>
+                        </form>
+
+                    </div>
 
                     <div class="small-pad setting-indent">
 

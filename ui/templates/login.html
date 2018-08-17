@@ -1,35 +1,29 @@
 {% extends "base.html" %}
 {% block main %}
-<div class="outer">
-    <div class="middle">
-        <div class="inner">
-            <section id="main" ng-controller="LoginController">
+<section id="main" ng-controller="LoginController">
 
-                <section id="header" class="card card-container container-header">
-                        <b>Change Settings</b>
-                </section>
+    <section id="header" class="font-mont card card-container container-header">
+            <b>Change Settings</b>
+    </section>
 
-                <div class="container container-fluid card card-container">
+    <div class="container container-fluid card card-container">
 
-                    {% if session['logged_in'] %}
-                    <p>You're logged in already!</p>
+        {% if session['logged_in'] %}
+        <p>You're logged in already!</p>
 
-                    {% else %}
-                    <form action="/login" method="POST" class="form-signin">
-                        <input type="username" name="username" placeholder="Username">
-                        <input type="password" name="password" placeholder="Password">
-                        <input type="submit" class="btn btn-style-blue btn-large" value="Confirm">
-                    </form>
-                    {% endif %}
+        {% else %}
+        <form action="/login" method="POST" class="form-signin">
+            <input type="username" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <input type="submit" class="btn btn-style-blue btn-large" value="Confirm">
+        </form>
+        {% endif %}
 
-                    <div class="medium-pad text-semi-muted">
-                        <p ng-if="show_error">Error - Incorrect username or password</p>
-                    </div>
-
-                </div>
-
-            </section>
+        <div class="medium-pad text-semi-muted">
+            <p ng-if="show_error">Error - Incorrect username or password</p>
         </div>
+
     </div>
-</div>
+
+</section>
 {% endblock %}

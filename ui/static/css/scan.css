@@ -107,17 +107,52 @@
 .refresh-gif-sub {
     font-size: 14px;
     display: inline;
-    vertical-align: center;
+    vertical-align: middle;
 }
 
 .fine-print {
     font-size: 65%;
-    text-align: center;
+    text-align: left;
     color: #a5a5a5;
     padding-top: 10px;
 	padding-bottom: 10px;
 }
 
+.navbar-logo {
+    vertical-align: middle;
+}
+
+.logo-img-nav {
+    height:35px;
+    padding-right: 20px;
+    padding-left: 10px;
+    margin-top:8px;
+    margin-bottom:5px;
+}
+
+.logo-img-left {
+    height: 70px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    vertical-align: middle;
+    float:left;
+}
+
+.logo-img-right {
+    height: 50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    vertical-align: middle;
+    float: right;
+}
+
+.logo-footer {
+    height: 30px !important;;
+    display: inline;
+    vertical-align: middle;
+    padding-right: 0px !important;
+    padding-left: 30px !important;
+}
 
 /* ------- Modifiers ------- */
 

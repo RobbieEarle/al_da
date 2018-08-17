@@ -9,6 +9,23 @@ let socket = io.connect('http://' + document.domain + ':' + location.port);
 
 /* === Scan Page == */
 
+app.controller('MainController', ['$scope', '$rootScope', function MainController($scope, $rootScope) {
+
+    $scope.lock_scan = false;
+
+    // ----------------------- Root Scope Event Handlers
+
+    $rootScope.$on("lock_scan", function (self, result_type) {
+        $scope.lock_scan = true;
+    });
+
+    $rootScope.$on("unlock_scan", function (self, result_type) {
+        $scope.lock_scan = false;
+    });
+
+}]);
+
+
 app.controller('ScanController', ['$scope', '$rootScope', function ScanController($scope, $rootScope) {
     /*
     Controls main kiosk output console and output icon
@@ -895,6 +912,11 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.mini_kiosk_sub = 'No device connected';
                 });
             });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $rootScope.$emit("unlock_scan", {});
+                });
+            });
 
         }, 2500);
 
@@ -1040,56 +1062,62 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
         Called by our ScanController after our back end script has indicated that all files have been scanned
          */
 
-        // If result_type is done then we know our scan successfully completed (ie. not by premature device removal or
-        // timeout)
-        if (result_type === 'done') {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.scan_complete = true;
-                });
-            });
-        }
+        $rootScope.$emit("lock_scan", {});
 
-        // Otherwise we know we are showing the results for an incomplete scan
-        else {
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.scan_complete = false;
-                });
-            });
-            if (result_type === 'premature')
+        setTimeout(function () {
+
+            // If result_type is done then we know our scan successfully completed (ie. not by premature device removal or
+            // timeout)
+            if (result_type === 'done') {
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = "Device was removed before scan could be completed. The " +
-                            "results listed are for the files that were scanned before the device was removed. " +
-                            "Use of this device on-site is strictly prohibited, without exception (even if no " +
-                            "malware was detected, it is possible that a file that was waiting to be scanned would " +
-                            "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
-                            "using this device."
+                        $scope.scan_complete = true;
                     });
                 });
-            else if (result_type === 'timeout')
+            }
+
+            // Otherwise we know we are showing the results for an incomplete scan
+            else {
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
-                            "Please remove device and try again. If this error persists please contact network " +
-                            "administration immediately."
+                        $scope.scan_complete = false;
                     });
                 });
-        }
+                if (result_type === 'premature')
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.error_output = "Device was removed before scan could be completed. The " +
+                                "results listed are for the files that were scanned before the device was removed. " +
+                                "Use of this device on-site is strictly prohibited, without exception (even if no " +
+                                "malware was detected, it is possible that a file that was waiting to be scanned would " +
+                                "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
+                                "using this device."
+                        });
+                    });
+                else if (result_type === 'timeout')
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
+                                "Please remove device and try again. If this error persists please contact network " +
+                                "administration immediately."
+                        });
+                    });
+            }
 
-        // Retrieves the admin's result settings from our DB
-        socket.emit('fe_get_results_settings',
-            function(result_settings){
-            _.defer(function () {
-                $scope.$apply(function () {
-                    $scope.result_settings = result_settings;
+            // Retrieves the admin's result settings from our DB
+            socket.emit('fe_get_results_settings',
+                function (result_settings) {
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.result_settings = result_settings;
+                        });
+                    });
                 });
-            });
-        });
 
-        // Shows results page
-        $scope.results_init();
+            // Shows results page
+            $scope.results_init();
+
+        }, 1500);
 
     });
 
@@ -1638,6 +1666,8 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
     // let the user save while one of these tests is occurring
     $scope.testing_connection = false;
 
+    $scope.awaiting_upload = '';
+
 
     // ----------------------- Socket Event Handlers
 
@@ -1658,18 +1688,89 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
         the settings page
          */
 
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.default_settings = JSON.parse(default_settings);
+            });
+        });
         _.defer(function() {
             $scope.$apply(function () {
-
-                $scope.default_settings = JSON.parse(default_settings);
                 $scope.smtp_pw_placeholder = $scope.default_settings.smtp_password;
+            });
+        });
+        _.defer(function() {
+            $scope.$apply(function () {
                 $scope.recipients_show = $scope.default_settings.recipients;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
                 $scope.credential_settings = $scope.default_settings.credential_settings;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
                 $scope.results_settings = $scope.default_settings.results_settings;
-                if ($scope.recipients_show.length > 0) {
+            });
+        });
+        if ($scope.recipients_show.length > 0) {
+            _.defer(function () {
+                $scope.$apply(function () {
                     $scope.no_recipients = false;
-                }
+                });
+            });
+        }
 
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.awaiting_upload = $scope.default_settings.company_logo;
+            });
+        });
+
+        _.defer(function () {
+            $scope.$apply(function () {
+                if ($scope.awaiting_upload !== '') {
+                    setTimeout(() => document.getElementById('user-settings').scrollIntoView({
+                        block: 'start'
+                    }));
+                }
+            });
+        });
+
+    });
+
+    socket.on('file_upload_alert', function (msg) {
+        /*
+        Called by app.py when a user attempts to upload an invalid file
+         */
+
+        let alert_class = '';
+        let alert_text = '';
+
+        if (msg === 'success'){
+            alert_class = 'success';
+            alert_text = 'Successfully uploaded new company logo'
+        }
+
+        else{
+            alert_class = 'danger'
+            alert_text = 'Error uploading file: ' + msg;
+        }
+
+        // Outputs success message to front end
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.settings_saved_class = alert_class;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.settings_saved_txt = alert_text;
+            });
+        });
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.settings_saved = true;
             });
         });
 
