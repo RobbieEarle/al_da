@@ -105,12 +105,16 @@ class Installer(object):
         except Exception as e:
             self.fatal('\r\n\r\nError setting password. Please try again')
 
-    def setup_logging(self, cur_os):
+    def setup_logging(self):
 
-        if 'linux' in cur_os:
-            self.milestone('.....creating logging directory:')
-            self.runcmd('sudo mkdir /var/log/al_da_kiosk')
-            self.runcmd('sudo chmod 777 /var/log/al_da_kiosk')
+        self.milestone('.....creating logging directory:')
+        self.runcmd('sudo mkdir -p /var/log/al_da_kiosk')
+        self.runcmd('sudo chmod 777 /var/log/al_da_kiosk')
+
+    def change_db_priv(self):
+        self.milestone('.....altering database permissions:')
+        self.runcmd('sudo chown $USER /opt/al_da/ui')
+        self.runcmd('sudo chown $USER /opt/al_da/ui/settings_db')
 
     def make_service(self):
         self.milestone('.....registering Flask server as a service')

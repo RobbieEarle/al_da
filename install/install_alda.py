@@ -9,7 +9,7 @@ def start():
 
         installer = Installer('install_alda')
 
-        installer.setup_logging(cur_os)
+        installer.setup_logging()
 
         installer.sudo_apt_get_install([
             'python2.7',
@@ -31,6 +31,7 @@ def start():
         ])
 
         installer.make_service()
+        installer.change_db_priv()
 
         installer.milestone('\r\n\r\nInstallation finished. You should now be able to visit the Assemblyline Device '
                             'Audit front end web application at http://127.0.0.1:5000\r\n')
