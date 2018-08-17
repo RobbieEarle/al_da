@@ -122,3 +122,8 @@ class Installer(object):
         self.runcmd('sudo systemctl daemon-reload', piped_stdio=False)
         self.runcmd('sudo systemctl enable flask.service')
         self.runcmd('sudo systemctl start flask.service')
+
+    def create_uploads_dir(self):
+        self.milestone('.....creating uploads directory')
+        self.runcmd('sudo mkdir -p /opt/al_da/ui/static/uploads')
+        self.runcmd('sudo chown $USER /opt/al_da/ui/static/uploads')
