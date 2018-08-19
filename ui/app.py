@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
@@ -30,6 +31,7 @@ eventlet.monkey_patch()
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
 
+# -- OS CHANGES
 local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
 
 local_handler.setFormatter(formatter)
@@ -55,11 +57,16 @@ cipher_suite = Fernet(key)
 # Set to true when user enters the wrong credentials logging into the settings page
 login_failed = False
 
-file_awaiting_upload = None;
+# Holds a reference to logo file that has been uploaded
+file_awaiting_upload = None
+
+# Set to true when user tries to upload file greater than 5mb
+file_upload_error = False
 
 
 # ============== Flask & Socketio Setup ==============
 
+# -- OS CHANGES
 UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
@@ -68,6 +75,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = 'changeme123'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 app.debug = True
 socketio = SocketIO(app, logger=my_logger)
 CORS(app)
@@ -122,6 +130,11 @@ def db_get_saved():
         settings_dict['smtp_username'] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
         settings_dict['smtp_password'] = cipher_suite.decrypt(bytes(data_settings[saved][12]))
         settings_dict['company_logo'] = cipher_suite.decrypt(bytes(data_settings[saved][13]))
+        settings_dict['kiosk_footer'] = cipher_suite.decrypt(bytes(data_settings[saved][14]))
+        settings_dict['pass_message'] = cipher_suite.decrypt(bytes(data_settings[saved][15]))
+        settings_dict['fail_message'] = cipher_suite.decrypt(bytes(data_settings[saved][16]))
+        settings_dict['error_timeout'] = cipher_suite.decrypt(bytes(data_settings[saved][17]))
+        settings_dict['error_removal'] = cipher_suite.decrypt(bytes(data_settings[saved][18]))
     except Exception as e:
         my_logger.error('Error parsing decrypting settings: ' + str(e))
 
@@ -260,16 +273,19 @@ def do_admin_login():
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
 
-    global file_awaiting_upload
+    global file_awaiting_upload, file_upload_error
 
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return redirect('/admin', code=301)
-        f = request.files['file']
-        if f.filename != '' and f and allowed_file(f.filename):
-            filename = secure_filename(f.filename)
-            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file_awaiting_upload = filename
+    try:
+        if request.method == 'POST':
+            if 'file' not in request.files:
+                return redirect('/admin', code=301)
+            f = request.files['file']
+            if f.filename != '' and f and allowed_file(f.filename):
+                filename = secure_filename(f.filename)
+                f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                file_awaiting_upload = filename
+    except RequestEntityTooLarge as e:
+        file_upload_error = True
 
     return redirect('/admin', code=301)
 
@@ -298,6 +314,26 @@ def fe_scan_start():
     my_logger.info('Front end connected')
     if get_vm_state() != 'running':
         vm_refresh()
+
+
+@socketio.on('fe_get_text_boxes')
+def fe_get_text_boxes():
+    """
+    Called when our front on initialization. Populates all customizable text boxes
+    :return: list, strings to populate text boxes
+    """
+
+    global default_settings
+
+    text_boxes = {
+        'kiosk_footer': default_settings['kiosk_footer'],
+        'pass_message': default_settings['pass_message'],
+        'fail_message': default_settings['fail_message'],
+        'error_timeout': default_settings['error_timeout'],
+        'error_removal': default_settings['error_removal']
+    }
+
+    return text_boxes
 
 
 @socketio.on('fe_get_credentials')
@@ -388,7 +424,7 @@ def fe_get_settings():
     :return:
     """
 
-    global default_settings, file_awaiting_upload
+    global default_settings, file_awaiting_upload, file_upload_error
 
     default_settings = db_get_saved()
 
@@ -404,6 +440,12 @@ def fe_get_settings():
         file_awaiting_upload = None
     else:
         default_settings_output['company_logo'] = ''
+
+    if file_upload_error:
+        default_settings_output['show_upload_error'] = True
+        file_upload_error = False
+    else:
+        default_settings_output['show_upload_error'] = False
 
     # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)
@@ -898,9 +940,10 @@ def db_save(new_settings, default_smtp_pw_reuse):
         # -- Settings table
         try:
             cursor.execute("""
-            INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
-              email_alerts, smtp_server, smtp_port, smtp_username, smtp_password, company_logo)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, 
+            al_api_key, email_alerts, smtp_server, smtp_port, smtp_username, smtp_password, company_logo, 
+            kiosk_footer, pass_message, fail_message, error_timeout, error_removal)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, (2,
                   cipher_suite.encrypt(b'SAVED'),
                   cipher_suite.encrypt(bytes(new_settings['user_id'])),
@@ -914,7 +957,12 @@ def db_save(new_settings, default_smtp_pw_reuse):
                   cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
                   cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
                   cipher_suite.encrypt(bytes(new_settings['smtp_password'])),
-                  cipher_suite.encrypt(bytes(new_settings['company_logo']))
+                  cipher_suite.encrypt(bytes(new_settings['company_logo'])),
+                  cipher_suite.encrypt(bytes(new_settings['kiosk_footer'])),
+                  cipher_suite.encrypt(bytes(new_settings['pass_message'])),
+                  cipher_suite.encrypt(bytes(new_settings['fail_message'])),
+                  cipher_suite.encrypt(bytes(new_settings['error_timeout'])),
+                  cipher_suite.encrypt(bytes(new_settings['error_removal'])),
                   ))
         except Exception as e:
             my_logger.error('Error writing to setting table: ' + str(e))
