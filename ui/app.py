@@ -31,8 +31,8 @@ eventlet.monkey_patch()
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
 
 # -- OS CHANGES
-local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
-# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 
 local_handler.setFormatter(formatter)
 
@@ -63,8 +63,8 @@ file_awaiting_upload = None;
 # ============== Flask & Socketio Setup ==============
 
 # -- OS CHANGES
-UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
-# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
+# UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
+UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
@@ -927,9 +927,10 @@ def db_save(new_settings, default_smtp_pw_reuse):
         # -- Settings table
         try:
             cursor.execute("""
-            INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, al_api_key,
-              email_alerts, smtp_server, smtp_port, smtp_username, smtp_password, company_logo)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO setting(setting_id, setting_name, user_id, user_pw, terminal, al_address, al_username, 
+            al_api_key, email_alerts, smtp_server, smtp_port, smtp_username, smtp_password, company_logo, 
+            kiosk_footer, pass_message, fail_message, error_timeout, error_removal)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, (2,
                   cipher_suite.encrypt(b'SAVED'),
                   cipher_suite.encrypt(bytes(new_settings['user_id'])),
@@ -943,7 +944,12 @@ def db_save(new_settings, default_smtp_pw_reuse):
                   cipher_suite.encrypt(bytes(new_settings['smtp_port'])),
                   cipher_suite.encrypt(bytes(new_settings['smtp_username'])),
                   cipher_suite.encrypt(bytes(new_settings['smtp_password'])),
-                  cipher_suite.encrypt(bytes(new_settings['company_logo']))
+                  cipher_suite.encrypt(bytes(new_settings['company_logo'])),
+                  cipher_suite.encrypt(bytes(new_settings['kiosk_footer'])),
+                  cipher_suite.encrypt(bytes(new_settings['pass_message'])),
+                  cipher_suite.encrypt(bytes(new_settings['fail_message'])),
+                  cipher_suite.encrypt(bytes(new_settings['error_timeout'])),
+                  cipher_suite.encrypt(bytes(new_settings['error_removal'])),
                   ))
         except Exception as e:
             my_logger.error('Error writing to setting table: ' + str(e))

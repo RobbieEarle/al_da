@@ -12,6 +12,12 @@
     padding-bottom: 20px;
 }
 
+.settings_textarea {
+    width:100%;
+    resize: vertical;
+    font-size: 11px;
+}
+
 .main-title {
     font-size: 150%;
     border-bottom: 1px solid #EEE;
@@ -24,7 +30,7 @@
 }
 
 .form-title {
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .form {

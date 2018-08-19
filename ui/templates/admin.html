@@ -419,6 +419,65 @@
 
                     </div>
 
+                    <div class="small-pad setting-indent">
+
+                        <form novalidate class="form-large">
+
+                            <div class="form-title small-pad"><b>Customize Text</b></div>
+
+                            <div class="setting-indent">
+
+                                <div class="pad-head-small"><b>Kiosk Footer</b></div>
+                                <div class="pad-head-small">
+                                    <textarea class="settings_textarea" rows="4" name="comment"
+                                              ng-value="default_settings.kiosk_footer"
+                                              ng-model="default_settings.kiosk_footer"
+                                              form="usrform">
+                                    </textarea>
+                                </div>
+
+                                <div class="pad-head-small"><b>Successful Scan</b></div>
+                                <div class="pad-head-small">
+                                    <textarea class="settings_textarea" rows="4" name="comment"
+                                              ng-value="default_settings.pass_message"
+                                              ng-model="default_settings.pass_message"
+                                              form="usrform">
+                                    </textarea>
+                                </div>
+
+                                <div class="pad-head-small"><b>Failed Scan</b></div>
+                                <div class="pad-head-small">
+                                    <textarea class="settings_textarea" rows="4" name="comment"
+                                              ng-value="default_settings.fail_message"
+                                              ng-model="default_settings.fail_message"
+                                              form="usrform">
+                                    </textarea>
+                                </div>
+
+                                <div class="pad-head-small"><b>Timeout Error</b></div>
+                                <div class="pad-head-small">
+                                    <textarea class="settings_textarea" rows="4" name="comment"
+                                              ng-value="default_settings.error_timeout"
+                                              ng-model="default_settings.error_timeout"
+                                              form="usrform">
+                                    </textarea>
+                                </div>
+
+                                <div class="pad-head-small"><b>Early Removal Error</b></div>
+                                <div class="pad-head-small">
+                                    <textarea class="settings_textarea" rows="4" name="comment"
+                                              ng-value="default_settings.error_removal"
+                                              ng-model="default_settings.error_removal"
+                                              form="usrform">
+                                    </textarea>
+                                </div>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
                 </div>
 
             </div>
