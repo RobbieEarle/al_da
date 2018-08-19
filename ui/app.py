@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_httpauth import HTTPBasicAuth
@@ -57,7 +58,11 @@ cipher_suite = Fernet(key)
 # Set to true when user enters the wrong credentials logging into the settings page
 login_failed = False
 
-file_awaiting_upload = None;
+# Holds a reference to logo file that has been uploaded
+file_awaiting_upload = None
+
+# Set to true when user tries to upload file greater than 5mb
+file_upload_error = False
 
 
 # ============== Flask & Socketio Setup ==============
@@ -72,6 +77,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = 'changeme123'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 app.debug = True
 socketio = SocketIO(app, logger=my_logger)
 CORS(app)
@@ -269,16 +275,19 @@ def do_admin_login():
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
 
-    global file_awaiting_upload
+    global file_awaiting_upload, file_upload_error
 
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return redirect('/admin', code=301)
-        f = request.files['file']
-        if f.filename != '' and f and allowed_file(f.filename):
-            filename = secure_filename(f.filename)
-            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file_awaiting_upload = filename
+    try:
+        if request.method == 'POST':
+            if 'file' not in request.files:
+                return redirect('/admin', code=301)
+            f = request.files['file']
+            if f.filename != '' and f and allowed_file(f.filename):
+                filename = secure_filename(f.filename)
+                f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                file_awaiting_upload = filename
+    except RequestEntityTooLarge as e:
+        file_upload_error = True
 
     return redirect('/admin', code=301)
 
@@ -417,7 +426,7 @@ def fe_get_settings():
     :return:
     """
 
-    global default_settings, file_awaiting_upload
+    global default_settings, file_awaiting_upload, file_upload_error
 
     default_settings = db_get_saved()
 
@@ -433,6 +442,12 @@ def fe_get_settings():
         file_awaiting_upload = None
     else:
         default_settings_output['company_logo'] = ''
+
+    if file_upload_error:
+        default_settings_output['show_upload_error'] = True
+        file_upload_error = False
+    else:
+        default_settings_output['show_upload_error'] = False
 
     # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)

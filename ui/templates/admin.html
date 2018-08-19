@@ -317,6 +317,12 @@
                             <div class="pad-head-medium" ng-if="awaiting_upload != ''"><b>Awaiting Upload: </b>//awaiting_upload//</div>
                         </form>
 
+                        <div class="pad-head-small" ng-if="show_upload_error">
+                            <div uib-alert ng-class="'alert-danger'">
+                                File upload unsuccessful - size cannot exceed 5mb
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="small-pad setting-indent">

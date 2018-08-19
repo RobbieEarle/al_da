@@ -1670,7 +1670,11 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
     // let the user save while one of these tests is occurring
     $scope.testing_connection = false;
 
+    // Holds reference to recently uploaded file if one is present
     $scope.awaiting_upload = '';
+
+    // Controls whether or not to show alert that file uploaded is too large
+    $scope.show_upload_error = false;
 
 
     // ----------------------- Socket Event Handlers
@@ -1686,11 +1690,13 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
     });
 
 
-    socket.on('populate_settings', function(default_settings){
+    socket.on('populate_settings', function(default_settings, show_upload_error){
         /*
         Listens for callback from back end once default settings have been retrieved from DB. Uses results to populate
         the settings page
          */
+
+        console.log("Populate Settings")
 
         _.defer(function () {
             $scope.$apply(function () {
@@ -1724,6 +1730,11 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
                 });
             });
         }
+        _.defer(function () {
+            $scope.$apply(function () {
+                $scope.show_upload_error = $scope.default_settings.show_upload_error;
+            });
+        });
 
         _.defer(function () {
             $scope.$apply(function () {
@@ -1733,7 +1744,7 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
 
         _.defer(function () {
             $scope.$apply(function () {
-                if ($scope.awaiting_upload !== '') {
+                if ($scope.awaiting_upload !== '' || $scope.show_upload_error) {
                     setTimeout(() => document.getElementById('user-settings').scrollIntoView({
                         block: 'start'
                     }));
@@ -1753,11 +1764,11 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
 
         if (msg === 'success'){
             alert_class = 'success';
-            alert_text = 'Successfully uploaded new company logo'
+            alert_text = 'Successfully uploaded new company logo';
         }
 
         else{
-            alert_class = 'danger'
+            alert_class = 'danger';
             alert_text = 'Error uploading file: ' + msg;
         }
 
