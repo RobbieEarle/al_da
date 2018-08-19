@@ -33,13 +33,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
     // ----------------------- Default Values
 
-    // Footer / disclaimer message
-    $scope.kiosk_footer = 'To submit files for analysis please enter valid credentials, plug a ' +
-        'block device (ie. USB device or external hard drive) into the terminal, and wait for all files to be ' +
-        'transferred to the Assemblyline server. Any files submitted in this manner may be subject to review / ' +
-        'inspection by security personnel as necessary. Any and all information obtained in this way will be ' +
-        'for internal use only and under no circumstances be released or shared without the explicit consent of ' +
-        'the device owner.';
+    // Holds custom text values
+    $scope.text_boxes = {};
 
     // Large image prompt that shows before device is connected
     $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
@@ -114,6 +109,17 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         /*
         Listens for initial connect message from the socketio server
         */
+
+        socket.emit('fe_get_text_boxes',
+            function (text_boxes) {
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.text_boxes = text_boxes;
+                    });
+                });
+
+            });
 
         socket.emit('fe_scan_start');
 
@@ -940,6 +946,9 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
 
     // ----------------------- Default Values
 
+    // Holds custom text values
+    $scope.text_boxes = {};
+
     // Controls whether or not the results container is visible
     $scope.show_results = false;
 
@@ -956,15 +965,6 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
 
     // Array that holds a reference to all files that were flagged by Assemblyline
     $scope.tbl_mal_files = [];
-
-    // Message that is outputted to user if no files are flagged
-    $scope.pass_message = "None of the files that were successfully submitted to the Assemblyline server have been " +
-        "flagged as potentially malicious.";
-
-    // Message that is outputted to user if a malicious file is detected
-    $scope.failure_message = "Use of this device on-site is strictly prohibited, without exception. " +
-        "An alert for this session has been generated - for more information on why this device was flagged " +
-        "and for repair advice, please contact network administration.";
 
     // Controls whether or not the container that houses a scan's list of malicious / safe files is show. When the
     // the user chooses their settings such that neither malicious nor safe files are to be shown, setting this
@@ -1062,6 +1062,17 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
         Called by our ScanController after our back end script has indicated that all files have been scanned
          */
 
+        socket.emit('fe_get_text_boxes',
+            function (text_boxes) {
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.text_boxes = text_boxes;
+                    });
+                });
+
+            });
+
         $rootScope.$emit("lock_scan", {});
 
         setTimeout(function () {
@@ -1086,20 +1097,13 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
                 if (result_type === 'premature')
                     _.defer(function () {
                         $scope.$apply(function () {
-                            $scope.error_output = "Device was removed before scan could be completed. The " +
-                                "results listed are for the files that were scanned before the device was removed. " +
-                                "Use of this device on-site is strictly prohibited, without exception (even if no " +
-                                "malware was detected, it is possible that a file that was waiting to be scanned would " +
-                                "have triggered an alert).\r\n\r\nPlease begin a new session and complete a full scan before " +
-                                "using this device."
+                            $scope.error_output = $scope.text_boxes['error_removal'];
                         });
                     });
                 else if (result_type === 'timeout')
                     _.defer(function () {
                         $scope.$apply(function () {
-                            $scope.error_output = "Timeout. Server took too long to respond to application.\r\n\r\n" +
-                                "Please remove device and try again. If this error persists please contact network " +
-                                "administration immediately."
+                            $scope.error_output = $scope.text_boxes['error_timeout'];
                         });
                     });
             }

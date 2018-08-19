@@ -126,6 +126,11 @@ def db_get_saved():
         settings_dict['smtp_username'] = cipher_suite.decrypt(bytes(data_settings[saved][11]))
         settings_dict['smtp_password'] = cipher_suite.decrypt(bytes(data_settings[saved][12]))
         settings_dict['company_logo'] = cipher_suite.decrypt(bytes(data_settings[saved][13]))
+        settings_dict['kiosk_footer'] = cipher_suite.decrypt(bytes(data_settings[saved][14]))
+        settings_dict['pass_message'] = cipher_suite.decrypt(bytes(data_settings[saved][15]))
+        settings_dict['fail_message'] = cipher_suite.decrypt(bytes(data_settings[saved][16]))
+        settings_dict['error_timeout'] = cipher_suite.decrypt(bytes(data_settings[saved][17]))
+        settings_dict['error_removal'] = cipher_suite.decrypt(bytes(data_settings[saved][18]))
     except Exception as e:
         my_logger.error('Error parsing decrypting settings: ' + str(e))
 
@@ -302,6 +307,26 @@ def fe_scan_start():
     my_logger.info('Front end connected')
     if get_vm_state() != 'running':
         vm_refresh()
+
+
+@socketio.on('fe_get_text_boxes')
+def fe_get_text_boxes():
+    """
+    Called when our front on initialization. Populates all customizable text boxes
+    :return: list, strings to populate text boxes
+    """
+
+    global default_settings
+
+    text_boxes = {
+        'kiosk_footer': default_settings['kiosk_footer'],
+        'pass_message': default_settings['pass_message'],
+        'fail_message': default_settings['fail_message'],
+        'error_timeout': default_settings['error_timeout'],
+        'error_removal': default_settings['error_removal']
+    }
+
+    return text_boxes
 
 
 @socketio.on('fe_get_credentials')
