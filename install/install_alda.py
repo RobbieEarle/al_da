@@ -30,9 +30,9 @@ def start():
             'arrow==0.12.1'
         ])
 
-        installer.make_service()
         installer.change_db_priv()
         installer.create_uploads_dir()
+        installer.make_service()
 
         installer.milestone('\r\n\r\nInstallation finished. You should now be able to visit the Assemblyline Device '
                             'Audit front end web application at http://127.0.0.1:5000\r\n')
