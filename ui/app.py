@@ -12,6 +12,7 @@ from helper.views import create_menu
 from logging.handlers import RotatingFileHandler
 from helper.loggers import StreamToLogger
 from cryptography.fernet import Fernet
+from threading import Thread
 import logging
 import sys
 import eventlet
@@ -66,6 +67,15 @@ file_upload_error = False
 
 # Set to true when user tries to upload non-approved file type
 wrong_file_type = False
+
+# List of usb devices that are present on the host machine by default
+default_devices = []
+
+# Set to true when our VM has been restarted and is ready to accept a new device
+accepting_devices = False
+
+# True when a scan session has been initiated but then 'New Session' button hasn't been clicked yet
+session_in_progress = False
 
 
 # ============== Flask & Socketio Setup ==============
@@ -258,8 +268,9 @@ def do_admin_login():
     :return: Flask.redirect, pointing to the admin page
     """
 
-    global default_settings
-    global login_failed
+    global default_settings, login_failed, accepting_devices
+
+    accepting_devices = False
 
     # Checks if credentials entered by the user match those on record; if so sets logged_in to true allowing admin.html
     # to render
@@ -380,15 +391,28 @@ def fe_set_session_credentials(credentials):
     :return:
     """
 
-    global session_credentials
+    global session_credentials, session_in_progress
 
     my_logger.info('Credentials successfully entered')
 
+    session_in_progress = True
     session_credentials = credentials
 
     my_logger.info('Starting new scan')
     # Tells back end script that credentials have been receieved and we can start our submit / receive threads
     socketio.emit('start_scan')
+
+
+@socketio.on('fe_session_complete')
+def fe_session_complete():
+    """
+    Called by front end when a session finishes
+    :return:
+    """
+
+    global session_in_progress
+
+    session_in_progress = False
 
 
 @socketio.on('fe_login_status')
@@ -586,8 +610,14 @@ def be_connected():
     :return:
     """
 
+    global accepting_devices
+
     my_logger.info('============= BACKEND CONNECTED')
     socketio.emit('vm_refreshing', False)
+
+    if not accepting_devices:
+        accepting_devices = True
+        Thread(target=detect_new_device, args=(), name='detect_new_device').start()
 
 
 @socketio.on('be_retrieve_settings')
@@ -738,10 +768,14 @@ def vm_refresh():
     :return:
     """
 
+    global default_devices, accepting_devices
+
     # Tells front end that the VM is currently refreshing
     socketio.emit('vm_refreshing', True)
 
-    # forget_usb_filters()
+    # Remove any usb filters that were added during the previous session
+    forget_usb_filters()
+    accepting_devices = False
 
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
     if get_vm_state() == 'running':
@@ -789,15 +823,86 @@ def vm_refresh():
                 my_logger.error('Retrying....')
                 time.sleep(2)
 
+    # Detect which devices are attached to our host machine by default
+    default_devices = find_default_devices()
+
     # Tells front end that VM has finished refreshing
     my_logger.info('Starting VM')
 
 
-# def forget_usb_filters():
-#
-#
-# def attach_usb_filters():
+def forget_usb_filters():
+    print 'Forget filters'
 
+
+def find_default_devices():
+    """
+    Called by our refresh_vm function after removing all usb filters. The user is told to remove all devices while the
+    VM is refreshing, so we can assume for the duration of the refresh_vm function the only devices that are attached
+    are those that are always attached to the host by default (if any). Thus we put these in a list for later when we
+    start listening for new devices.
+    :return:
+    """
+
+    devices_found = []
+
+    p = subprocess.Popen('VBoxManage list usbhost',
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    for line in p.stdout:
+        output = re.search('UUID:\s*(.*)', line)
+        if output is not None:
+            devices_found.append(output.group(1).strip())
+    p.communicate()
+
+    return devices_found
+
+
+def detect_new_device():
+    """
+    Thread that starts when our VM has successfully finished refreshing. At this point the VM is ready to receive a new
+    device, so we start checking for new devices attached to our host machine. If one is detected, attaches it to the
+    VM and prevents any more from becoming attached. Once a device is attached, no more are accepted by the VM until it
+    is refreshed following device removal.
+    :return:
+    """
+
+    global accepting_devices
+
+    while accepting_devices:
+
+        # Checks if a session is still in progress. This check is made for when a device is removed, but the user
+        # remains on the results page for a little while. In this case, the VM could finish refreshing in the
+        # background and thus accepting_devices would be true, but we do not want the VM to pick up a new device just
+        # yet as the front end is not in a state to properly guide the user. This way our loop keeps running but
+        # doesn't attach new devices until the 'New Session' button has been pressed, and the front end is back to it's
+        # starting state
+        if not session_in_progress:
+
+            # Gets all devices that are currently connected to host
+            p = subprocess.Popen('VBoxManage list usbhost',
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            for line in p.stdout:
+
+                # Finds the UUID for each device
+                output = re.search('UUID:\s*(.*)', line)
+                if output is not None:
+                    output = output.group(1).strip()
+                    found_new_device = True
+
+                    # Goes through the list of devices that are attached to the host by default, as determined when the
+                    # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
+                    for device in default_devices:
+                        if output == device:
+                            found_new_device = False
+
+                    # If we find a new device, attaches it to our VM and prevents any more devices from attaching
+                    if found_new_device and accepting_devices:
+                        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
+                        accepting_devices = False
+
+            p.communicate()
+        time.sleep(1)
 
 
 def convert_dots(input_str):

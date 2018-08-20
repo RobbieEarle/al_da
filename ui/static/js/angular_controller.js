@@ -932,6 +932,11 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.device_event = "show";
                 })
             });
+            _.defer(function () {
+                $scope.$apply(function () {
+                    socket.emit('fe_session_complete');
+                })
+            });
         }, 2800);
 
     };
