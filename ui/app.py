@@ -845,14 +845,12 @@ def find_default_devices():
 
     devices_found = []
 
-    p = subprocess.Popen('VBoxManage list usbhost',
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    for line in p.stdout:
+    connected_devices = str(subprocess.check_output(['VBoxManage', 'list', 'usbhost']))
+    connected_devices = connected_devices.splitlines()
+    for line in connected_devices:
         output = re.search('UUID:\s*(.*)', line)
         if output is not None:
             devices_found.append(output.group(1).strip())
-    p.communicate()
 
     return devices_found
 
