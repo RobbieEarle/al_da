@@ -105,6 +105,11 @@
     color: #ffffff;
 }
 
+.bg-yellow {
+    background-color: #b0a100;
+    color: #ffffff;
+}
+
 .results-alert {
     color: #b76361;
 }

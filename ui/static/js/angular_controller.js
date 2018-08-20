@@ -981,6 +981,7 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
     // Controls whether or not an error alert comes up telling the user the results are based on incomplete scan
     $scope.scan_complete = true;
 
+    // Holds the text output to user for when a timeout or early removal error occurs
     $scope.error_output = '';
 
 
@@ -1676,6 +1677,9 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
     // Controls whether or not to show alert that file uploaded is too large
     $scope.show_upload_error = false;
 
+    // Controls whether or not to show alert that wrong file type has been uploaded
+    $scope.wrong_file_type = false;
+
 
     // ----------------------- Socket Event Handlers
 
@@ -1738,54 +1742,23 @@ app.controller('SettingsController', ['$scope', function SettingsController($sco
 
         _.defer(function () {
             $scope.$apply(function () {
+                $scope.wrong_file_type = $scope.default_settings.wrong_file_type;
+            });
+        });
+
+        _.defer(function () {
+            $scope.$apply(function () {
                 $scope.awaiting_upload = $scope.default_settings.company_logo;
             });
         });
 
         _.defer(function () {
             $scope.$apply(function () {
-                if ($scope.awaiting_upload !== '' || $scope.show_upload_error) {
+                if ($scope.awaiting_upload !== '' || $scope.show_upload_error || $scope.wrong_file_type) {
                     setTimeout(() => document.getElementById('user-settings').scrollIntoView({
                         block: 'start'
                     }));
                 }
-            });
-        });
-
-    });
-
-    socket.on('file_upload_alert', function (msg) {
-        /*
-        Called by app.py when a user attempts to upload an invalid file
-         */
-
-        let alert_class = '';
-        let alert_text = '';
-
-        if (msg === 'success'){
-            alert_class = 'success';
-            alert_text = 'Successfully uploaded new company logo';
-        }
-
-        else{
-            alert_class = 'danger';
-            alert_text = 'Error uploading file: ' + msg;
-        }
-
-        // Outputs success message to front end
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.settings_saved_class = alert_class;
-            });
-        });
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.settings_saved_txt = alert_text;
-            });
-        });
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.settings_saved = true;
             });
         });
 

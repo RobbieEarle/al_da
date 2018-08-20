@@ -33,6 +33,7 @@ formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%
 
 # -- OS CHANGES
 local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 
 local_handler.setFormatter(formatter)
 
@@ -63,11 +64,15 @@ file_awaiting_upload = None
 # Set to true when user tries to upload file greater than 5mb
 file_upload_error = False
 
+# Set to true when user tries to upload non-approved file type
+wrong_file_type = False
+
 
 # ============== Flask & Socketio Setup ==============
 
 # -- OS CHANGES
 UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
+# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
@@ -273,7 +278,7 @@ def do_admin_login():
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
 
-    global file_awaiting_upload, file_upload_error
+    global file_awaiting_upload, file_upload_error, wrong_file_type
 
     try:
         if request.method == 'POST':
@@ -284,6 +289,9 @@ def upload_file():
                 filename = secure_filename(f.filename)
                 f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 file_awaiting_upload = filename
+            else:
+                wrong_file_type = True
+
     except RequestEntityTooLarge as e:
         file_upload_error = True
 
@@ -424,7 +432,7 @@ def fe_get_settings():
     :return:
     """
 
-    global default_settings, file_awaiting_upload, file_upload_error
+    global default_settings, file_awaiting_upload, file_upload_error, wrong_file_type
 
     default_settings = db_get_saved()
 
@@ -446,6 +454,12 @@ def fe_get_settings():
         file_upload_error = False
     else:
         default_settings_output['show_upload_error'] = False
+
+    if wrong_file_type:
+        default_settings_output['wrong_file_type'] = True
+        wrong_file_type = False
+    else:
+        default_settings_output['wrong_file_type'] = False
 
     # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)

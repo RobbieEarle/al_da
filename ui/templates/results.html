@@ -6,7 +6,8 @@
     <section id="results" uib-collapse="!show_results" ng-controller="ResultsController"
              ng-class="{'pad-foot-big': !display_results}">
 
-        <div ng-if="hide_mal_files" class="container container-with-overflow medium-pad bg-green">
+        <div ng-if="hide_mal_files" class="container container-with-overflow medium-pad"
+             ng-class="{'bg-green': result_type === 'done', 'bg-yellow': result_type !== 'done'}">
 
             <div class="result-split-left">
                 <div class="result-msg-title">
@@ -23,7 +24,8 @@
 
         </div>
 
-        <div ng-if="!hide_mal_files" class="container container-with-overflow pad bg-red">
+        <div ng-if="!hide_mal_files" class="container container-with-overflow pad"
+             ng-class="{'bg-red': result_type === 'done', 'bg-yellow': result_type !== 'done'}">
 
             <div class="result-split-left big-pad">
                 <div class="result-msg-title">
