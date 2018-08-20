@@ -320,8 +320,8 @@ def fe_scan_start():
     """
 
     my_logger.info('Front end connected')
-    if get_vm_state() != 'running':
-        vm_refresh()
+    # if get_vm_state() != 'running':
+    vm_refresh()
 
 
 @socketio.on('fe_get_text_boxes')
@@ -665,7 +665,7 @@ def be_device_event(event_type, *args):
     socketio.emit('dev_event', event_type)
 
     # If the device event is a disconnection, refreshes our VM
-    if event_type == 'disconnected':
+    if event_type == 'remove_detected':
         vm_refresh()
 
 
@@ -741,6 +741,8 @@ def vm_refresh():
     # Tells front end that the VM is currently refreshing
     socketio.emit('vm_refreshing', True)
 
+    forget_usb_filters()
+
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
     if get_vm_state() == 'running':
         subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'poweroff'])
@@ -789,6 +791,13 @@ def vm_refresh():
 
     # Tells front end that VM has finished refreshing
     my_logger.info('Starting VM')
+
+
+# def forget_usb_filters():
+#
+#
+# def attach_usb_filters():
+
 
 
 def convert_dots(input_str):
