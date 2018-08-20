@@ -520,6 +520,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Called by back end when our VM is refreshing / not accepting new devices, or when it has finished refreshing
          */
 
+        console.log('VM Refreshing: ' + status);
+
         $scope.vm_refreshing = status;
         _.defer(function () {
             $scope.$apply(function () {
