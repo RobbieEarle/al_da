@@ -220,6 +220,8 @@ def index():
     # credentials if they attempt to visit the settings page
     session['logged_in'] = False
 
+    my_logger.info('============= PAGE LOADED: index')
+
     # Renders the scan.html page
     return render('scan.html', request.path)
 
@@ -248,6 +250,8 @@ def admin():
     """
 
     global default_settings
+
+    my_logger.info('============= PAGE LOADED: settings')
 
     # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
@@ -330,7 +334,7 @@ def fe_scan_start():
     :return:
     """
 
-    my_logger.info('Front end connected')
+    my_logger.info('============= FRONTEND CONNECTED')
     # if get_vm_state() != 'running':
     vm_refresh()
 
@@ -695,6 +699,8 @@ def be_device_event(event_type, *args):
 
     # Tells front end that a device event has occurred and what type
     socketio.emit('dev_event', event_type)
+
+    time.sleep(0.2)
 
     # If the device event is a disconnection, refreshes our VM
     if event_type == 'remove_detected':
