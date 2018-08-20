@@ -620,6 +620,7 @@ def be_connected():
 
     my_logger.info('============= BACKEND CONNECTED')
     socketio.emit('vm_refreshing', False)
+    my_logger.info('VM finished refreshing')
 
     if not accepting_devices:
         accepting_devices = True
@@ -874,6 +875,8 @@ def detect_new_device():
 
     global accepting_devices
 
+    my_logger.info('Listening for new devices... ')
+
     while accepting_devices:
 
         # Checks if a session is still in progress. This check is made for when a device is removed, but the user
@@ -909,6 +912,8 @@ def detect_new_device():
                         accepting_devices = False
 
         time.sleep(1)
+
+    my_logger.info('Stopped listening for devices')
 
 
 def convert_dots(input_str):
