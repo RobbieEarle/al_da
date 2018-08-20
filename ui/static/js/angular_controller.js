@@ -132,6 +132,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         */
 
         console.log('Device Event Received: ' + event);
+        console.log('VM Refreshing: ' + $scope.vm_refreshing);
 
         if (!$scope.vm_refreshing) {
 
