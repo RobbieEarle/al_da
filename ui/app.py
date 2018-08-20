@@ -741,7 +741,7 @@ def vm_refresh():
     # Tells front end that the VM is currently refreshing
     socketio.emit('vm_refreshing', True)
 
-    forget_usb_filters()
+    # forget_usb_filters()
 
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
     if get_vm_state() == 'running':
