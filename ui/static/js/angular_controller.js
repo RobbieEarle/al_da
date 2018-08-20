@@ -298,6 +298,9 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // Called when a device is disconnected
             else if (event === 'disconnected') {
 
+                console.log('received_type = ' + $scope.received_type);
+                console.log('curr_screen = ' + $scope.curr_screen);
+
                 // Handles premature device removal
                 if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout'){
 
@@ -356,6 +359,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                         setTimeout(function () {
                             _.defer(function () {
                                 $scope.$apply(function () {
+                                    console.log("New Session!");
                                     $scope.new_session();
                                 });
                             });
@@ -513,6 +517,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Called by back end when our VM is refreshing / not accepting new devices, or when it has finished refreshing
          */
 
+        $scope.vm_refreshing = status;
         _.defer(function () {
             $scope.$apply(function () {
                 $scope.vm_refreshing = status;

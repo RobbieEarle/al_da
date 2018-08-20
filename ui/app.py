@@ -782,8 +782,6 @@ def vm_refresh():
     # Tells front end that the VM is currently refreshing
     socketio.emit('vm_refreshing', True)
 
-    # Remove any usb filters that were added during the previous session
-    forget_usb_filters()
     accepting_devices = False
 
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
@@ -837,10 +835,6 @@ def vm_refresh():
 
     # Tells front end that VM has finished refreshing
     my_logger.info('Starting VM')
-
-
-def forget_usb_filters():
-    print 'Forget filters'
 
 
 def find_default_devices():
