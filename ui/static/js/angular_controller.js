@@ -131,6 +131,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Handles device events outputted by our back end script
         */
 
+        console.log('Device Event Received: ' + event);
+
         if (!$scope.vm_refreshing) {
 
             // Called when a device is first connected (any device; this event simply changes the device connected
