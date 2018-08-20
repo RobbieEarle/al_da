@@ -884,22 +884,24 @@ def detect_new_device():
                                  stderr=subprocess.PIPE)
             for line in p.stdout:
 
-                # Finds the UUID for each device
-                output = re.search('UUID:\s*(.*)', line)
-                if output is not None:
-                    output = output.group(1).strip()
-                    found_new_device = True
+                print str(line)
 
-                    # Goes through the list of devices that are attached to the host by default, as determined when the
-                    # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
-                    for device in default_devices:
-                        if output == device:
-                            found_new_device = False
-
-                    # If we find a new device, attaches it to our VM and prevents any more devices from attaching
-                    if found_new_device and accepting_devices:
-                        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
-                        accepting_devices = False
+                # # Finds the UUID for each device
+                # output = re.search('UUID:\s*(.*)', line)
+                # if output is not None:
+                #     output = output.group(1).strip()
+                #     found_new_device = True
+                #
+                #     # Goes through the list of devices that are attached to the host by default, as determined when the
+                #     # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
+                #     for device in default_devices:
+                #         if output == device:
+                #             found_new_device = False
+                #
+                #     # If we find a new device, attaches it to our VM and prevents any more devices from attaching
+                #     if found_new_device and accepting_devices:
+                #         subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
+                #         accepting_devices = False
 
             p.communicate()
         time.sleep(1)
