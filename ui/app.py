@@ -868,43 +868,43 @@ def detect_new_device():
 
     global accepting_devices
 
-    while accepting_devices:
+    print str(default_devices)
 
-        # Checks if a session is still in progress. This check is made for when a device is removed, but the user
-        # remains on the results page for a little while. In this case, the VM could finish refreshing in the
-        # background and thus accepting_devices would be true, but we do not want the VM to pick up a new device just
-        # yet as the front end is not in a state to properly guide the user. This way our loop keeps running but
-        # doesn't attach new devices until the 'New Session' button has been pressed, and the front end is back to it's
-        # starting state
-        if not session_in_progress:
-
-            # Gets all devices that are currently connected to host
-            p = subprocess.Popen('VBoxManage list usbhost',
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            for line in p.stdout:
-
-                print str(line)
-
-                # # Finds the UUID for each device
-                # output = re.search('UUID:\s*(.*)', line)
-                # if output is not None:
-                #     output = output.group(1).strip()
-                #     found_new_device = True
-                #
-                #     # Goes through the list of devices that are attached to the host by default, as determined when the
-                #     # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
-                #     for device in default_devices:
-                #         if output == device:
-                #             found_new_device = False
-                #
-                #     # If we find a new device, attaches it to our VM and prevents any more devices from attaching
-                #     if found_new_device and accepting_devices:
-                #         subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
-                #         accepting_devices = False
-
-            p.communicate()
-        time.sleep(1)
+    # while accepting_devices:
+    #
+    #     # Checks if a session is still in progress. This check is made for when a device is removed, but the user
+    #     # remains on the results page for a little while. In this case, the VM could finish refreshing in the
+    #     # background and thus accepting_devices would be true, but we do not want the VM to pick up a new device just
+    #     # yet as the front end is not in a state to properly guide the user. This way our loop keeps running but
+    #     # doesn't attach new devices until the 'New Session' button has been pressed, and the front end is back to it's
+    #     # starting state
+    #     if not session_in_progress:
+    #
+    #         # Gets all devices that are currently connected to host
+    #         p = subprocess.Popen('VBoxManage list usbhost',
+    #                              stdout=subprocess.PIPE,
+    #                              stderr=subprocess.PIPE)
+    #         for line in p.stdout:
+    #
+    #             # Finds the UUID for each device
+    #             output = re.search('UUID:\s*(.*)', line)
+    #             if output is not None:
+    #                 output = output.group(1).strip()
+    #                 found_new_device = True
+    #
+    #                 # Goes through the list of devices that are attached to the host by default, as determined when the
+    #                 # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
+    #                 for device in default_devices:
+    #                     if output == device:
+    #                         found_new_device = False
+    #
+    #                 # If we find a new device, attaches it to our VM and prevents any more devices from attaching
+    #                 if found_new_device and accepting_devices:
+    #                     subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
+    #                     accepting_devices = False
+    #
+    #         p.communicate()
+    #     time.sleep(1)
 
 
 def convert_dots(input_str):
