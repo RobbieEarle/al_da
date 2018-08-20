@@ -868,7 +868,7 @@ def detect_new_device():
 
     global accepting_devices
 
-    my_logger.info('Default Devices: ' + default_devices)
+    my_logger.info('Default Devices: ' + str(default_devices))
 
     # while accepting_devices:
     #
