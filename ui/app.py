@@ -344,6 +344,8 @@ def fe_get_text_boxes():
 
     global default_settings
 
+    default_settings = db_get_saved()
+
     text_boxes = {
         'kiosk_footer': default_settings['kiosk_footer'],
         'pass_message': default_settings['pass_message'],
@@ -866,7 +868,7 @@ def detect_new_device():
 
     global accepting_devices
 
-    print str(default_devices)
+    my_logger.info('Default Devices: ' + default_devices)
 
     # while accepting_devices:
     #
