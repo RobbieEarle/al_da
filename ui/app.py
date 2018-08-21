@@ -77,6 +77,9 @@ accepting_devices = False
 # True when a scan session has been initiated but then 'New Session' button hasn't been clicked yet
 session_in_progress = False
 
+# Holds details about the device attached for this session
+device_details = {}
+
 
 # ============== Flask & Socketio Setup ==============
 
@@ -887,23 +890,55 @@ def detect_new_device():
 
             for line in connected_devices:
 
-                # Finds the UUID for each device
-                output = re.search('UUID:\s*(.*)', line)
-                if output is not None:
-                    output = output.group(1).strip()
-                    found_new_device = True
+                if accepting_devices:
+                    # Finds the UUID for each device
+                    output = re.search('UUID:\s*(.*)', line)
+                    if output is not None:
+                        output = output.group(1).strip()
+                        found_new_device = True
 
-                    # Goes through the list of devices that are attached to the host by default, as determined when the
-                    # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
-                    for device in default_devices:
-                        if output == device:
-                            found_new_device = False
+                        # Goes through the list of devices that are attached to the host by default, as determined when
+                        # the VM was refreshing. If a device is present that is not in this list, we know we have a new
+                        # device.
+                        for device in default_devices:
+                            if output == device:
+                                found_new_device = False
 
-                    # If we find a new device, attaches it to our VM and prevents any more devices from attaching
-                    if found_new_device and accepting_devices:
-                        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
-                        my_logger.info('Attached: ' + str(output))
-                        accepting_devices = False
+                        # If we find a new device, attaches it to our VM and prevents any more devices from attaching
+                        if found_new_device and accepting_devices:
+                            subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
+                            my_logger.info('Attached: ' + str(output))
+                            accepting_devices = False
+                            continue
+
+                else:
+                    if re.search('UUID:\s*(.*)', line) is not None:
+                        break
+                    else:
+                        output = re.search('VendorId:\s*(.*)', line)
+                        if output is not None:
+                            device_details['Vendor ID'] = output.group(1).strip()
+                            continue
+
+                        output = re.search('ProductId:\s*(.*)', line)
+                        if output is not None:
+                            device_details['Product ID'] = output.group(1).strip()
+                            continue
+
+                        output = re.search('Manufacturer:\s*(.*)', line)
+                        if output is not None:
+                            device_details['Manufacturer'] = output.group(1).strip()
+                            continue
+
+                        output = re.search('Product:\s*(.*)', line)
+                        if output is not None:
+                            device_details['Device'] = output.group(1).strip()
+                            continue
+
+                        output = re.search('SerialNumber:\s*(.*)', line)
+                        if output is not None:
+                            device_details['Serial Number'] = output.group(1).strip()
+                            continue
 
         time.sleep(1)
 
@@ -978,6 +1013,10 @@ def email_alert(mal_files):
         body += '\r\n-- Session Details: ' + '\r\n'
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
+
+        body += '\r\n-- Device Details: ' + '\r\n'
+        for detail_name, detail in device_details.iteritems():
+            body += detail_name + ': ' + detail + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
