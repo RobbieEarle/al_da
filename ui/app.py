@@ -331,8 +331,8 @@ def fe_scan_start():
     """
 
     my_logger.info('============= FRONTEND CONNECTED')
-    # if get_vm_state() != 'running':
-    vm_refresh()
+    if get_vm_state() != 'running':
+        vm_refresh()
 
 
 @socketio.on('fe_get_text_boxes')
