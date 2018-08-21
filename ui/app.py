@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -12,6 +11,7 @@ from helper.views import create_menu
 from logging.handlers import RotatingFileHandler
 from helper.loggers import StreamToLogger
 from cryptography.fernet import Fernet
+from threading import Thread
 import logging
 import sys
 import eventlet
@@ -26,13 +26,13 @@ import os
 
 eventlet.monkey_patch()
 
-
 # ============== Logging ==============
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
 
 # -- OS CHANGES
 local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
+# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 
 local_handler.setFormatter(formatter)
 
@@ -40,7 +40,6 @@ my_logger = logging.getLogger('alda')
 my_logger.setLevel(logging.DEBUG)
 my_logger.addHandler(local_handler)
 sys.stderr = StreamToLogger(my_logger, logging.ERROR)
-
 
 # ============== Default Values ==============
 
@@ -63,11 +62,23 @@ file_awaiting_upload = None
 # Set to true when user tries to upload file greater than 5mb
 file_upload_error = False
 
+# Set to true when user tries to upload non-approved file type
+wrong_file_type = False
+
+# List of usb devices that are present on the host machine by default
+default_devices = []
+
+# Set to true when our VM has been restarted and is ready to accept a new device
+accepting_devices = False
+
+# True when a scan session has been initiated but then 'New Session' button hasn't been clicked yet
+session_in_progress = False
 
 # ============== Flask & Socketio Setup ==============
 
 # -- OS CHANGES
 UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
+# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
@@ -205,6 +216,8 @@ def index():
     # credentials if they attempt to visit the settings page
     session['logged_in'] = False
 
+    my_logger.info('============= PAGE LOADED: index')
+
     # Renders the scan.html page
     return render('scan.html', request.path)
 
@@ -234,6 +247,8 @@ def admin():
 
     global default_settings
 
+    my_logger.info('============= PAGE LOADED: settings')
+
     # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
 
@@ -253,12 +268,14 @@ def do_admin_login():
     :return: Flask.redirect, pointing to the admin page
     """
 
-    global default_settings
-    global login_failed
+    global default_settings, login_failed, accepting_devices
+
+    accepting_devices = False
 
     # Checks if credentials entered by the user match those on record; if so sets logged_in to true allowing admin.html
     # to render
-    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings['user_id']:
+    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings[
+        'user_id']:
         session['logged_in'] = True
 
     # Otherwise sets login_failed to True. When the login.html page is brought up it will emit fe_login_status, which
@@ -272,8 +289,7 @@ def do_admin_login():
 
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
-
-    global file_awaiting_upload, file_upload_error
+    global file_awaiting_upload, file_upload_error, wrong_file_type
 
     try:
         if request.method == 'POST':
@@ -284,6 +300,9 @@ def upload_file():
                 filename = secure_filename(f.filename)
                 f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 file_awaiting_upload = filename
+            else:
+                wrong_file_type = True
+
     except RequestEntityTooLarge as e:
         file_upload_error = True
 
@@ -311,9 +330,8 @@ def fe_scan_start():
     :return:
     """
 
-    my_logger.info('Front end connected')
-    if get_vm_state() != 'running':
-        vm_refresh()
+    my_logger.info('============= FRONTEND CONNECTED')
+    vm_refresh()
 
 
 @socketio.on('fe_get_text_boxes')
@@ -324,6 +342,8 @@ def fe_get_text_boxes():
     """
 
     global default_settings
+
+    default_settings = db_get_saved()
 
     text_boxes = {
         'kiosk_footer': default_settings['kiosk_footer'],
@@ -372,15 +392,28 @@ def fe_set_session_credentials(credentials):
     :return:
     """
 
-    global session_credentials
+    global session_credentials, session_in_progress
 
     my_logger.info('Credentials successfully entered')
 
+    session_in_progress = True
     session_credentials = credentials
 
     my_logger.info('Starting new scan')
     # Tells back end script that credentials have been receieved and we can start our submit / receive threads
     socketio.emit('start_scan')
+
+
+@socketio.on('fe_session_complete')
+def fe_session_complete():
+    """
+    Called by front end when a session finishes
+    :return:
+    """
+
+    global session_in_progress
+
+    session_in_progress = False
 
 
 @socketio.on('fe_login_status')
@@ -424,7 +457,7 @@ def fe_get_settings():
     :return:
     """
 
-    global default_settings, file_awaiting_upload, file_upload_error
+    global default_settings, file_awaiting_upload, file_upload_error, wrong_file_type
 
     default_settings = db_get_saved()
 
@@ -446,6 +479,12 @@ def fe_get_settings():
         file_upload_error = False
     else:
         default_settings_output['show_upload_error'] = False
+
+    if wrong_file_type:
+        default_settings_output['wrong_file_type'] = True
+        wrong_file_type = False
+    else:
+        default_settings_output['wrong_file_type'] = False
 
     # Converts settings to JSON object and outputs to front end
     settings_json = json.dumps(default_settings_output)
@@ -572,8 +611,15 @@ def be_connected():
     :return:
     """
 
+    global accepting_devices
+
     my_logger.info('============= BACKEND CONNECTED')
     socketio.emit('vm_refreshing', False)
+    my_logger.info('VM finished refreshing')
+
+    if not accepting_devices:
+        accepting_devices = True
+        Thread(target=detect_new_device, args=(), name='detect_new_device').start()
 
 
 @socketio.on('be_retrieve_settings')
@@ -650,8 +696,10 @@ def be_device_event(event_type, *args):
     # Tells front end that a device event has occurred and what type
     socketio.emit('dev_event', event_type)
 
+    time.sleep(0.2)
+
     # If the device event is a disconnection, refreshes our VM
-    if event_type == 'disconnected':
+    if event_type == 'remove_detected':
         vm_refresh()
 
 
@@ -724,8 +772,12 @@ def vm_refresh():
     :return:
     """
 
+    global default_devices, accepting_devices
+
     # Tells front end that the VM is currently refreshing
     socketio.emit('vm_refreshing', True)
+
+    accepting_devices = False
 
     # If our VM is not currently turned off, then we use VBoxManage to turn it off
     if get_vm_state() == 'running':
@@ -773,8 +825,84 @@ def vm_refresh():
                 my_logger.error('Retrying....')
                 time.sleep(2)
 
+    # Detect which devices are attached to our host machine by default
+    default_devices = find_default_devices()
+
     # Tells front end that VM has finished refreshing
     my_logger.info('Starting VM')
+
+
+def find_default_devices():
+    """
+    Called by our refresh_vm function after removing all usb filters. The user is told to remove all devices while the
+    VM is refreshing, so we can assume for the duration of the refresh_vm function the only devices that are attached
+    are those that are always attached to the host by default (if any). Thus we put these in a list for later when we
+    start listening for new devices.
+    :return:
+    """
+
+    devices_found = []
+
+    connected_devices = str(subprocess.check_output(['VBoxManage', 'list', 'usbhost']))
+    connected_devices = connected_devices.splitlines()
+    for line in connected_devices:
+        output = re.search('UUID:\s*(.*)', line)
+        if output is not None:
+            devices_found.append(output.group(1).strip())
+
+    return devices_found
+
+
+def detect_new_device():
+    """
+    Thread that starts when our VM has successfully finished refreshing. At this point the VM is ready to receive a new
+    device, so we start checking for new devices attached to our host machine. If one is detected, attaches it to the
+    VM and prevents any more from becoming attached. Once a device is attached, no more are accepted by the VM until it
+    is refreshed following device removal.
+    :return:
+    """
+
+    global accepting_devices
+
+    my_logger.info('Listening for new devices... ')
+
+    while accepting_devices:
+
+        # Checks if a session is still in progress. This check is made for when a device is removed, but the user
+        # remains on the results page for a little while. In this case, the VM could finish refreshing in the
+        # background and thus accepting_devices would be true, but we do not want the VM to pick up a new device just
+        # yet as the front end is not in a state to properly guide the user. This way our loop keeps running but
+        # doesn't attach new devices until the 'New Session' button has been pressed, and the front end is back to it's
+        # starting state
+        if not session_in_progress:
+
+            # Gets all devices that are currently connected to host
+            connected_devices = str(subprocess.check_output(['VBoxManage', 'list', 'usbhost']))
+            connected_devices = connected_devices.splitlines()
+
+            for line in connected_devices:
+
+                # Finds the UUID for each device
+                output = re.search('UUID:\s*(.*)', line)
+                if output is not None:
+                    output = output.group(1).strip()
+                    found_new_device = True
+
+                    # Goes through the list of devices that are attached to the host by default, as determined when the
+                    # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
+                    for device in default_devices:
+                        if output == device:
+                            found_new_device = False
+
+                    # If we find a new device, attaches it to our VM and prevents any more devices from attaching
+                    if found_new_device and accepting_devices:
+                        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
+                        my_logger.info('Attached: ' + str(output))
+                        accepting_devices = False
+
+        time.sleep(1)
+
+    my_logger.info('Stopped listening for devices')
 
 
 def convert_dots(input_str):

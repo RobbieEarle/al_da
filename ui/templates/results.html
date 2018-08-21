@@ -6,7 +6,24 @@
     <section id="results" uib-collapse="!show_results" ng-controller="ResultsController"
              ng-class="{'pad-foot-big': !display_results}">
 
-        <div ng-if="hide_mal_files" class="container container-with-overflow medium-pad bg-green">
+        <div ng-if="!scan_complete" class="container container-with-overflow medium-pad bg-yellow">
+
+            <div class="result-split-left">
+                <div class="result-msg-title">
+                    <b>Scan not completed</b>
+                </div>
+                <div class="result-msg-body text-semi-muted">
+                    Some files from your device were not scanned
+                </div>
+            </div>
+
+            <div class="result-split-right">
+                <img class="result-img" src="/static/images/result_failure.svg">
+            </div>
+
+        </div>
+
+        <div ng-if="scan_complete && hide_mal_files" class="container container-with-overflow medium-pad bg-green">
 
             <div class="result-split-left">
                 <div class="result-msg-title">
@@ -23,7 +40,7 @@
 
         </div>
 
-        <div ng-if="!hide_mal_files" class="container container-with-overflow pad bg-red">
+        <div ng-if="scan_complete && !hide_mal_files" class="container container-with-overflow pad bg-red">
 
             <div class="result-split-left big-pad">
                 <div class="result-msg-title">
