@@ -840,7 +840,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.hide_output = true;
                 })
             });
-        }, 1000);
+        }, 1400);
 
         setTimeout(function () {
             _.defer(function () {
@@ -848,7 +848,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.mini_kiosk = false;
                 })
             });
-        }, 1100);
+        }, 1500);
 
         setTimeout(function(){
             _.defer(function() {
@@ -856,7 +856,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.curr_screen = 0;
                 })
             });
-        }, 2200);
+        }, 2600);
 
         setTimeout(function(){
 
@@ -929,7 +929,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
             });
 
-        }, 2500);
+        }, 2900);
 
         setTimeout(function(){
             _.defer(function() {
@@ -942,7 +942,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     socket.emit('fe_session_complete');
                 })
             });
-        }, 2800);
+        }, 3200);
 
     };
 
