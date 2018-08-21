@@ -658,7 +658,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
                 _.defer(function () {
                     $scope.$apply(function () {
-                        $scope.kiosk_img_sub = 'Refreshing virtual machine. Please do not attach device ';
+                        $scope.kiosk_img_sub = 'Refreshing VM. Please do not attach device...';
                     });
                 });
 
