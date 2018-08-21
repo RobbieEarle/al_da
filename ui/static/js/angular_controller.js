@@ -37,7 +37,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     $scope.text_boxes = {};
 
     // Large image prompt that shows before device is connected
-    $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+    $scope.kiosk_img = '/static/images/loading.svg';
 
     // Text that accompanies kiosk_img
     $scope.kiosk_img_sub = 'Please attach storage device';
