@@ -858,15 +858,12 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             });
         }, 1400);
 
-        setTimeout(function () {
+        setTimeout(function(){
             _.defer(function () {
                 $scope.$apply(function () {
                     $scope.mini_kiosk = false;
                 })
             });
-        }, 1500);
-
-        setTimeout(function(){
             _.defer(function() {
                 $scope.$apply(function () {
                     $scope.curr_screen = 0;
