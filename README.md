@@ -47,11 +47,7 @@ At this point we are ready to install our al_scrape back end service. Please fol
 - Log out and log back in again
 - Open VirtualBox
 - Select alda_sandbox and go to Machine > Settings > USB
-- Check "Enable USB Controller" and click "USB 2.0"
-- Right click in the "USB Device Filters" box and select "Add Empty Filter"
-- Right click your new filter and go to "Edit Filter"
-- Rename your filter all_devices
-- Click "Ok" to exit
+- Check "Enable USB Controller" and click "USB 3.0"
 
 ### Install al_da
 

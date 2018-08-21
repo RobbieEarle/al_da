@@ -37,10 +37,10 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
     $scope.text_boxes = {};
 
     // Large image prompt that shows before device is connected
-    $scope.kiosk_img = '';
+    $scope.kiosk_img = '/static/images/loading.svg';
 
     // Text that accompanies kiosk_img
-    $scope.kiosk_img_sub = '';
+    $scope.kiosk_img_sub = 'Loading page...';
 
     // When a device is added / removed, this string records the type of event that occurred. Is used by our
     // animOutputHeader animation directive; when any device event occurs, the current kiosk_img fades, and this
