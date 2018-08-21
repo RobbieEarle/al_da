@@ -142,94 +142,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 $scope.device_connected = true;
             }
 
-            // Called when a device is removed
-            else if (event === 'remove_detected') {
-
-                $scope.device_connected = false;
-
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.mini_kiosk_sub = 'No device connected';
-                    });
-                });
-
-                // If our scan was finished (ie. results were shown), shows a button to start a new session without
-                // removing the results from the previous session (this way the user can unplug their device and they
-                // can still read through the results)
-                if ($scope.received_type === 'done' || $scope.received_type === 'timeout') {
-                    $rootScope.$emit("device_removed", {});
-                }
-
-                // Handles premature device removal
-                if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout') {
-
-                    if ($scope.curr_screen === 2) {
-
-                        setTimeout(function () {
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.received_type = 'early';
-                                });
-                            });
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.percentage_received = 100;
-                                    $scope.percentage_sent = 0;
-                                });
-                            });
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.received_output = "Device removed before scan could be completed";
-                                });
-                            });
-                        }, 500);
-
-                        // Hides our scan screen and makes the results page visible
-                        setTimeout(function () {
-                            _.defer(function () {
-                                $scope.$apply(function () {
-
-                                    $scope.hide_output = true;
-
-                                    setTimeout(function () {
-                                        _.defer(function () {
-                                            $scope.$apply(function () {
-                                                $rootScope.$emit("results_init", 'premature', {});
-                                            })
-                                        });
-                                    }, 1000);
-                                    setTimeout(function () {
-                                        _.defer(function () {
-                                            $scope.$apply(function () {
-                                                $rootScope.$emit("device_removed", {});
-                                            })
-                                        });
-                                    }, 1500);
-
-                                })
-                            })
-                        }, 1500);
-
-                    }
-
-                    else {
-
-                        // Resets all session variables
-                        setTimeout(function () {
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    console.log("New Session!");
-                                    $scope.new_session();
-                                });
-                            });
-                        }, 100);
-
-                    }
-
-                }
-
-            }
-
             // Called when a block device is loaded. Resets all variables related to our scan progress bar screen
             // (these variables will have have been reset previously when the device was removed, but this occurs
             // again just in case in the interim a straggling file was sent through by the back end app)
@@ -522,6 +434,90 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                     $scope.device_event = 'vm_refreshing';
                 });
             });
+
+            $scope.device_connected = false;
+
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.mini_kiosk_sub = 'No device connected';
+                });
+            });
+
+            // If our scan was finished (ie. results were shown), shows a button to start a new session without
+            // removing the results from the previous session (this way the user can unplug their device and they
+            // can still read through the results)
+            if ($scope.received_type === 'done' || $scope.received_type === 'timeout') {
+                $rootScope.$emit("device_removed", {});
+            }
+
+            // Handles premature device removal
+            if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout') {
+
+                if ($scope.curr_screen === 2) {
+
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_type = 'early';
+                            });
+                        });
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.percentage_received = 100;
+                                $scope.percentage_sent = 0;
+                            });
+                        });
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                $scope.received_output = "Device removed before scan could be completed";
+                            });
+                        });
+                    }, 500);
+
+                    // Hides our scan screen and makes the results page visible
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+
+                                $scope.hide_output = true;
+
+                                setTimeout(function () {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            $rootScope.$emit("results_init", 'premature', {});
+                                        })
+                                    });
+                                }, 1000);
+                                setTimeout(function () {
+                                    _.defer(function () {
+                                        $scope.$apply(function () {
+                                            $rootScope.$emit("device_removed", {});
+                                        })
+                                    });
+                                }, 1500);
+
+                            })
+                        })
+                    }, 1500);
+
+                }
+
+                else {
+
+                    // Resets all session variables
+                    setTimeout(function () {
+                        _.defer(function () {
+                            $scope.$apply(function () {
+                                console.log("New Session!");
+                                $scope.new_session();
+                            });
+                        });
+                    }, 100);
+
+                }
+
+            }
+
         }
 
         else {
@@ -592,7 +588,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
 
             }
-            else if (device_event === 'remove_detected' || device_event === 'vm_done_refreshing') {
+            else if (device_event === 'vm_done_refreshing') {
 
                 _.defer(function () {
                     $scope.$apply(function () {
@@ -2396,7 +2392,6 @@ app.directive('animOutputHeader', function($animate) {
                 }
                 if (scope.device_event === 'connected'
                     || scope.device_event === 'new_detected'
-                    || scope.device_event === 'remove_detected'
                     || scope.device_event === 'al_server_success'
                     || scope.device_event === 'al_server_failure'
                     || scope.device_event === 'hide'
