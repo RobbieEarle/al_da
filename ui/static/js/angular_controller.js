@@ -576,6 +576,8 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         setTimeout(function(){
 
+            console.log(device_event)
+
             if (device_event === 'new_detected'){
 
                 _.defer(function () {
