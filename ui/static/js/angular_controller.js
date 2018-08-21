@@ -576,7 +576,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         setTimeout(function(){
 
-            console.log(device_event)
+            console.log(device_event);
 
             if (device_event === 'new_detected'){
 
@@ -880,18 +880,18 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
 
         setTimeout(function(){
 
-            if (!$scope.device_connected) {
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
-                    });
-                });
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.kiosk_img_sub = 'Please attach storage device';
-                    });
-                });
-            }
+            // if (!$scope.device_connected) {
+            //     _.defer(function () {
+            //         $scope.$apply(function () {
+            //             $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
+            //         });
+            //     });
+            //     _.defer(function () {
+            //         $scope.$apply(function () {
+            //             $scope.kiosk_img_sub = 'Please attach storage device';
+            //         });
+            //     });
+            // }
 
             _.defer(function() {
                 $scope.$apply(function () {
