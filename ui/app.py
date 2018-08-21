@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -27,7 +26,6 @@ import os
 
 eventlet.monkey_patch()
 
-
 # ============== Logging ==============
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
@@ -42,7 +40,6 @@ my_logger = logging.getLogger('alda')
 my_logger.setLevel(logging.DEBUG)
 my_logger.addHandler(local_handler)
 sys.stderr = StreamToLogger(my_logger, logging.ERROR)
-
 
 # ============== Default Values ==============
 
@@ -76,10 +73,6 @@ accepting_devices = False
 
 # True when a scan session has been initiated but then 'New Session' button hasn't been clicked yet
 session_in_progress = False
-
-# Holds details about the device attached for this session
-device_details = {}
-
 
 # ============== Flask & Socketio Setup ==============
 
@@ -281,7 +274,8 @@ def do_admin_login():
 
     # Checks if credentials entered by the user match those on record; if so sets logged_in to true allowing admin.html
     # to render
-    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings['user_id']:
+    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings[
+        'user_id']:
         session['logged_in'] = True
 
     # Otherwise sets login_failed to True. When the login.html page is brought up it will emit fe_login_status, which
@@ -295,7 +289,6 @@ def do_admin_login():
 
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
-
     global file_awaiting_upload, file_upload_error, wrong_file_type
 
     try:
@@ -701,14 +694,14 @@ def be_device_event(event_type, *args):
             # Sends email alert to all users on the recipient list
             email_alert(mal_files)
 
+    # Tells front end that a device event has occurred and what type
+    socketio.emit('dev_event', event_type)
+
+    time.sleep(0.2)
+
     # If the device event is a disconnection, refreshes our VM
     if event_type == 'remove_detected':
         vm_refresh()
-
-    time.sleep(0.5)
-
-    # Tells front end that a device event has occurred and what type
-    socketio.emit('dev_event', event_type)
 
 
 @socketio.on('be_ingest_status')
@@ -890,56 +883,23 @@ def detect_new_device():
 
             for line in connected_devices:
 
-                if accepting_devices:
-                    # Finds the UUID for each device
-                    output = re.search('UUID:\s*(.*)', line)
-                    if output is not None:
-                        output = output.group(1).strip()
-                        found_new_device = True
+                # Finds the UUID for each device
+                output = re.search('UUID:\s*(.*)', line)
+                if output is not None:
+                    output = output.group(1).strip()
+                    found_new_device = True
 
-                        # Goes through the list of devices that are attached to the host by default, as determined when
-                        # the VM was refreshing. If a device is present that is not in this list, we know we have a new
-                        # device.
-                        for device in default_devices:
-                            if output == device:
-                                found_new_device = False
+                    # Goes through the list of devices that are attached to the host by default, as determined when the
+                    # VM was refreshing. If a device is present that is not in this list, we know we have a new device.
+                    for device in default_devices:
+                        if output == device:
+                            found_new_device = False
 
-                        # If we find a new device, attaches it to our VM and prevents any more devices from attaching
-                        if found_new_device and accepting_devices:
-                            subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
-                            my_logger.info('Attached: ' + str(output))
-                            accepting_devices = False
-                            continue
-
-                # Records information on our new device that will be forwarded in email alert if one is generated
-                else:
-                    if re.search('UUID:\s*(.*)', line) is not None:
-                        break
-                    else:
-                        output = re.search('VendorId:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Vendor ID'] = output.group(1).strip()
-                            continue
-
-                        output = re.search('ProductId:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Product ID'] = output.group(1).strip()
-                            continue
-
-                        output = re.search('Manufacturer:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Manufacturer'] = output.group(1).strip()
-                            continue
-
-                        output = re.search('Product:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Device'] = output.group(1).strip()
-                            continue
-
-                        output = re.search('SerialNumber:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Serial Number'] = output.group(1).strip()
-                            continue
+                    # If we find a new device, attaches it to our VM and prevents any more devices from attaching
+                    if found_new_device and accepting_devices:
+                        subprocess.call(['VBoxManage', 'controlvm', 'alda_sandbox', 'usbattach', output])
+                        my_logger.info('Attached: ' + str(output))
+                        accepting_devices = False
 
         time.sleep(1)
 
@@ -1014,10 +974,6 @@ def email_alert(mal_files):
         body += '\r\n-- Session Details: ' + '\r\n'
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
-
-        body += '\r\n-- Device Details: ' + '\r\n'
-        for detail_name, detail in device_details.iteritems():
-            body += detail_name + ': ' + detail + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
