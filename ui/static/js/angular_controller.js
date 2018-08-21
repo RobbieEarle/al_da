@@ -131,9 +131,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Handles device events outputted by our back end script
         */
 
-        console.log('Device Event Received: ' + event);
-        console.log('VM Refreshing: ' + $scope.vm_refreshing);
-
         if (!$scope.vm_refreshing) {
 
             // Called when a device is first connected (any device; this event simply changes the device connected
@@ -162,9 +159,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 if ($scope.received_type === 'done' || $scope.received_type === 'timeout') {
                     $rootScope.$emit("device_removed", {});
                 }
-
-                console.log('received_type = ' + $scope.received_type);
-                console.log('curr_screen = ' + $scope.curr_screen);
 
                 // Handles premature device removal
                 if ($scope.received_type !== 'done' && $scope.received_type !== 'timeout') {
@@ -516,13 +510,33 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         Called by back end when our VM is refreshing / not accepting new devices, or when it has finished refreshing
          */
 
-        console.log('VM refresh call: ' + status);
-
-        _.defer(function () {
-            $scope.$apply(function () {
-                $scope.vm_refreshing = status;
+        if (status) {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.vm_refreshing = status;
+                });
             });
-        });
+
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.device_event = 'vm_refreshing';
+                });
+            });
+        }
+
+        else {
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.device_event = 'vm_done_refreshing';
+                });
+            });
+
+            _.defer(function () {
+                $scope.$apply(function () {
+                    $scope.vm_refreshing = status;
+                });
+            });
+        }
 
     });
 
@@ -563,6 +577,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
         setTimeout(function(){
 
             if (device_event === 'new_detected'){
+
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.kiosk_img = '/static/images/scrape_conn.svg';
@@ -573,8 +588,10 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                         $scope.kiosk_img_sub = 'Device detected';
                     });
                 });
+
             }
-            else if (device_event === 'remove_detected') {
+            else if (device_event === 'remove_detected' || device_event === 'vm_done_refreshing') {
+
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
@@ -585,6 +602,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                         $scope.kiosk_img_sub = 'Please attach storage device';
                     });
                 });
+
             }
             else if (device_event === 'connected') {
 
@@ -619,20 +637,6 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
 
             }
-            else if (device_event === 'disconnected') {
-
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.kiosk_img = '/static/images/scrape_no_conn.svg';
-                    });
-                });
-                _.defer(function () {
-                    $scope.$apply(function () {
-                        $scope.kiosk_img_sub = 'Please attach storage device';
-                    });
-                });
-
-            }
             else if (device_event === 'al_server_failure') {
 
                 _.defer(function () {
@@ -643,6 +647,20 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.kiosk_img_sub = 'Error connecting to Assemblyline Server';
+                    });
+                });
+
+            }
+            else if (device_event === 'vm_refreshing') {
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img = '/static/images/refresh.svg';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img_sub = 'Refreshing virtual machine. Please do not attach device ';
                     });
                 });
 
@@ -2392,7 +2410,9 @@ app.directive('animOutputHeader', function($animate) {
                     || scope.device_event === 'remove_detected'
                     || scope.device_event === 'al_server_success'
                     || scope.device_event === 'al_server_failure'
-                    || scope.device_event === 'hide') {
+                    || scope.device_event === 'hide'
+                    || scope.device_event === 'vm_refreshing'
+                    || scope.device_event === 'vm_done_refreshing') {
                     $animate.addClass(elem, 'hidden');
                     $animate.addClass(elem, 'img-hide').then(scope.after_hide_img(scope.device_event));
                 }

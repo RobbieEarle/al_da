@@ -28,21 +28,21 @@
 
                 <div class="text-center" uib-collapse="curr_screen!=0">
                     <div class="pad">
-                        <div ng-if="vm_refreshing">
-                            <img class="connect-icon" src='/static/images/refresh.svg'>
-                            <div class="connect-icon-sub-2 pad-head-big">
-                                Refreshing Virtual Machine - <b>DO NOT ATTACH DEVICE</b>
-                            </div>
-                            <div class="pad-head-small">
-                                Please wait...
-                            </div>
-                        </div>
-                        <div ng-if="!vm_refreshing">
+                        <!--<div ng-if="vm_refreshing">-->
+                            <!--<img class="connect-icon" src='/static/images/refresh.svg'>-->
+                            <!--<div class="connect-icon-sub-2 pad-head-big">-->
+                                <!--Refreshing Virtual Machine - <b>DO NOT ATTACH DEVICE</b>-->
+                            <!--</div>-->
+                            <!--<div class="pad-head-small">-->
+                                <!--Please wait...-->
+                            <!--</div>-->
+                        <!--</div>-->
+                        <!--<div ng-if="!vm_refreshing">-->
                             <img class="fade-anim connect-icon" anim-output-header="device_event" src=//kiosk_img//>
                             <div class="fade-anim connect-icon-sub text-semi-muted" anim-output-header="device_event">
                                 <b>//kiosk_img_sub//</b>
                             </div>
-                        </div>
+                        <!--</div>-->
 
                     </div>
                     <div class="pad-foot-big"></div>
