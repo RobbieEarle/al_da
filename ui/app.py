@@ -701,14 +701,14 @@ def be_device_event(event_type, *args):
             # Sends email alert to all users on the recipient list
             email_alert(mal_files)
 
-    # Tells front end that a device event has occurred and what type
-    socketio.emit('dev_event', event_type)
-
-    time.sleep(0.2)
-
     # If the device event is a disconnection, refreshes our VM
     if event_type == 'remove_detected':
         vm_refresh()
+
+    time.sleep(0.5)
+
+    # Tells front end that a device event has occurred and what type
+    socketio.emit('dev_event', event_type)
 
 
 @socketio.on('be_ingest_status')
@@ -911,6 +911,7 @@ def detect_new_device():
                             accepting_devices = False
                             continue
 
+                # Records information on our new device that will be forwarded in email alert if one is generated
                 else:
                     if re.search('UUID:\s*(.*)', line) is not None:
                         break
