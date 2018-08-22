@@ -1129,8 +1129,10 @@ app.controller('ResultsController', ['$scope', '$rootScope', function ResultsCon
                     });
                 });
 
-            // Shows results page
-            $scope.results_init();
+            setTimeout(function () {
+                // Shows results page
+                $scope.results_init();
+            }, 200);
 
         }, 1500);
 
