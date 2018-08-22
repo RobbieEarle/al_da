@@ -494,7 +494,7 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                                             $rootScope.$emit("device_removed", {});
                                         })
                                     });
-                                }, 2000);
+                                }, 3000);
 
                             })
                         })
