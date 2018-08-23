@@ -151,6 +151,7 @@ def db_get_saved():
         settings_dict['fail_message'] = cipher_suite.decrypt(bytes(data_settings[saved][16]))
         settings_dict['error_timeout'] = cipher_suite.decrypt(bytes(data_settings[saved][17]))
         settings_dict['error_removal'] = cipher_suite.decrypt(bytes(data_settings[saved][18]))
+
     except Exception as e:
         my_logger.error('Error parsing decrypting settings: ' + str(e))
 
@@ -1018,16 +1019,13 @@ def email_alert(mal_files):
 
         body += '\r\n-- Device Details: ' + '\r\n'
         for detail_name, detail in device_details.iteritems():
-            body += str(detail_name) + ': ' + str(detail) + '\r\n'
+            body += detail_name + ': ' + detail + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
             body += 'Filename: ' + item['submission']['metadata']['filename'] + '\r\n'
-            if item['ingested']:
-                body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
-                body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
-            else:
-                body += '**Error: file of size greater than 100MB. Unable to send to Assemblyline.'
+            body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
+            body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
             body += '\r\n'
 
         msg.attach(MIMEText(body, 'plain'))
