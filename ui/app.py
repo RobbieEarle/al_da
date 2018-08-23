@@ -32,7 +32,6 @@ formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%
 
 # -- OS CHANGES
 local_handler = logging.handlers.RotatingFileHandler('/var/log/al_da_kiosk/kiosk.log', maxBytes=100000, backupCount=5)
-# local_handler = logging.handlers.RotatingFileHandler('C:/Users/Robert Earle/Desktop/al_device_audit/al_da/ui/kiosk.log', maxBytes=500000, backupCount=5)
 
 local_handler.setFormatter(formatter)
 
@@ -81,7 +80,6 @@ device_details = {}
 
 # -- OS CHANGES
 UPLOAD_FOLDER = '/opt/al_da/ui/static/uploads'
-# UPLOAD_FOLDER = 'C:\\Users\\Robert Earle\\Desktop\\al_device_audit\\al_da\\ui\\static\\uploads'
 
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg']
 
@@ -334,7 +332,6 @@ def fe_scan_start():
     """
 
     my_logger.info('============= FRONTEND CONNECTED')
-    # if get_vm_state() != 'running':
     vm_refresh()
 
 
@@ -637,7 +634,7 @@ def be_retrieve_settings():
     # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
 
-    my_logger.info('Sandbox retrieved Assemblyline server settings')
+    my_logger.info('Flask app sent Assemblyline server settings')
 
     al_settings = {
         'address': default_settings['al_address'],
@@ -690,21 +687,24 @@ def be_device_event(event_type, *args):
             # front end
             mal_files = []
             for file_info in args[1]:
-                mal_files.append(get_detailed_info(terminal, file_info))
+                if file_info['ingested']:
+                    mal_files.append(get_detailed_info(terminal, file_info))
+                else:
+                    mal_files.append(file_info)
             mal_files_json = json.dumps(mal_files)
             socketio.emit('mal_files_json', mal_files_json)
 
             # Sends email alert to all users on the recipient list
             email_alert(mal_files)
 
-    # Tells front end that a device event has occurred and what type
-    socketio.emit('dev_event', event_type)
-
-    time.sleep(0.2)
-
     # If the device event is a disconnection, refreshes our VM
     if event_type == 'remove_detected':
         vm_refresh()
+
+    time.sleep(0.5)
+
+    # Tells front end that a device event has occurred and what type
+    socketio.emit('dev_event', event_type)
 
 
 @socketio.on('be_ingest_status')
@@ -907,6 +907,7 @@ def detect_new_device():
                             accepting_devices = False
                             continue
 
+                # Records information on our new device that will be forwarded in email alert if one is generated
                 else:
                     if re.search('UUID:\s*(.*)', line) is not None:
                         break
@@ -975,6 +976,7 @@ def get_detailed_info(terminal, file_info):
     details['name'] = file_info['name']
     details['score'] = file_info['score']
     details['sid'] = file_info['sid']
+    details['ingested'] = file_info['ingested']
 
     # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
     # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
@@ -1010,15 +1012,18 @@ def email_alert(mal_files):
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
 
-        body += '\r\n-- Device Details: ' + '\r\n'
-        for detail_name, detail in device_details.iteritems():
-            body += detail_name + ': ' + detail + '\r\n'
+        # body += '\r\n-- Device Details: ' + '\r\n'
+        # for detail_name, detail in device_details.iteritems():
+        #     body += str(detail_name) + ': ' + str(detail) + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
             body += 'Filename: ' + item['submission']['metadata']['filename'] + '\r\n'
-            body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
-            body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
+            if item['ingested']:
+                body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
+                body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
+            else:
+                body += '**Error: file of size greater than 100MB. Unable to send to Assemblyline.'
             body += '\r\n'
 
         msg.attach(MIMEText(body, 'plain'))
