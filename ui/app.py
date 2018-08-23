@@ -1,3 +1,4 @@
+# encoding=utf8
 
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
@@ -26,6 +27,8 @@ import subprocess
 import os
 
 eventlet.monkey_patch()
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 # ============== Logging ==============
@@ -1016,9 +1019,9 @@ def email_alert(mal_files):
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
 
-        # body += '\r\n-- Device Details: ' + '\r\n'
-        # for detail_name, detail in device_details.iteritems():
-        #     body += str(detail_name) + ': ' + str(detail) + '\r\n'
+        body += '\r\n-- Device Details: ' + '\r\n'
+        for detail_name, detail in device_details.iteritems():
+            body += str(detail_name) + ': ' + str(detail) + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
