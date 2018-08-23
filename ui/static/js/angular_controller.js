@@ -369,24 +369,22 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // by the back end that all partitions are done loading and scanning) then the progress bar
             // indicates that it is waiting for more files
             else if ($scope.received_type !== 'done') {
-                setTimeout(function () {
-                    if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                        setTimeout(function () {
-                            if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                                _.defer(function () {
-                                    $scope.$apply(function () {
-                                        $scope.received_type = 'scanning';
-                                    });
+                if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
+                    setTimeout(function () {
+                        if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
+                            _.defer(function () {
+                                $scope.$apply(function () {
+                                    $scope.received_type = 'scanning';
                                 });
-                                _.defer(function () {
-                                    $scope.$apply(function () {
-                                        $scope.received_output = "Searching for more files";
-                                    });
+                            });
+                            _.defer(function () {
+                                $scope.$apply(function () {
+                                    $scope.received_output = "Searching for more files";
                                 });
-                            }
-                        }, 1500);
-                    }
-                }, 1000);
+                            });
+                        }
+                    }, 1500);
+                }
             }
 
             // Updates our progress bars

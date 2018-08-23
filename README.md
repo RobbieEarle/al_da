@@ -40,15 +40,6 @@ work but have not been tested
 At this point we are ready to install our al_scrape back end service. Please follow the instructions found 
 [here](https://github.com/RobbieEarle/al_scrape) in their entirety before continuing
 
-### Allow al_scrape to detect USB devices
-
-- Close VirtualBox entirely
-- `sudo adduser $USER vboxusers`
-- Log out and log back in again
-- Open VirtualBox
-- Select alda_sandbox and go to Machine > Settings > USB
-- Check "Enable USB Controller" and click "USB 3.0"
-
 ### Install al_da
 
 - `python /opt/al_da/install/install_alda.py`

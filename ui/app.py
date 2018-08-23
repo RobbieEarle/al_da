@@ -638,7 +638,7 @@ def be_retrieve_settings():
     # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
 
-    my_logger.info('Sandbox retrieved Assemblyline server settings')
+    my_logger.info('Flask app sent Assemblyline server settings')
 
     al_settings = {
         'address': default_settings['al_address'],
@@ -691,7 +691,10 @@ def be_device_event(event_type, *args):
             # front end
             mal_files = []
             for file_info in args[1]:
-                mal_files.append(get_detailed_info(terminal, file_info))
+                if file_info['ingested']:
+                    mal_files.append(get_detailed_info(terminal, file_info))
+                else:
+                    mal_files.append(file_info)
             mal_files_json = json.dumps(mal_files)
             socketio.emit('mal_files_json', mal_files_json)
 
@@ -977,6 +980,7 @@ def get_detailed_info(terminal, file_info):
     details['name'] = file_info['name']
     details['score'] = file_info['score']
     details['sid'] = file_info['sid']
+    details['ingested'] = file_info['ingested']
 
     # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
     # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
@@ -1019,8 +1023,11 @@ def email_alert(mal_files):
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
             body += 'Filename: ' + item['submission']['metadata']['filename'] + '\r\n'
-            body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
-            body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
+            if item['ingested']:
+                body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
+                body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
+            else:
+                body += '**Error: file of size greater than 100MB. Unable to send to Assemblyline.'
             body += '\r\n'
 
         msg.attach(MIMEText(body, 'plain'))
