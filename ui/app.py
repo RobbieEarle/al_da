@@ -1018,7 +1018,7 @@ def email_alert(mal_files):
 
         body += '\r\n-- Device Details: ' + '\r\n'
         for detail_name, detail in device_details.iteritems():
-            body += detail_name + ': ' + detail + '\r\n'
+            body += str(detail_name) + ': ' + str(detail) + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
