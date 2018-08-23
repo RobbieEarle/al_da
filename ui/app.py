@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -914,27 +916,27 @@ def detect_new_device():
                     else:
                         output = re.search('VendorId:\s*(.*)', line)
                         if output is not None:
-                            device_details['Vendor ID'] = output.group(1).strip()
+                            device_details['Vendor ID'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('ProductId:\s*(.*)', line)
                         if output is not None:
-                            device_details['Product ID'] = output.group(1).strip()
+                            device_details['Product ID'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('Manufacturer:\s*(.*)', line)
                         if output is not None:
-                            device_details['Manufacturer'] = output.group(1).strip()
+                            device_details['Manufacturer'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('Product:\s*(.*)', line)
                         if output is not None:
-                            device_details['Device'] = output.group(1).strip()
+                            device_details['Device'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('SerialNumber:\s*(.*)', line)
                         if output is not None:
-                            device_details['Serial Number'] = output.group(1).strip()
+                            device_details['Serial Number'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
         time.sleep(1)
@@ -1012,13 +1014,13 @@ def email_alert(mal_files):
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
 
-        # body += '\r\n-- Device Details: ' + '\r\n'
-        # for detail_name, detail in device_details.iteritems():
-        #     body += str(detail_name) + ': ' + str(detail) + '\r\n'
+        body += '\r\n-- Device Details: ' + '\r\n'
+        for detail_name, detail in device_details.iteritems():
+            body += str(detail_name) + ': ' + str(detail) + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         for item in mal_files:
-            body += 'Filename: ' + item['submission']['metadata']['filename'] + '\r\n'
+            body += 'Filename: ' + item['name'] + '\r\n'
             if item['ingested']:
                 body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
                 body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
