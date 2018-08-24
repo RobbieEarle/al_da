@@ -2064,7 +2064,7 @@ fieldset[disabled] .btn-default:active,
 .btn-default.disabled.active,
 .btn-default[disabled].active,
 fieldset[disabled] .btn-default.active {
-  background-color: #fff;
+  background-color: #29406c;
   border-color: #ccc;
 }
 .btn-default .badge {

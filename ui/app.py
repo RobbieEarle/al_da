@@ -1,3 +1,4 @@
+# encoding: utf-8
 
 from flask import Flask, render_template, json, redirect, request, session
 from werkzeug.utils import secure_filename
@@ -27,7 +28,6 @@ import os
 
 eventlet.monkey_patch()
 
-
 # ============== Logging ==============
 
 formatter = logging.Formatter('%(asctime)s: %(levelname)s:\t %(message)s', '%Y-%m-%d %H:%M:%S')
@@ -41,7 +41,6 @@ my_logger = logging.getLogger('alda')
 my_logger.setLevel(logging.DEBUG)
 my_logger.addHandler(local_handler)
 sys.stderr = StreamToLogger(my_logger, logging.ERROR)
-
 
 # ============== Default Values ==============
 
@@ -78,6 +77,15 @@ session_in_progress = False
 
 # Holds details about the device attached for this session
 device_details = {}
+
+# List of all our malicious files
+mal_files = []
+
+# True when a timeout occurs
+timeout = False
+
+# Holds the number of files that were successfully scanned in our session
+num_files_scanned = 0
 
 
 # ============== Flask & Socketio Setup ==============
@@ -279,7 +287,8 @@ def do_admin_login():
 
     # Checks if credentials entered by the user match those on record; if so sets logged_in to true allowing admin.html
     # to render
-    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings['user_id']:
+    if request.form['password'] == default_settings['user_pw'] and request.form['username'] == default_settings[
+        'user_id']:
         session['logged_in'] = True
 
     # Otherwise sets login_failed to True. When the login.html page is brought up it will emit fe_login_status, which
@@ -293,7 +302,6 @@ def do_admin_login():
 
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
-
     global file_awaiting_upload, file_upload_error, wrong_file_type
 
     try:
@@ -401,8 +409,8 @@ def fe_set_session_credentials(credentials):
 
     my_logger.info('Credentials successfully entered')
 
-    session_in_progress = True
     session_credentials = credentials
+    session_in_progress = True
 
     my_logger.info('Starting new scan')
     # Tells back end script that credentials have been receieved and we can start our submit / receive threads
@@ -416,9 +424,12 @@ def fe_session_complete():
     :return:
     """
 
-    global session_in_progress
+    global session_in_progress, mal_files, num_files_scanned, timeout
 
     session_in_progress = False
+    mal_files = []
+    num_files_scanned = 0
+    timeout = False
 
 
 @socketio.on('fe_login_status')
@@ -609,6 +620,16 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
 
 # ============== Back End Socketio Listeners ==============
 
+@socketio.on('be_request_connect')
+def be_request_connect():
+    """
+    Emitted repeatedly by back end until Flask app returns with handshake
+    :return:
+    """
+
+    return
+
+
 @socketio.on('be_connected')
 def be_connected():
     """
@@ -638,7 +659,7 @@ def be_retrieve_settings():
     # Refreshes default settings to make sure it is up to date with DB
     default_settings = db_get_saved()
 
-    my_logger.info('Sandbox retrieved Assemblyline server settings')
+    my_logger.info('Flask app sent Assemblyline server settings')
 
     al_settings = {
         'address': default_settings['al_address'],
@@ -659,8 +680,11 @@ def be_device_event(event_type, *args):
     :return:
     """
 
+    global timeout
+
     my_logger.info('Device event : ' + event_type)
     args = list(args)
+    pass_files = []
 
     # The length of args will be two whenever pass/mal file arrays are passed in (ie. when a device is disconnected or
     # when a scan has been completed.
@@ -681,7 +705,6 @@ def be_device_event(event_type, *args):
         if terminal is not None:
             # Populates pass_files array with basic file info for each sid passed from back end, and emits JSON dump to
             # front end
-            pass_files = []
             for file_info in args[0]:
                 pass_files.append(file_info)
             pass_files_json = json.dumps(pass_files)
@@ -689,17 +712,28 @@ def be_device_event(event_type, *args):
 
             # Populates mal array with detailed file info for each sid passed from back end, and emits JSON dump to
             # front end
-            mal_files = []
             for file_info in args[1]:
-                mal_files.append(get_detailed_info(terminal, file_info))
+                if file_info['ingested'] == 'yes':
+                    mal_files.append(get_detailed_info(terminal, file_info))
+                else:
+                    mal_files.append(file_info)
             mal_files_json = json.dumps(mal_files)
             socketio.emit('mal_files_json', mal_files_json)
 
-            # Sends email alert to all users on the recipient list
-            email_alert(mal_files)
+    if event_type == 'timeout':
+        timeout = True
 
     # If the device event is a disconnection, refreshes our VM
-    if event_type == 'remove_detected':
+    if event_type == 'remove_detected' and session_in_progress:
+        if timeout:
+            session_status = '**Error - timeout'
+            timeout = False
+        elif len(args) == 2:
+            session_status = '**Error - early removal'
+        else:
+            session_status = 'Scan successful'
+        # Sends email alert to all users on the recipient list
+        email_alert(session_status)
         vm_refresh()
 
     time.sleep(0.5)
@@ -718,6 +752,8 @@ def be_ingest_status(update_type, filename):
     :return:
     """
 
+    global num_files_scanned
+
     args = {
         'update_type': update_type,
         'filename': filename
@@ -727,6 +763,7 @@ def be_ingest_status(update_type, filename):
         my_logger.info(' - submitted file : ' + filename)
     elif update_type == 'receive_file':
         my_logger.info(' -    received file : ' + filename)
+        num_files_scanned += 1
 
     socketio.emit('update_ingest', args)
 
@@ -915,27 +952,27 @@ def detect_new_device():
                     else:
                         output = re.search('VendorId:\s*(.*)', line)
                         if output is not None:
-                            device_details['Vendor ID'] = output.group(1).strip()
+                            device_details['Vendor ID'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('ProductId:\s*(.*)', line)
                         if output is not None:
-                            device_details['Product ID'] = output.group(1).strip()
+                            device_details['Product ID'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('Manufacturer:\s*(.*)', line)
                         if output is not None:
-                            device_details['Manufacturer'] = output.group(1).strip()
+                            device_details['Manufacturer'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('Product:\s*(.*)', line)
                         if output is not None:
-                            device_details['Device'] = output.group(1).strip()
+                            device_details['Device'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
                         output = re.search('SerialNumber:\s*(.*)', line)
                         if output is not None:
-                            device_details['Serial Number'] = output.group(1).strip()
+                            device_details['Serial Number'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
         time.sleep(1)
@@ -977,6 +1014,7 @@ def get_detailed_info(terminal, file_info):
     details['name'] = file_info['name']
     details['score'] = file_info['score']
     details['sid'] = file_info['sid']
+    details['ingested'] = file_info['ingested']
 
     # Before being submitted to the server, each file from our device is copied into a temporary folder. The statement
     # below strips the first part of the path (ie. the part that references the location of this temporary folder) so
@@ -986,17 +1024,18 @@ def get_detailed_info(terminal, file_info):
     return details
 
 
-def email_alert(mal_files):
+def email_alert(session_status):
     """
     Sends email alert to all addresses in the recipients list
     :param mal_files: list, all files that were flagged
+    :param session_status: did the scan complete? Or did an error occur
     :return:
     """
 
     global default_settings
 
     # Only sends if there is at least one recipient, and if email alerts have been turned on
-    if len(default_settings['recipients']) > 0 and len(mal_files) > 0 and default_settings['email_alerts']:
+    if len(default_settings['recipients']) > 0 and default_settings['email_alerts']:
 
         # Constructs message
         msg = MIMEMultipart()
@@ -1011,17 +1050,27 @@ def email_alert(mal_files):
         body += '\r\n-- Session Details: ' + '\r\n'
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
+        body += 'Session status: ' + str(session_status) + '\r\n'
+        body += 'Number of files scanned: ' + str(num_files_scanned) + '\r\n'
 
         body += '\r\n-- Device Details: ' + '\r\n'
         for detail_name, detail in device_details.iteritems():
-            body += detail_name + ': ' + detail + '\r\n'
+            body += str(detail_name) + ': ' + str(detail) + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
-        for item in mal_files:
-            body += 'Filename: ' + item['submission']['metadata']['filename'] + '\r\n'
-            body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
-            body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
-            body += '\r\n'
+        if len(mal_files) > 0:
+            for item in mal_files:
+                body += 'Filename: ' + item['name'] + '\r\n'
+                if item['ingested'] == 'yes':
+                    body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
+                    body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
+                elif item['ingested'] == 'large':
+                    body += '**Error: file of size greater than 100MB. Unable to send to Assemblyline.'
+                elif item['ingested'] == 'small':
+                    body += '**Error: file of size 0 bytes. Unable to send to Assemblyline.'
+                body += '\r\n'
+        else:
+            body += 'No malicious files found on this device'
 
         msg.attach(MIMEText(body, 'plain'))
 
