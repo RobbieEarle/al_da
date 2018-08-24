@@ -370,20 +370,16 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // indicates that it is waiting for more files
             else if ($scope.received_type !== 'done') {
                 if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                    setTimeout(function () {
-                        if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.received_type = 'scanning';
-                                });
-                            });
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.received_output = "Searching for more files";
-                                });
-                            });
-                        }
-                    }, 50);
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_type = 'scanning';
+                        });
+                    });
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_output = "Searching for more files";
+                        });
+                    });
                 }
             }
 
