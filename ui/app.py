@@ -46,47 +46,35 @@ sys.stderr = StreamToLogger(my_logger, logging.ERROR)
 
 # To hold default admin settings as retrieved from DB
 default_settings = {}
-
 # To hold the values entered by the user as credentials for each session
 session_credentials = []
-
 # Key and Cipher Suite used to decrypt DB contents
 key = b'peja3W-4eEM9uuJJ95yOJU4r2iL9H6LfLBN4llb4xEs='
 cipher_suite = Fernet(key)
-
 # Set to true when user enters the wrong credentials logging into the settings page
 login_failed = False
-
 # Holds a reference to logo file that has been uploaded
 file_awaiting_upload = None
-
 # Set to true when user tries to upload file greater than 5mb
 file_upload_error = False
-
 # Set to true when user tries to upload non-approved file type
 wrong_file_type = False
-
 # List of usb devices that are present on the host machine by default
 default_devices = []
-
 # Set to true when our VM has been restarted and is ready to accept a new device
 accepting_devices = False
-
 # True when a scan session has been initiated but then 'New Session' button hasn't been clicked yet
 session_in_progress = False
-
 # Holds details about the device attached for this session
 device_details = {}
-
 # List of all our malicious files
 mal_files = []
-
 # True when a timeout occurs
 timeout = False
-
 # Holds the number of files that were successfully scanned in our session
 num_files_scanned = 0
-
+# True when a timeout occurs while trying to mount a captured device
+mount_timeout = False
 
 # ============== Flask & Socketio Setup ==============
 
@@ -424,12 +412,13 @@ def fe_session_complete():
     :return:
     """
 
-    global session_in_progress, mal_files, num_files_scanned, timeout
+    global session_in_progress, mal_files, num_files_scanned, timeout, mount_timeout
 
     session_in_progress = False
     mal_files = []
     num_files_scanned = 0
     timeout = False
+    mount_timeout = False
 
 
 @socketio.on('fe_login_status')
@@ -680,7 +669,7 @@ def be_device_event(event_type, *args):
     :return:
     """
 
-    global timeout
+    global timeout, mount_timeout
 
     my_logger.info('Device event : ' + event_type)
     args = list(args)
@@ -722,12 +711,18 @@ def be_device_event(event_type, *args):
 
     if event_type == 'timeout':
         timeout = True
+    if event_type == 'mount_timeout':
+        mount_timeout = True
 
     # If the device event is a disconnection, refreshes our VM
-    if event_type == 'remove_detected' and session_in_progress:
+    if event_type == 'remove_detected' and (session_in_progress or mount_timeout):
         if timeout:
             session_status = '**Error - timeout'
             timeout = False
+        elif mount_timeout:
+            session_status = '**Error - USB device connected but unable to mount drive. This sometimes occurs with ' \
+                             'certain USB 3.0 devices'
+            mount_timeout = False
         elif len(args) == 2:
             session_status = '**Error - early removal'
         else:

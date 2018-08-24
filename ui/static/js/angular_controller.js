@@ -370,20 +370,16 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
             // indicates that it is waiting for more files
             else if ($scope.received_type !== 'done') {
                 if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                    setTimeout(function () {
-                        if ($scope.files_waiting === 0 && $scope.received_type !== 'done') {
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.received_type = 'scanning';
-                                });
-                            });
-                            _.defer(function () {
-                                $scope.$apply(function () {
-                                    $scope.received_output = "Searching for more files";
-                                });
-                            });
-                        }
-                    }, 50);
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_type = 'scanning';
+                        });
+                    });
+                    _.defer(function () {
+                        $scope.$apply(function () {
+                            $scope.received_output = "Searching for more files";
+                        });
+                    });
                 }
             }
 
@@ -614,6 +610,20 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 _.defer(function () {
                     $scope.$apply(function () {
                         $scope.kiosk_img_sub = 'Connecting to Assemblyline server';
+                    });
+                });
+
+            }
+            else if (device_event === 'mount_timeout') {
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img = '/static/images/fail.svg';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img_sub = 'Unable to mount device';
                     });
                 });
 
@@ -2395,6 +2405,7 @@ app.directive('animOutputHeader', function($animate) {
                     || scope.device_event === 'new_detected'
                     || scope.device_event === 'al_server_success'
                     || scope.device_event === 'al_server_failure'
+                    || scope.device_event === 'mount_timeout'
                     || scope.device_event === 'hide'
                     || scope.device_event === 'vm_refreshing'
                     || scope.device_event === 'vm_done_refreshing') {
