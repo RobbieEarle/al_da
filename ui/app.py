@@ -71,11 +71,10 @@ device_details = {}
 mal_files = []
 # True when a timeout occurs
 timeout = False
-# True when a timeout occurs while trying to mount a captured device
-mount_timeout = False
 # Holds the number of files that were successfully scanned in our session
 num_files_scanned = 0
-
+# True when a timeout occurs while trying to mount a captured device
+mount_timeout = False
 
 # ============== Flask & Socketio Setup ==============
 
@@ -419,7 +418,7 @@ def fe_session_complete():
     mal_files = []
     num_files_scanned = 0
     timeout = False
-    mount_timeout
+    mount_timeout = False
 
 
 @socketio.on('fe_login_status')
