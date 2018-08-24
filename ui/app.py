@@ -965,10 +965,10 @@ def detect_new_device():
                             device_details['Device'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
-                        output = re.search('SerialNumber:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Serial Number'] = unicode(output.group(1).strip(), 'utf-8')
-                            continue
+                        # output = re.search('SerialNumber:\s*(.*)', line)
+                        # if output is not None:
+                        #     device_details['Serial Number'] = unicode(output.group(1).strip(), 'utf-8')
+                        #     continue
 
         time.sleep(1)
 
@@ -1050,7 +1050,7 @@ def email_alert(session_status):
 
         body += '\r\n-- Device Details: ' + '\r\n'
         for detail_name, detail in device_details.iteritems():
-            body += str(detail_name) + ': ' + str(detail) + '\r\n'
+            body += detail_name + ': ' + detail + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         if len(mal_files) > 0:
