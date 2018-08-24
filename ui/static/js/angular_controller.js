@@ -618,6 +618,20 @@ app.controller('ScanController', ['$scope', '$rootScope', function ScanControlle
                 });
 
             }
+            else if (device_event === 'mount_timeout') {
+
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img = '/static/images/fail.svg';
+                    });
+                });
+                _.defer(function () {
+                    $scope.$apply(function () {
+                        $scope.kiosk_img_sub = 'Unable to mount device';
+                    });
+                });
+
+            }
             else if (device_event === 'al_server_success') {
 
                 _.defer(function () {
@@ -2395,6 +2409,7 @@ app.directive('animOutputHeader', function($animate) {
                     || scope.device_event === 'new_detected'
                     || scope.device_event === 'al_server_success'
                     || scope.device_event === 'al_server_failure'
+                    || scope.device_event === 'mount_timeout'
                     || scope.device_event === 'hide'
                     || scope.device_event === 'vm_refreshing'
                     || scope.device_event === 'vm_done_refreshing') {
