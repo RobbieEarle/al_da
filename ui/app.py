@@ -1050,7 +1050,7 @@ def email_alert(session_status):
 
         body += '\r\n-- Device Details: ' + '\r\n'
         for detail_name, detail in device_details.iteritems():
-            body += str(detail_name) + ': ' + str(detail) + '\r\n'
+            body += detail_name + ': ' + detail + '\r\n'
 
         body += '\r\n-- Flagged Files: ' + '\r\n'
         if len(mal_files) > 0:
