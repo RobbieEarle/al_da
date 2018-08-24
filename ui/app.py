@@ -620,6 +620,16 @@ def fe_test_connection_al(al_ip_address, al_username, al_api_key):
 
 # ============== Back End Socketio Listeners ==============
 
+@socketio.on('be_request_connect')
+def be_request_connect():
+    """
+    Emitted repeatedly by back end until Flask app returns with handshake
+    :return:
+    """
+
+    return
+
+
 @socketio.on('be_connected')
 def be_connected():
     """
