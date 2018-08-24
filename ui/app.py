@@ -965,10 +965,10 @@ def detect_new_device():
                             device_details['Device'] = unicode(output.group(1).strip(), 'utf-8')
                             continue
 
-                        output = re.search('SerialNumber:\s*(.*)', line)
-                        if output is not None:
-                            device_details['Serial Number'] = unicode(output.group(1).strip(), 'utf-8')
-                            continue
+                        # output = re.search('SerialNumber:\s*(.*)', line)
+                        # if output is not None:
+                        #     device_details['Serial Number'] = unicode(output.group(1).strip(), 'utf-8')
+                        #     continue
 
         time.sleep(1)
 
