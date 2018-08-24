@@ -1040,8 +1040,8 @@ def email_alert(session_status):
         body += '\r\n-- Session Details: ' + '\r\n'
         for credential in session_credentials:
             body += credential['name'] + ': ' + credential['value'] + '\r\n'
-        body += 'Session status: ' + str(session_status)
-        body += 'Number of files scanned: ' + str(num_files_scanned)
+        body += 'Session status: ' + str(session_status) + '\r\n'
+        body += 'Number of files scanned: ' + str(num_files_scanned) + '\r\n'
 
         body += '\r\n-- Device Details: ' + '\r\n'
         for detail_name, detail in device_details.iteritems():
