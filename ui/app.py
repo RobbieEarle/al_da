@@ -703,7 +703,7 @@ def be_device_event(event_type, *args):
             # Populates mal array with detailed file info for each sid passed from back end, and emits JSON dump to
             # front end
             for file_info in args[1]:
-                if file_info['ingested']:
+                if file_info['ingested'] == 'yes':
                     mal_files.append(get_detailed_info(terminal, file_info))
                 else:
                     mal_files.append(file_info)
@@ -1051,11 +1051,13 @@ def email_alert(session_status):
         if len(mal_files) > 0:
             for item in mal_files:
                 body += 'Filename: ' + item['name'] + '\r\n'
-                if item['ingested']:
+                if item['ingested'] == 'yes':
                     body += 'SSID: ' + str(item['submission']['sid']) + '\r\n'
                     body += 'Score: ' + str(item['submission']['max_score']) + '\r\n'
-                else:
+                elif item['ingested'] == 'large':
                     body += '**Error: file of size greater than 100MB. Unable to send to Assemblyline.'
+                elif item['ingested'] == 'small':
+                    body += '**Error: file of size 0 bytes. Unable to send to Assemblyline.'
                 body += '\r\n'
         else:
             body += 'No malicious files found on this device'
