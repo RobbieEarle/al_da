@@ -23,7 +23,7 @@ the VirtualBox VM on which al_scrape is running. Assemblyline Device Audit's pur
 - Host machine should ideally be running fresh Ubuntu 16.04.x Desktop install. Other versions of Ubuntu should also 
 work but have not been tested
 
-### Download Al_da repo
+### Download al_da repo
 
 - `sudo apt-get update`
 - `sudo apt-get -y upgrade`
